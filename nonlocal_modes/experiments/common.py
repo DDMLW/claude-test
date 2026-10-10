@@ -245,7 +245,8 @@ def param_continuation(build_model, start_value, start_model, start_sol, targets
     沿样品参数延拓 (例如矩形宽度 d_eta、多边形保角半径 rho、边界温度幅度 Theta)。
     build_model(v) -> NonlocalModel;  solve_fn(model, w_guess, prev_sol) -> sol (dict, 含 converged)
     targets: 按远离 start_value 的顺序排列的目标参数值。
-    某一步牛顿失败时, 在上一个成功值与目标值之间插入中点重试, 最多二分 max_depth 层。
+    步长控制: 先一步走到下一个目标; 牛顿失败则步长减半, 之后以减半后的步长逐步逼近该目标 (不再回头重试整步,
+    这样在解族端点/折返点附近最多失败约 max_depth 次就停下); 步长小于初始步长 / 2^max_depth 时停止。
     secant=True (默认): 用最近两个解做线性外推作为初值 (割线预测)。解的结构随参数明显变化时
                  (例如加热增强、卫星环外移) 比直接用上一个解作初值好得多, 细网格上尤其如此。
     返回 [(v, model, sol), ...] (只含 targets 中成功的点)。
@@ -254,10 +255,10 @@ def param_continuation(build_model, start_value, start_model, start_sol, targets
     cur_v, cur_M, cur_s = start_value, start_model, start_sol
     prev = None                                   # 上一个成功点 (v, model, sol), 供割线预测
     for v in targets:
-        pending = [v]
-        depth = 0
-        while pending:
-            vt = pending[-1]
+        step = v - cur_v
+        min_step = abs(step) / 2 ** max_depth
+        while abs(v - cur_v) > 1e-12 * max(1.0, abs(v)):
+            vt = v if abs(step) >= abs(v - cur_v) - 1e-12 else cur_v + step
             Mt = build_model(vt)
             w_guess = transfer_solution(cur_M, cur_s["w"], Mt)
             if secant and prev is not None and prev[0] != cur_v:
@@ -267,20 +268,17 @@ def param_continuation(build_model, start_value, start_model, start_sol, targets
             if sol["converged"]:
                 prev = (cur_v, cur_M, cur_s)
                 cur_v, cur_M, cur_s = vt, Mt, sol
-                pending.pop()
-                depth = max(depth - 1, 0)
-                if vt == v:
-                    out.append((v, Mt, sol))
-                    if verbose:
-                        print(f"   param continuation: value {v:g} reached (b={sol['b']:.4f}, "
-                              f"{sol.get('iterations', -1)} Newton its)", flush=True)
             else:
-                depth += 1
-                if depth > max_depth:
+                step = step / 2
+                if abs(step) < min_step:
                     if verbose:
-                        print(f"   param continuation stopped between {cur_v:g} and {vt:g}: {sol['message']}")
+                        print(f"   param continuation stopped between {cur_v:g} and {vt:g}: {sol['message']}",
+                              flush=True)
                     return out
-                pending.append(0.5 * (cur_v + vt))
+        out.append((v, cur_M, cur_s))
+        if verbose:
+            print(f"   param continuation: value {v:g} reached (b={cur_s['b']:.4f}, "
+                  f"{cur_s.get('iterations', -1)} Newton its)", flush=True)
     return out
 
 

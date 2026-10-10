@@ -24,6 +24,7 @@ E5a —— 可重构的热边界调控: 用边界温度多极图样代替样品�
 运行:
   python e5a_boundary_heating.py --quick    (约 5 分钟)
   python e5a_boundary_heating.py            (约 30-60 分钟)
+  python e5a_boundary_heating.py --cases 3,2 --tag check32    (只算一种情形)
 """
 
 import os
@@ -76,6 +77,7 @@ def main():
     p = standard_args(__doc__)
     p.add_argument("--R", type=float, default=10.0, help="圆盘半径")
     p.add_argument("--theta_scale", type=float, default=1.0, help="把所有 Theta_max 乘以此因子")
+    p.add_argument("--cases", nargs="+", default=None, help="只算这些 (n,m), 形如 3,2 4,3 (默认全部)")
     args = finalize_args(p, "E5_thermal_reconfiguration")
     out = args.res_dir
     R = args.R
@@ -83,6 +85,9 @@ def main():
     # hq 19 点 (同一范围, 公比 sqrt 2) —— 加密的是大 Theta 端 (卫星环可分辨的区域), 并配合割线预测
     nst, span = pick(args, quick=(4, 8.0), main=(10, 512.0), hq=(19, 512.0))
     cases = CASES[:2] if args.quick else CASES
+    if args.cases:
+        want = {tuple(int(v) for v in c.split(",")) for c in args.cases}
+        cases = [c for c in CASES if (c[0], c[1]) in want]
     fig, ax = plt.subplots(figsize=(5.5, 4.2))
     for (n, m, U, tmax) in cases:
         tmax = (1.0 if args.quick else tmax) * args.theta_scale

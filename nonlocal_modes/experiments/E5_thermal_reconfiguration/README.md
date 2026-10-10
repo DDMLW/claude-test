@@ -9,6 +9,7 @@
 cd nonlocal_modes/experiments/E5_thermal_reconfiguration
 python e5a_boundary_heating.py --quick     # 约 5 分钟 ((3,2), (4,3) 两种情形, Θ≤1)
 python e5a_boundary_heating.py             # 正式, 约 30-60 分钟, 六种 (n,m)
+python e5a_boundary_heating.py --cases 3,2 --tag check32    # 只算一种情形 (复核用)
 ```
 输出：`heating_n<n>_m<m>.csv`（每个 Θ：中心荷、卫星数、r_s 检测值/拟合值、第一颗卫星方位角）、`heating_rs.png`（r_s vs Θ 的 log-log 图与拟合斜率）、`heating_mode_*.png`。
 
