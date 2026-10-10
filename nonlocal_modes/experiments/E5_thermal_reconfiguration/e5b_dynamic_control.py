@@ -55,7 +55,8 @@ def satellite_tracks(res, rmax):
 def main():
     p = standard_args(__doc__)
     p.add_argument("--R", type=float, default=10.0)
-    p.add_argument("--Theta", type=float, default=1.0, help="C_3 图样的边界温度幅度")
+    p.add_argument("--Theta", type=float, default=4.0,
+                   help="C_3 图样的边界温度幅度 (默认 4: h=0.2 时卫星环 r~0.6 > 2h, 可分辨; 1 时卫星在亚网格)")
     p.add_argument("--U", type=float, default=15.0)
     p.add_argument("--zmax", type=float, default=None, help="默认 300 (quick 40)")
     args = finalize_args(p, "E5_thermal_reconfiguration")
@@ -75,7 +76,7 @@ def main():
         s.set_boundary_temperature(harmonic_multipole(3, T, R))
         return NonlocalModel(s)
 
-    scan = param_continuation(build, 0.0, M0, s0, [Th / 8, Th / 4, Th / 2, Th],
+    scan = param_continuation(build, 0.0, M0, s0, [Th / 16, Th / 8, Th / 4, Th / 2, Th],
                               lambda model, w0, prev: newton.solve_robust(model, w0, prev["b"], fixed_power=U))
     if not scan or scan[-1][0] != Th:
         raise SystemExit("未能得到 C_3 加热下的定态, 请减小 --Theta")

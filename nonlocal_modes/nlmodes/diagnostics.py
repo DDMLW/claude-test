@@ -294,7 +294,8 @@ def mode_summary(model, sol, nsym=None, center=(0.0, 0.0), m=None, r_center=None
       W_small        半径 0.25h 小圆上的绕数 (插值; 卫星离中心 > 0.25h 时等于真实中心荷)
       central_charge 中心荷 = round(W_small), W_small = 半径 0.5h 圆周绕数 (卫星环 >= 2h 时可信)
       W_core / unresolved_charge  半径 r_center (默认 1.25h) 圆周绕数; 与 W_small 之差 = 未分辨卫星的荷
-      n_satellites / satellites  r > r_center 处网格检测到的单位奇点 (r, theta, q) 列表
+      n_satellites / satellites  r_center < r < 1.5 r_ring 处网格检测到的单位奇点 (r, theta, q) 列表
+      n_outer_singularities      更外面 (光强指数小的尾部) 的奇点个数, 物理上不重要
       r_s_fit        由中心附近角谐波拟合的嬗变核半径 (可小于网格间距)
       mu_dominant / mu_weight    C_n 不可约表示中占主导者及其权重
     """
@@ -313,11 +314,15 @@ def mode_summary(model, sol, nsym=None, center=(0.0, 0.0), m=None, r_center=None
                converged=bool(sol.get("converged", True)), iterations=sol.get("iterations", -1))
     if r_center is None:
         r_center = 1.25 * g.h
-    region = beam_region(q, g) & model.opt_mask
-    sings = find_singularities(q, g, region, exclude_center=center, exclude_radius=r_center)
-    row.update(singularity_structure(sings, center, r_center))
     rr = ring_radius(q, g, center, rmax=3 * max(Wx, Wy))
     row["ring_radius"] = rr
+    region = beam_region(q, g) & model.opt_mask
+    sings = find_singularities(q, g, region, exclude_center=center, exclude_radius=r_center)
+    # 卫星只统计亮环附近以内 (r < 1.5 r_ring); 更外面的是指数小尾巴里的零点 (强加热时常见), 单独计数
+    r_lim = 1.5 * max(rr, 2 * g.h)
+    inner = [sg for sg in sings if np.hypot(sg[0] - center[0], sg[1] - center[1]) < r_lim]
+    row.update(singularity_structure(inner, center, r_center))
+    row["n_outer_singularities"] = len(sings) - len(inner)
     row["total_charge"] = round(winding_on_circle(q, g, center, max(rr, 2 * g.h)), 3)
     # 中心荷: 多点圆周绕数 (不受方格混叠影响)。注意亚网格尺度不可信: 三次插值在 r < h 处对 r^|m|
     # 型高阶零点 (|m|>=3) 误差可达 O(1)。因此:
