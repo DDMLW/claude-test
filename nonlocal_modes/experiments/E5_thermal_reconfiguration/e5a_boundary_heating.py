@@ -120,9 +120,10 @@ def main():
                 print(f"   Theta={T:+8.4f}: b={s['b']:.4f} W_small={row['W_small']:+.0f} sats={row['n_satellites']} "
                       f"r_s(det)={row['satellite_r_mean']:.4f} r_s(fit)={row['r_s_fit']:.4f} "
                       f"angle={row['sat_angle']:+.3f} P_outer={p_out:.1e}{' HYBRID' if row['hybrid'] else ''}")
-                if abs(T) == tmax:
-                    plotting.plot_mode(M, s, os.path.join(out, f"heating_mode_n{n}_m{m}_T{T:+g}.png"),
-                                       title=f"disk R={R:g}, T_b = {T:+g} cos({n} theta), m={m}, U={U:g}")
+            if scan:                     # 每个方向画最后一个成功的点 (若在 Theta_max 之前因杂化/折返停下, 就是停下前的点)
+                T, M, s = scan[-1]
+                plotting.plot_mode(M, s, os.path.join(out, f"heating_mode_n{n}_m{m}_T{T:+g}.png"),
+                                   title=f"disk R={R:g}, T_b = {T:+g} cos({n} theta), m={m}, U={U:g}")
         rows.sort(key=lambda r: r["Theta"])
         io_utils.write_csv(os.path.join(out, f"heating_n{n}_m{m}.csv"), rows)
         pos = [r for r in rows if r["Theta"] > 0 and r["r_s_fit"] > 0 and not r["hybrid"]]
