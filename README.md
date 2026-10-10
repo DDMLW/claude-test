@@ -1,3 +1,7 @@
+> **当前科研项目：非局域非线性材料中特殊模态的设计**
+> 代码、实验与说明见 [`nonlocal_modes/`](nonlocal_modes/README.md)；研究方案见 [`nonlocal_modes/docs/research_plan.md`](nonlocal_modes/docs/research_plan.md)；
+> 项目进度与运行记录见 [`Progress.md`](Progress.md)。下面是本仓库附带的文献调研工具说明。
+
 # 文献调研 skills（Claude Code 云端）
 
 在这个仓库里开的 Claude Code 云端会话会自动加载下面两个 skill。

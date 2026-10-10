@@ -2,3 +2,8 @@ __pycache__/
 *.pyc
 # research-lit scratch output (candidate/verified paper lists)
 .aris/verify-papers/
+
+# nonlocal_modes project: raw solver data stays local (large); quick smoke-test outputs are not uploaded
+nonlocal_modes/data/
+nonlocal_modes/results/*/quick*/
+.pytest_cache/
