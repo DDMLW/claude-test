@@ -2,11 +2,12 @@
 # ============================================================================
 # pbs_array.sh —— PBS Pro / OpenPBS 作业数组版本 (集群用 qsub 而不是 sbatch 时使用)
 #
-# 在 nonlocal_modes/experiments 目录下, 按阶段依次提交 (等上一阶段全部结束再提交下一阶段):
-#     qsub -J 1-63 -v LIST=hpc/jobs/stage1.txt hpc/pbs_array.sh
-#     qsub -J 1-48 -v LIST=hpc/jobs/stage2.txt hpc/pbs_array.sh
-#     qsub -J 1-4  -v LIST=hpc/jobs/stage3.txt hpc/pbs_array.sh
-# (任务数 = 清单文件的行数: wc -l hpc/jobs/stage1.txt)
+# 在 nonlocal_modes/experiments 目录下提交 (-J 后的数字 = 清单行数, 用 wc -l hpc/jobs/*.txt 核对):
+#     qsub -J 1-44 -v LIST=hpc/jobs/stage1.txt hpc/pbs_array.sh      # 立即提交
+#     qsub -J 1-19 -v LIST=hpc/jobs/indep.txt  hpc/pbs_array.sh      # 立即提交
+#     qsub -J 1-46 -v LIST=hpc/jobs/stage2.txt hpc/pbs_array.sh      # stage1 全部结束后再提交
+#     qsub -J 1-6  -v LIST=hpc/jobs/final.txt  hpc/pbs_array.sh      # stage2 与 indep 都结束后再提交
+# (也可以用 qsub -W depend=afterany:<作业号> 自动排队, 写法因 PBS 版本而异)
 # Torque (老式 PBS): 把 "-J" 换成 "-t", 并把下面的 PBS_ARRAY_INDEX 换成 PBS_ARRAYID。
 # ============================================================================
 #PBS -N nlmodes

@@ -1,6 +1,11 @@
 # 超算批量运行（hq 高精度档，论文数据用）
 
-这一目录的工具把全部实验拆成约 115 个**相互独立的单核任务**，分三个阶段提交到超算。
+这一目录的工具把全部实验拆成 115 个**单核任务**，写成四个任务清单，按依赖关系一次性提交到超算：
+
+```
+stage1 (E2a 解族, 44 个) ──> stage2 (E3 稳定性 + 图谱汇总, 46 个) ──┐
+indep  (其余独立实验, 19 个, 提交后立即开始) ───────────────────────┴──> final (汇总表 + 网格收敛对比, 6 个)
+```
 做法是“多开任务并行”，而不是“一个任务用很多核”：稀疏 LU 分解（SuperLU）是单线程的，给一个任务多分核没有加速效果。
 
 ## 0. 精度档位说明（先读）
@@ -45,35 +50,37 @@ sbatch -n 1 --mem=4G --time=03:00:00 -o hpc/logs/quick_%j.out --wrap "python run
 ## 2. 生成任务清单并提交
 ```bash
 cd nonlocal_modes/experiments
-python hpc/make_jobs.py                          # 默认 hq; 生成 hpc/jobs/stage1.txt (63 个), stage2.txt (48 个), stage3.txt (4 个)
+python hpc/make_jobs.py                          # 默认 hq; 生成 hpc/jobs/ 下 stage1 (44), stage2 (46), indep (19), final (6) 四个清单
 # 若计算节点上 python 不是 conda 环境里的那个, 用 --python 指定绝对路径:
 #   python hpc/make_jobs.py --python ~/miniconda3/envs/nl/bin/python
 ```
 **SLURM**（`sbatch`/`squeue`）：
 ```bash
-bash hpc/submit_slurm.sh                         # 三个阶段一次提交, 自动设置依赖
+bash hpc/submit_slurm.sh                         # 四个清单一次提交, 自动设置依赖
 # 需要指定分区/账户, 或限制同时运行的任务数时:
 SBATCH_EXTRA="-p cpu -A 你的账户" MAXPAR=60 bash hpc/submit_slurm.sh
 # 天河等使用 yhbatch 的系统:
 SBATCH=yhbatch bash hpc/submit_slurm.sh
 ```
-**PBS**（`qsub`/`qstat`）：没有自动依赖，按阶段依次提交，等上一阶段全部结束再提交下一阶段（`-J` 后的数字是清单行数，用 `wc -l hpc/jobs/stage*.txt` 核对）：
+**PBS**（`qsub`/`qstat`）：没有自动依赖，按顺序提交（`-J` 后的数字是清单行数，用 `wc -l hpc/jobs/*.txt` 核对）：
 ```bash
-qsub -J 1-63 -v LIST=hpc/jobs/stage1.txt hpc/pbs_array.sh
-qsub -J 1-48 -v LIST=hpc/jobs/stage2.txt hpc/pbs_array.sh
-qsub -J 1-4  -v LIST=hpc/jobs/stage3.txt hpc/pbs_array.sh
+qsub -J 1-44 -v LIST=hpc/jobs/stage1.txt hpc/pbs_array.sh      # 立即提交
+qsub -J 1-19 -v LIST=hpc/jobs/indep.txt  hpc/pbs_array.sh      # 立即提交
+qsub -J 1-46 -v LIST=hpc/jobs/stage2.txt hpc/pbs_array.sh      # stage1 全部结束后 (python hpc/status.py 查看)
+qsub -J 1-6  -v LIST=hpc/jobs/final.txt  hpc/pbs_array.sh      # stage2 与 indep 都结束后
 ```
 **没有作业调度系统的多核服务器**：
 ```bash
 nohup python hpc/run_local.py -n 32 > hpc/logs/run_local.out 2>&1 &     # -n 不超过物理核数, 且 n x 3GB < 内存
 ```
 
-## 3. 三个阶段分别做什么
-| 阶段 | 任务 | 依赖 |
+## 3. 四个清单分别做什么
+| 清单 | 任务 | 依赖 |
 |---|---|---|
-| stage1 | E0a–E0d、E1a、E1b、E2b、E5a、E5b 各 1 个；E2a 按（样品×m）拆成 36 个；E4 按样品拆成 5 个（另 5 个加噪声，tag `hq_noisy`）；网格收敛对照：8 个关键解族在粗网格上重算（tag `hq_coarse`） | 无 |
-| stage2 | E2a 汇总图谱（`--plot_only`）；E3 按（样品×m）拆成 36 个（读取 stage1 的 E2a 解族）；E4 汇总表；粗网格对照的 E2a 汇总与 8 个 E3 | stage1 全部结束 |
-| stage3 | E3 汇总表（`--table_only`）；`compare_tags.py` 比较 `hq` 与 `hq_coarse`（网格收敛性） | stage2 全部结束 |
+| stage1 | E2a 按（样品×m）拆成 36 个；网格收敛对照：8 个关键解族在粗一档网格上重算（tag `hq_coarse`） | 无 |
+| stage2 | E2a 汇总图谱（`--plot_only`）；E3 按（样品×m）拆成 36 个（读取 stage1 的解族）；粗网格对照的 E2a 汇总与 8 个 E3 | stage1 全部结束 |
+| indep | E0a–E0d、E1a、E1b、E2b、E5a、E5b 各 1 个；E4 按样品拆成 5 个（另 5 个加噪声，tag `hq_noisy`） | 无 |
+| final | E3、E4 汇总表（`--table_only`）；`compare_tags.py` 比较 `hq` 与 `hq_coarse`（网格收敛性） | stage2 与 indep 全部结束 |
 
 拆分出来的任务各自把日志写到 `results/<实验>/<tag>/log_<任务名>.txt`，互不覆盖。
 
@@ -95,17 +102,17 @@ nohup python hpc/run_local.py -n 32 > hpc/logs/run_local.out 2>&1 &     # -n 不
 | E2b | 3–8 h（ρ=16 时每次牛顿迭代约 30 s） | ≤ 6 GB（ρ=16 实测峰值 4.9 GB） |
 
 `slurm_array.sh` 默认申请 `--mem=8G --time=48:00:00`（单个任务最长估计约 10 h，留有余量；若分区上限是 24 h 也够用）。总计约 300–400 核时；若能同时运行 60 个以上任务，
-墙钟时间约 1 天（stage1 约 10 h，stage2 约 8–10 h，stage3 几分钟）。实际耗时会写在 `hpc/logs/status_stage*.tsv` 中，请记录到 Progress.md。
+墙钟时间约 10–12 小时（最长的一条链：stage1 约 2 h + stage2 约 8–10 h；indep 中最长的 E0b/E0c 约 10 h 同时进行；final 几分钟）。实际耗时会写在 `hpc/logs/status_stage*.tsv` 中，请记录到 Progress.md。
 
 ## 5. 查看进度、处理失败
 ```bash
 squeue -u $USER                  # SLURM 队列 (PBS: qstat -u $USER)
-python hpc/status.py             # 每个阶段: 成功 / 失败 / 未结束, 并打印失败任务的重提交命令
+python hpc/status.py             # 每个清单: 成功 / 失败 / 未结束, 并打印失败任务的重提交命令
 ```
 * 某任务失败：看 `hpc/logs/slurm_<作业号>_<序号>.out` 和 `results/<实验>/<tag>/log_<任务名>.txt` 的最后几十行；
   内存不足（`OOM`/`oom-kill`）就把 `slurm_array.sh` 里的 `--mem` 改成 16G；超时就把 `--time` 加大。然后只重提交失败的行，例如
   `sbatch --array=3,7 hpc/slurm_array.sh hpc/jobs/stage1.txt`。
-* 某个 E2a 任务失败后重跑成功：还要重跑对应的 E3 任务（stage2 中同名的那一行），以及 stage2 第 1 行（图谱汇总）和 stage3 第 1 行（E3 汇总）。
+* 某个 E2a 任务失败后重跑成功：还要重跑对应的 E3 任务（stage2 中同名的那一行），以及 stage2 第 1 行（图谱汇总）和 final 第 1 行（E3 汇总）。
 * 不要改代码。解决不了的报错：上传日志，在 Progress.md 中写清楚命令和报错最后几行。
 
 ## 6. 跑完之后上传什么

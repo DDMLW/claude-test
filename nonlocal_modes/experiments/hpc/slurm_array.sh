@@ -3,7 +3,7 @@
 # slurm_array.sh —— SLURM 作业数组: 第 i 个数组任务执行任务清单文件的第 i 行
 #
 # 一般不需要手动调用, 由 submit_slurm.sh 提交。手动提交 (在 nonlocal_modes/experiments 目录下):
-#     sbatch --array=1-63 hpc/slurm_array.sh hpc/jobs/stage1.txt
+#     sbatch --array=1-44 hpc/slurm_array.sh hpc/jobs/stage1.txt
 # 只重跑失败的第 3、7 个任务:
 #     sbatch --array=3,7 hpc/slurm_array.sh hpc/jobs/stage1.txt
 #
@@ -24,7 +24,7 @@
 
 LIST="$1"
 if [ -z "$LIST" ] || [ ! -f "$LIST" ]; then
-    echo "usage: sbatch --array=1-N hpc/slurm_array.sh hpc/jobs/stageK.txt"; exit 2
+    echo "usage: sbatch --array=1-N hpc/slurm_array.sh hpc/jobs/<stage1|stage2|indep|final>.txt"; exit 2
 fi
 IDX="${SLURM_ARRAY_TASK_ID:?not running inside a SLURM job array}"
 CMD=$(sed -n "${IDX}p" "$LIST")

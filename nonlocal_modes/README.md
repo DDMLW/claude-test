@@ -35,7 +35,7 @@ Windows 用户在 “Anaconda Prompt” 里执行同样的命令即可。
 
 ### 论文数据：hq 高精度档 + 超算批量运行
 所有脚本都支持 `--hq`（h=0.1、矩形/界面样品 0.15，牛顿判据 1e-12，dz=0.01，b 步长减半，更长传播、更密稳定性扫描；结果在 `hq/` 下）。
-计算量约为普通档的 10–30 倍，**请在超算上用 [`experiments/hpc/`](experiments/hpc/README.md) 的工具一次性拆分提交**（约 115 个单核任务，三个阶段，
+计算量约为普通档的 10–30 倍，**请在超算上用 [`experiments/hpc/`](experiments/hpc/README.md) 的工具一次性拆分提交**（115 个单核任务，按依赖关系自动排队，墙钟约 10–12 小时，
 SLURM/PBS/无调度服务器均可），其中自动包含粗一档网格的收敛对照（`hq_coarse`）。为什么不把收敛判据设成 1e-20：见 hpc/README.md 第 0 节与 docs/numerics.md 第 8 节。
 
 | 实验 | 目录 | 内容 | 正式运行耗时(估, main 档) |
