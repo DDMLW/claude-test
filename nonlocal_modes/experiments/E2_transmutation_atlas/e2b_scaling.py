@@ -54,7 +54,13 @@ def main():
         cases = [c for c in CASES if (c[0], c[1]) in want]
     rhos = pick(args, quick=[16.0, 12.0, 10.0, 8.0],
                 main=[20.0, 16.0, 13.0, 11.0, 10.0, 9.0, 8.0, 7.0, 6.5, 6.0],
-                hq=[24.0, 20.0, 17.0, 15.0, 13.0, 12.0, 11.0, 10.0, 9.0, 8.5, 8.0, 7.5, 7.0, 6.5, 6.0, 5.5])
+                hq=[16.0, 14.0, 13.0, 12.0, 11.0, 10.0, 9.5, 9.0, 8.5, 8.0, 7.5, 7.0, 6.5, 6.0, 5.5])
+    # hq 档 rho 上限 16: h=0.1 时 rho=16 的三角形已有 10 万个光学格点 (单进程峰值内存约 5 GB, 实测),
+    # rho=20/24 需 8-12 GB, 超出超算脚本默认申请的内存。大 rho 端 r_s 很小, 用谐波拟合 r_s_fit 即可, 不需要更大的样品。
+    # 起点: quick/main 从最大的 rho 开始向下延拓; hq 从 rho=10 开始向两侧延拓 (避免在最大、最贵的网格上冷启动)
+    rho_start = pick(args, quick=rhos[0], main=rhos[0], hq=10.0)
+    rhos_up = sorted(r for r in rhos if r > rho_start)
+    rhos_down = sorted((r for r in rhos if r < rho_start), reverse=True)
     fits = []
     fig, ax = plt.subplots(figsize=(5.5, 4.2))
     for (n, m, U) in cases:
@@ -63,7 +69,7 @@ def main():
         v = rule["central"]
         print(f"\n(n,m)=({n},{m}), U={U}: predicted central {v}, ring exponent s={s_pred:.3f}, "
               f"slope {-n * s_pred:.3f}")
-        rho0 = rhos[0]
+        rho0 = rho_start
         M0 = NonlocalModel(polygon_sample(n, args.h, rho=rho0))
         first = initial_solution(M0, lambda W: guesses.lg_vortex(M0, m, W), [3.0, 3.5, 2.5, 4.0, 2.0],
                                  verbose=False)
@@ -79,9 +85,13 @@ def main():
             return NonlocalModel(polygon_sample(n, args.h, rho=rho))
 
         def solve_fixed_U(model, w0, prev, U=U):
-            return newton.solve_robust(model, w0, prev["b"], fixed_power=U)
+            return newton.solve_robust(model, w0, prev["b"], fixed_power=U, maxit=25)
 
-        scan = [(rho0, M0, s0)] + param_continuation(build, rho0, M0, s0, rhos[1:], solve_fixed_U)
+        scan = [(rho0, M0, s0)]
+        for part in (rhos_up, rhos_down):
+            if part:
+                scan += param_continuation(build, rho0, M0, s0, part, solve_fixed_U)
+        scan.sort(key=lambda t: -t[0])
         rows = []
         for rho, M, s in scan:
             row = dg.mode_summary(M, s, nsym=n, m=m)
