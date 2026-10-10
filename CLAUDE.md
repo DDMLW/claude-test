@@ -6,12 +6,18 @@
 ## 每次开始工作
 1. **先读根目录 `Progress.md`**——它是唯一事实来源（已确认结论、开放问题、已知陷阱、运行记录、决策日志）。不要凭记忆。
 2. 需要细节时再读 `nonlocal_modes/docs/`（research_plan / theory / numerics / references）和各实验目录的 README.md。
-3. `git pull` 后查看 `nonlocal_modes/results/<实验>/main/` 中新上传的 CSV/PNG/log.txt。
+3. `git pull` 后查看 `nonlocal_modes/results/<实验>/<tag>/`（`hq` 为论文数据，`hq_coarse` 为网格收敛对照，`main` 为普通档）
+   中新上传的 CSV/PNG/log*.txt；网格收敛性看 `compare_hq_vs_hq_coarse.csv`。
 
 ## 约定
 * 代码在 `nonlocal_modes/`；核心包 `nlmodes/` 改动后必须 `cd nonlocal_modes && python -m pytest -q tests` 全部通过。
 * 新实验脚本放 `nonlocal_modes/experiments/E*/`，用 `common.standard_args / finalize_args`（自动写 log.txt、run_info.json），
   必须有 `--quick` 模式并在提交前实际跑通；每个实验目录要有 README（运行命令、耗时、输出、预期结果、上传清单）。
+* 精度档位（quick / main / hq）集中在 `experiments/common.py` 的 `PROFILES`；脚本中与精度有关的参数用
+  `pick(args, quick=…, main=…, hq=…)`、网格用 `sample_h(args, kind)`、传播步长用 `args.dz`、b 步长乘 `args.db_factor`。
+  不要把牛顿判据设得低于 ~1e-13（舍入下限，见 numerics.md 第 8 节）。
+* 新增或拆分任务时同步更新 `experiments/hpc/make_jobs.py`（超算批量运行）；拆分运行的脚本要带 `--job`，
+  汇总表必须能由各任务的分文件重建（参考 E3 `--table_only`、E2a `--plot_only`）。
 * 注释与文档用中文；`print` 只用 ASCII（Windows 控制台编码问题）；图中文字用英文。
 * 原始数据 `nonlocal_modes/data/` 与 quick 结果不进 git（见 .gitignore）。
 * **数值结论的纪律**（见 numerics.md 第 6 节）：卫星环 < 2h 不下结构结论；n=5,6 以 E5a 为准；结论需通过 E0d 旋转检验与网格加密；

@@ -17,6 +17,9 @@ python e0b_twin_vortex.py
 python e0c_surface_solitons.py
 python e0d_grid_artifacts.py
 ```
+**高精度（论文数据）**：在上面任一正式命令后加 `--hq`（结果写入 `hq/`），或在超算上用 [`../hpc/`](../hpc/README.md) 一次性拆分提交全部实验（推荐）。
+hq 档：e0a 网格加到 h=0.05（Poisson）/0.1（D_s、传递系数）、dz 扫到 0.00625；e0b/e0c 用 h=0.15、传播到 ξ=1000、
+稳定性 shift 扫描 ω=0–2（9 个 shift）；e0d 网格加到 h=0.1。单核耗时：e0a 约 1 h（云端实测 40 分钟），e0b、e0c 各 4–10 h，e0d 约 1–2 h。
 四个正式运行可以开四个终端同时跑。预计耗时（普通台式机）：e0a 15–30 min，e0b 1–2 h，e0c 1–2 h，e0d 0.5–1 h。
 
 ## 各脚本说明与预期结果
@@ -63,7 +66,7 @@ python e0d_grid_artifacts.py
   卫星相对样品的方位角（csv 中 `sat_angles_rel_mod`）相同。(3,2) 应通过；(5,3)、(6,4) 在 ρ=8 时预期**不**通过（物理各向异性太弱），这正是 n=5、6 改用 E5a 强加热来研究的原因。
 
 ## 上传清单
-整个 `nonlocal_modes/results/E0_validation/main/` 目录，并在 Progress.md 运行记录中写明：
+整个 `nonlocal_modes/results/E0_validation/main/`（或 `hq/`）目录，并在 Progress.md 运行记录中写明：
 1. 单元测试是否全部通过；
 2. e0a 表格中 [3] 的 D_s 收敛值；
 3. e0b 中 m=1、2、3 的 max Re λ 与传播结论；d_η 扫描是否完整；

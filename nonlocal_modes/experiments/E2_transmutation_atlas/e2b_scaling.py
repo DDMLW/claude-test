@@ -29,7 +29,7 @@ import sys
 import numpy as np
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from common import finalize_args, initial_solution, param_continuation, standard_args  # noqa: E402
+from common import finalize_args, initial_solution, param_continuation, pick, standard_args  # noqa: E402
 
 from nlmodes import diagnostics as dg  # noqa: E402
 from nlmodes import guesses, io_utils, newton, theory  # noqa: E402
@@ -52,7 +52,9 @@ def main():
     if args.cases:
         want = {tuple(int(v) for v in c.split(",")) for c in args.cases}
         cases = [c for c in CASES if (c[0], c[1]) in want]
-    rhos = [16.0, 12.0, 10.0, 8.0] if args.quick else [20.0, 16.0, 13.0, 11.0, 10.0, 9.0, 8.0, 7.0, 6.5, 6.0]
+    rhos = pick(args, quick=[16.0, 12.0, 10.0, 8.0],
+                main=[20.0, 16.0, 13.0, 11.0, 10.0, 9.0, 8.0, 7.0, 6.5, 6.0],
+                hq=[24.0, 20.0, 17.0, 15.0, 13.0, 12.0, 11.0, 10.0, 9.0, 8.5, 8.0, 7.5, 7.0, 6.5, 6.0, 5.5])
     fits = []
     fig, ax = plt.subplots(figsize=(5.5, 4.2))
     for (n, m, U) in cases:

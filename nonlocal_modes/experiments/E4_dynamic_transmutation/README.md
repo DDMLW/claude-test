@@ -13,7 +13,10 @@ cd nonlocal_modes/experiments/E4_dynamic_transmutation
 python e4_lg_launch.py --quick          # 约 5 分钟
 python e4_lg_launch.py                  # 正式, 约 1-3 小时 (默认 m=2,3,4; U=10,20; xi 到 200)
 python e4_lg_launch.py --noise 0.01 --tag noisy     # 输入加噪声, 检验鲁棒性
+python e4_lg_launch.py --table_only                  # 按 --samples 拆分运行全部结束后重建 e4_summary.csv
 ```
+**高精度（论文数据）**：在上面任一正式命令后加 `--hq`（结果写入 `hq/`），或在超算上用 [`../hpc/`](../hpc/README.md) 一次性拆分提交全部实验（推荐）。
+hq 档：h=0.1、dz=0.01、传播到 ξ=400；超算工具按样品拆成 5 个任务（每个约 2–5 h），另有 5 个加噪声任务（tag `hq_noisy`）。
 
 ## 输出与预期结果
 每个 run（样品 × m × U）：
@@ -26,10 +29,11 @@ python e4_lg_launch.py --noise 0.01 --tag noisy     # 输入加噪声, 检验鲁
 **预实验（h=0.4，ξ=30）**：10 个 run 中 9 个末态中心荷等于预言——三角形 m=2 → −1、m=3 → 0；正方形 m=2 保持 +2（简并情形）、m=3 → −1；
 五边形 m=2 保持 +2、m=3 → −2；六边形 m=2 保持 +2；圆盘 m=2、3 不变。例外：六边形 m=3（μ=n/2 简并情形，末态 +1，预言 ±3）。
 五边形、六边形在 ρ=8 时各向异性很弱，结论需高分辨率确认（见 E0d）。
+hq 云端测试（h=0.1，dz=0.01，三角形 m=2，U=15，ξ=20）：末态中心荷 −1 + 3 个卫星（r≈0.17），μ 权重漂移 4e-7，能流漂移 3e-14，用时 1 分钟。
 
 **实验可行性（请特别关注）**：在 `worldlines.png` 的黑线中读出中心荷**第一次变为预言值的传播距离 ξ_t**，记入 Progress.md。
 换算：ξ 的单位是衍射长度 k₀r₀²；r₀ = 20 μm 时约 0.5–1 cm，r₀ = 50 μm 时约 3–6 cm（docs/theory.md 第 1 节）。
 若 ξ_t 远大于 10，需要在论文中讨论更小样品（更小 ρ，各向异性 ∝ ρ^{−n}）或更大功率，可用 `--rho 6` 补充一组。
 
 ## 上传清单
-`nonlocal_modes/results/E4_dynamic_transmutation/main/`（及 `noisy` 等）。Progress.md 中记录：每个 (样品, m, U) 的末态中心荷是否等于预言、ξ_t、μ 权重漂移。
+`nonlocal_modes/results/E4_dynamic_transmutation/main/` 或 `hq/`（及 `noisy`、`hq_noisy` 等）。Progress.md 中记录：每个 (样品, m, U) 的末态中心荷是否等于预言、ξ_t、μ 权重漂移。

@@ -23,7 +23,7 @@ import sys
 import numpy as np
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from common import finalize_args, initial_solution, param_continuation, standard_args  # noqa: E402
+from common import finalize_args, initial_solution, param_continuation, pick, standard_args  # noqa: E402
 
 from nlmodes import diagnostics as dg  # noqa: E402
 from nlmodes import guesses, io_utils, newton, plotting, propagate  # noqa: E402
@@ -58,17 +58,18 @@ def main():
     p.add_argument("--Theta", type=float, default=4.0,
                    help="C_3 图样的边界温度幅度 (默认 4: h=0.2 时卫星环 r~0.6 > 2h, 可分辨; 1 时卫星在亚网格)")
     p.add_argument("--U", type=float, default=15.0)
-    p.add_argument("--zmax", type=float, default=None, help="默认 300 (quick 40)")
+    p.add_argument("--zmax", type=float, default=None, help="默认 300 (quick 40, hq 600)")
     args = finalize_args(p, "E5_thermal_reconfiguration")
     out = args.res_dir
     R, h, Th, U = args.R, args.h, args.Theta, args.U
-    zmax = args.zmax or (40.0 if args.quick else 300.0)
+    zmax = args.zmax or pick(args, quick=40.0, main=300.0, hq=600.0)
     zs = zmax / 4                                        # 切换位置
     m = 2
 
     # ---- 起点: C_3 加热下 m=2 的定态 (从 Theta=0 沿 Theta 延拓)
     M0 = NonlocalModel(disk_sample(R, h))
-    first = initial_solution(M0, lambda W: guesses.lg_vortex(M0, m, W), [3.0, 3.5, 2.5], verbose=False)
+    print("computing the start state (Theta=0 -> Theta by parameter continuation) ...", flush=True)
+    first = initial_solution(M0, lambda W: guesses.lg_vortex(M0, m, W), [3.0, 3.5, 2.5], verbose=True)
     s0 = newton.solve_robust(M0, first["w"], first["b"], fixed_power=U)
 
     def build(T):
@@ -105,7 +106,7 @@ def main():
     summary = []
     snap = list(np.linspace(0, zmax, 6))
     for name, f in cases.items():
-        res = propagate.propagate(M0, st3["w"], zmax, dz=0.02, diag_every=25, snapshot_zs=snap, nbc_func=f,
+        res = propagate.propagate(M0, st3["w"], zmax, dz=args.dz, diag_every=25, snapshot_zs=snap, nbc_func=f,
                                   track_singularities=True, verbose=False)
         plotting.plot_snapshots(M0, res["snapshots"], os.path.join(out, f"control_{name}_snapshots.png"),
                                 zoom=2 * ring + 1, title=name, show_phase=True)

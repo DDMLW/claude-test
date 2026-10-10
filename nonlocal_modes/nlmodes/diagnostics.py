@@ -195,11 +195,10 @@ def ring_radius(qgrid, grid, center, rmax=None, nr=200):
     if rmax is None:
         rmax = 0.5 * min(grid.x[-1] - grid.x[0], grid.y[-1] - grid.y[0])
     rs = np.linspace(0, rmax, nr)
-    Iavg = []
     th = np.linspace(0, 2 * np.pi, 128, endpoint=False)
-    for r in rs:
-        v = interp(qgrid, grid, center[0] + r * np.cos(th), center[1] + r * np.sin(th))
-        Iavg.append(np.mean(np.abs(v) ** 2))
+    # 一次插值所有 (r, theta) 点 (三次样条的预滤波只做一次; 细网格上比逐个半径插值快 ~100 倍)
+    v = interp(qgrid, grid, center[0] + np.outer(rs, np.cos(th)), center[1] + np.outer(rs, np.sin(th)))
+    Iavg = np.mean(np.abs(v) ** 2, axis=1)
     return float(rs[int(np.argmax(Iavg))])
 
 
@@ -290,9 +289,10 @@ def mode_summary(model, sol, nsym=None, center=(0.0, 0.0), m=None, r_center=None
     m      : 该解族的拓扑荷标签 (给出时计算嬗变核半径的亚网格拟合值 r_s_fit)
 
     关键列:
+      residual       定态方程残差 (最大模), 检查解的精度
       total_charge   亮环半径处的绕数 (总拓扑荷)
-      W_small        半径 0.25h 小圆上的绕数 (插值; 卫星离中心 > 0.25h 时等于真实中心荷)
-      central_charge 中心荷 = round(W_small), W_small = 半径 0.5h 圆周绕数 (卫星环 >= 2h 时可信)
+      W_small        半径 0.5h 小圆上的绕数 (插值; 卫星离中心 > 0.5h 时等于真实中心荷)
+      central_charge 中心荷 = round(W_small) (卫星环 >= 2h 时可信)
       W_core / unresolved_charge  半径 r_center (默认 1.25h) 圆周绕数; 与 W_small 之差 = 未分辨卫星的荷
       n_satellites / satellites  r_center < r < 1.5 r_ring 处网格检测到的单位奇点 (r, theta, q) 列表
       n_outer_singularities      更外面 (光强指数小的尾部) 的奇点个数, 物理上不重要
@@ -309,9 +309,13 @@ def mode_summary(model, sol, nsym=None, center=(0.0, 0.0), m=None, r_center=None
     Wx, Wy = rms_widths(model, w)
     if center is None:
         center = (xc, yc)
-    row = dict(b=sol["b"], U=sol["power"], peak=float(np.abs(w).max()),
+    # residual: 定态方程残差的最大模 max|1/2 D w + (V-b) w| (与牛顿收敛判据相同的量);
+    # 正常应 < 牛顿判据 (main 1e-9, hq 1e-12); 舍入误差下限约 1e-13~1e-12 (见 docs/numerics.md)
+    R = 0.5 * (model.D @ w) + (model.potential(n_t) - sol["b"]) * w
+    row = dict(b=sol["b"], U=sol["power"], h=g.h, peak=float(np.abs(w).max()),
                n_max=float(np.max(n_t)), xc=xc, yc=yc, Wx=Wx, Wy=Wy,
-               converged=bool(sol.get("converged", True)), iterations=sol.get("iterations", -1))
+               converged=bool(sol.get("converged", True)), iterations=sol.get("iterations", -1),
+               residual=float(np.max(np.abs(R))))
     if r_center is None:
         r_center = 1.25 * g.h
     rr = ring_radius(q, g, center, rmax=3 * max(Wx, Wy))
@@ -344,6 +348,7 @@ def mode_summary(model, sol, nsym=None, center=(0.0, 0.0), m=None, r_center=None
     if m is not None:
         from .theory import selection_rule
         v = selection_rule(m, nsym)["central"] if nsym else m
+        row["m"] = m
         row["predicted_central"] = v
         row["r_s_fit"] = (estimate_core_radius(q, g, center, m, v, [g.h, 1.5 * g.h, 2 * g.h])
                           if v != m else 0.0)

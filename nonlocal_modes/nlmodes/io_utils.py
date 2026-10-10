@@ -41,8 +41,8 @@ def _git_commit():
         return "unknown"
 
 
-def write_run_info(folder, args=None, extra=None):
-    """写 run_info.json: 参数、代码版本、软件版本、机器、时间。每次运行都必须上传它。"""
+def write_run_info(folder, args=None, extra=None, filename="run_info.json"):
+    """写 run_info.json (拆分并行时为 run_info_<job>.json): 参数、代码版本、软件版本、机器、时间。每次运行都必须上传它。"""
     import scipy
     info = dict(time=datetime.datetime.now().isoformat(timespec="seconds"),
                 command=" ".join(sys.argv), git_commit=_git_commit(),
@@ -51,9 +51,18 @@ def write_run_info(folder, args=None, extra=None):
                 args=vars(args) if args is not None and hasattr(args, "__dict__") else args)
     if extra:
         info.update(extra)
-    with open(os.path.join(folder, "run_info.json"), "w", encoding="utf-8") as f:
+    with open(os.path.join(folder, filename), "w", encoding="utf-8") as f:
         json.dump(info, f, indent=2, ensure_ascii=False, default=str)
     return info
+
+
+def json_default(o):
+    """json.dump 的 default: numpy 标量 -> Python 标量 (整数保持整数), 数组 -> 列表。"""
+    if isinstance(o, np.generic):
+        return o.item()
+    if isinstance(o, np.ndarray):
+        return o.tolist()
+    return str(o)
 
 
 def update_run_info(folder, **kw):

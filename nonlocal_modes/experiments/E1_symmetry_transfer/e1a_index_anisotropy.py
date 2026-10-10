@@ -26,7 +26,7 @@ import sys
 import numpy as np
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from common import finalize_args, standard_args  # noqa: E402
+from common import finalize_args, pick, standard_args  # noqa: E402
 
 from nlmodes import diagnostics as dg  # noqa: E402
 from nlmodes import io_utils, theory  # noqa: E402
@@ -60,7 +60,8 @@ def main():
     args = finalize_args(p, "E1_symmetry_transfer")
     out = args.res_dir
     h = args.h
-    rhos = [8.0, 12.0] if args.quick else [6.0, 8.0, 10.0, 12.0, 15.0]
+    rhos = pick(args, quick=[8.0, 12.0], main=[6.0, 8.0, 10.0, 12.0, 15.0],
+                hq=[6.0, 7.0, 8.0, 9.0, 10.0, 12.0, 15.0, 18.0])
     radii = np.array([1.0, 1.5, 2.0, 3.0, 4.0, 5.0, 6.0])
     U = 10.0
     rows = []

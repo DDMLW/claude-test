@@ -32,6 +32,9 @@ python e5b_dynamic_control.py --quick      # 约 5 分钟
 python e5b_dynamic_control.py              # 正式, 约 1-2 小时 (xi 到 300)
 python e5b_dynamic_control.py --Theta 6 --tag T6    # 更强的加热 (默认 Theta=4)
 ```
+**高精度（论文数据）**：在上面任一正式命令后加 `--hq`（结果写入 `hq/`），或在超算上用 [`../hpc/`](../hpc/README.md) 一次性拆分提交全部实验（推荐）。
+hq 档：h=0.1（R=10 圆盘），E5a 每种情形 16 个 Θ（单核约 2–5 h），E5b 传播到 ξ=600、dz=0.01（约 3–6 h）。
+h=0.1 时 Θ=4 的卫星环（r≈0.6）约为 6h，可清楚分辨。
 起点：C_3 加热（默认 Θ=4）下 m=2 的嬗变定态（中心 −1 + 3 个卫星，h=0.2 时 r≈0.6，可分辨；Θ 太小则卫星落在亚网格，结论不可信）。四种情形：
 * `switch_off`：ξ > ξ_s 关断加热。预实验（ξ≤40）：卫星**不**收回中心，而是绕中心转动并呼吸（r 在 0.3–0.8 振荡），中心荷保持 −1
   （系统是保守的，没有弛豫）。请记录长距离 (ξ=300) 下的转动角速度、呼吸周期，以及卫星是否最终与中心奇点湮灭/重组；
@@ -43,4 +46,4 @@ python e5b_dynamic_control.py --Theta 6 --tag T6    # 更强的加热 (默认 Th
 注意：横向热传导按稳态处理，要求图样沿 ξ 的变化远慢于横向热扩散；E5b 的旋转部分主要是拓扑动力学的理论展示，实验可行性需在论文中讨论。
 
 ## 上传清单
-`nonlocal_modes/results/E5_thermal_reconfiguration/main/`（及 `T6` 等）。Progress.md 中记录：各 (n,m) 的拟合斜率；Θ 反号时的方位角变化；E5b 四种情形的末态中心荷与卫星轨迹（转动角速度、呼吸周期）的描述。
+`nonlocal_modes/results/E5_thermal_reconfiguration/main/` 或 `hq/`（及 `T6` 等）。Progress.md 中记录：各 (n,m) 的拟合斜率；Θ 反号时的方位角变化；E5b 四种情形的末态中心荷与卫星轨迹（转动角速度、呼吸周期）的描述。

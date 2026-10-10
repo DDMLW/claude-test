@@ -73,8 +73,12 @@ def align_phase(w, ref):
 
 GLOBALIZATIONS = ("armijo", "none", "nonmonotone")
 
+# 默认收敛判据 (max|F|)。实验脚本按精度档位修改它: main 1e-9, hq 1e-12 (见 experiments/common.py)。
+# 不能小于 ~1e-13: 双精度机器精度约 2.2e-16, 乘上差分算子系数 (~1/h^2) 后残差的舍入噪声即为这个量级。
+DEFAULT_TOL = 1e-9
 
-def solve(model, w0, b, real=None, fixed_power=None, tol=1e-9, maxit=40, min_power=1e-6,
+
+def solve(model, w0, b, real=None, fixed_power=None, tol=None, maxit=40, min_power=1e-6,
           verbose=False, globalization="armijo"):
     """
     牛顿迭代求定态解。
@@ -86,7 +90,9 @@ def solve(model, w0, b, real=None, fixed_power=None, tol=1e-9, maxit=40, min_pow
     b           : 传播常数 (定功率模式下作为 b 的初值)
     real        : True 只解实数解 (偶极/多极); None 时根据 w0 自动判断
     fixed_power : None 或目标能流 U0 (此时 b 也是未知量)
-    tol         : 收敛判据 max|F| < tol (定功率时同时要求 |U-U0|/U0 < tol)
+    tol         : 收敛判据 max|F| < tol (定功率时同时要求 |U-U0|/U0 < tol); None 时用 DEFAULT_TOL。
+                  若残差已降到 1e-10 以下且牛顿步不再使其明显下降 (已到舍入误差底线), 也判为收敛
+                  (只在 hq 档 tol=1e-12 时起作用)。
     globalization: 'armijo' (单调回溯线搜索, 默认) | 'none' (纯牛顿, 步长恒为 1) |
                    'nonmonotone' (与最近 5 步价值函数的最大值比较, 允许暂时上升)。
                    激发态(涡旋)的牛顿收敛域很小, 冷启动时三种策略各有成败, 见 solve_robust。
@@ -94,6 +100,8 @@ def solve(model, w0, b, real=None, fixed_power=None, tol=1e-9, maxit=40, min_pow
     返回 dict: w, n_t, b, power, converged, iterations, res_hist, message, time
     """
     t0 = time.time()
+    if tol is None:
+        tol = DEFAULT_TOL
     w = np.asarray(w0, dtype=complex).copy()
     if real is None:
         real = _is_real(w)
@@ -146,6 +154,10 @@ def solve(model, w0, b, real=None, fixed_power=None, tol=1e-9, maxit=40, min_pow
         if res < tol:
             converged = True
             message = "converged"
+            break
+        if it >= 3 and res < 1e-10 and res > 0.5 * hist[-2]:
+            converged = True
+            message = f"converged (round-off floor reached, residual {res:.1e})"
             break
         if it == maxit:
             break
@@ -220,7 +232,7 @@ def solve_robust(model, w0, b, strategies=GLOBALIZATIONS, **kw):
     return sol
 
 
-def continuation(model, w_start, p_start, p_stop, dp, param="b", real=None, tol=1e-9,
+def continuation(model, w_start, p_start, p_stop, dp, param="b", real=None, tol=None,
                  maxit=20, max_halvings=3, max_rel_jump=0.5, callback=None, verbose=True,
                  strategies=("armijo", "none")):
     """
@@ -259,8 +271,18 @@ def continuation(model, w_start, p_start, p_stop, dp, param="b", real=None, tol=
     direction = np.sign(dp)
     halvings = 0
     stop_reason = "reached end of range"
+
+    def next_grid_point(pv):
+        # 参数网格 p_start + k*dp 上沿延拓方向的下一个格点。步长减半后的点落在格点之间,
+        # 恢复步长时先回到格点上, 使解族的参数值与是否发生过减半无关 (不同网格的结果可逐点比较)
+        k = np.floor((pv - p_start) / dp + 1e-9) + 1
+        return p_start + k * dp
+
     while direction * (p_stop - p) > 1e-12:
         p_new = p + step
+        g = next_grid_point(p)
+        if direction * (p_new - g) > -1e-12:
+            p_new = g
         if direction * (p_new - p_stop) > 0:
             p_new = p_stop
         cur = sols[-1]

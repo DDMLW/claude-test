@@ -28,7 +28,7 @@ import sys
 import numpy as np
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from common import finalize_args, initial_solution, param_continuation, standard_args  # noqa: E402
+from common import finalize_args, initial_solution, param_continuation, pick, standard_args  # noqa: E402
 
 from nlmodes import diagnostics as dg  # noqa: E402
 from nlmodes import guesses, io_utils, newton, plotting, theory  # noqa: E402
@@ -69,7 +69,7 @@ def main():
     args = finalize_args(p, "E5_thermal_reconfiguration")
     out = args.res_dir
     R = args.R
-    nst = 4 if args.quick else 10
+    nst = pick(args, quick=4, main=10, hq=16)
     cases = CASES[:2] if args.quick else CASES
     fig, ax = plt.subplots(figsize=(5.5, 4.2))
     for (n, m, U, tmax) in cases:

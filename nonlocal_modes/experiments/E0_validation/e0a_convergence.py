@@ -22,7 +22,7 @@ import numpy as np
 from scipy.special import exp1
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from common import finalize_args, initial_solution, standard_args  # noqa: E402
+from common import finalize_args, initial_solution, pick, standard_args  # noqa: E402
 
 from nlmodes import diagnostics as dg  # noqa: E402
 from nlmodes import guesses, io_utils, newton, propagate, theory  # noqa: E402
@@ -77,7 +77,8 @@ def main():
     rows = []
 
     # 1) Poisson
-    hs = [0.4, 0.2, 0.1] if args.quick else [0.4, 0.3, 0.2, 0.15, 0.1]
+    hs = pick(args, quick=[0.4, 0.2, 0.1], main=[0.4, 0.3, 0.2, 0.15, 0.1],
+              hq=[0.4, 0.3, 0.2, 0.15, 0.1, 0.075, 0.05])
     print("\n[1] Poisson solver error vs h")
     errs = {5: [], 9: []}
     for h in hs:
@@ -89,7 +90,7 @@ def main():
 
     # 2) symmetry transfer coefficient
     print("\n[2] symmetry-transfer ratio (numerics / theory), should -> 1")
-    hs2 = [0.4, 0.2] if args.quick else [0.4, 0.3, 0.2, 0.15]
+    hs2 = pick(args, quick=[0.4, 0.2], main=[0.4, 0.3, 0.2, 0.15], hq=[0.4, 0.3, 0.2, 0.15, 0.1])
     for n in (3, 4, 5, 6):
         for h in hs2:
             rt = transfer_ratio(n, h)
@@ -98,7 +99,7 @@ def main():
 
     # 3) twin vortex D_s convergence
     print("\n[3] twin-vortex singularity separation D_s(b=2) in 20x40 rectangle vs h")
-    hs3 = [0.4, 0.25] if args.quick else [0.3, 0.25, 0.2, 0.15]
+    hs3 = pick(args, quick=[0.4, 0.25], main=[0.3, 0.25, 0.2, 0.15], hq=[0.3, 0.25, 0.2, 0.15, 0.1])
     Ds = []
     for h in hs3:
         d, U = twin_vortex_Ds(h)
@@ -108,7 +109,7 @@ def main():
 
     # 4) grid anisotropy artefact
     print("\n[4] grid-induced |c_-2/c_2| for m=2 vortex in a disk (pure numerical artefact)")
-    hs4 = [0.4, 0.3] if args.quick else [0.3, 0.2, 0.15]
+    hs4 = pick(args, quick=[0.4, 0.3], main=[0.3, 0.2, 0.15], hq=[0.3, 0.2, 0.15, 0.1])
     for h in hs4:
         for st in (5, 9):
             a = grid_artifact(h, st)
@@ -117,10 +118,11 @@ def main():
 
     # 5) propagation time step
     print("\n[5] propagation of a stationary m=1 vortex (triangle rho=8): deviation at xi=20 vs dz")
-    M = NonlocalModel(polygon_sample(3, 0.4 if args.quick else 0.25, rho=8.0))
+    M = NonlocalModel(polygon_sample(3, pick(args, quick=0.4, main=0.25, hq=0.15), rho=8.0))
     sol = initial_solution(M, lambda W: guesses.lg_vortex(M, 1, W), [2.0, 2.5, 1.5], verbose=False)
     zmax = 10.0 if args.quick else 20.0
-    for dz in ([0.05, 0.025] if args.quick else [0.1, 0.05, 0.025, 0.0125]):
+    for dz in pick(args, quick=[0.05, 0.025], main=[0.1, 0.05, 0.025, 0.0125],
+                   hq=[0.1, 0.05, 0.025, 0.0125, 0.00625]):
         res = propagate.propagate(M, sol["w"], zmax, dz=dz, w_ref=sol["w"], verbose=False)
         rows.append(dict(test="propagation_deviation", h=M.h, stencil=9, dz=dz,
                          value=float(res["deviation"][-1]),

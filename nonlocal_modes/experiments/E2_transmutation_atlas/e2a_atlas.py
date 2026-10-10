@@ -33,7 +33,7 @@ import numpy as np
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from common import (build_sample, finalize_args, pick_closest, rect_state_via_square,  # noqa: E402
-                    robust_family, save_family, standard_args, transfer_solution)
+                    robust_family, sample_h, save_family, standard_args, transfer_solution)
 
 from nlmodes import diagnostics as dg  # noqa: E402
 from nlmodes import guesses, io_utils, newton, plotting, theory  # noqa: E402
@@ -53,7 +53,7 @@ def sample_size(kind, rho):
 def compute_families(args, kind, ms, b_lo, b_hi, db):
     """计算一个样品的全部解族, 原始解写入 data/, 摘要写入 results/; 另写 <kind>_m<m>_info.json 记录端点信息。"""
     out, dat = args.res_dir, args.data_dir
-    sample, nsym = build_sample(kind, args.h, sample_size(kind, args.rho))
+    sample, nsym = build_sample(kind, sample_h(args, kind), sample_size(kind, args.rho))
     M = NonlocalModel(sample)
     print("\n" + M.describe())
     for m in ms:
@@ -61,10 +61,10 @@ def compute_families(args, kind, ms, b_lo, b_hi, db):
         for old in glob.glob(os.path.join(dat, f"{name}_b*.npz")):
             os.remove(old)                      # 重新计算时清除旧数据, 避免新旧混杂
         sols, info = robust_family(M, lambda W, m=m: guesses.lg_vortex(M, m, W), b_lo, b_hi, db=db,
-                                   b_start=min(3.0 + 0.25 * m, b_hi), verbose=False)
+                                   b_start=min(3.0 + 0.25 * m, b_hi), verbose=False, align_db=True)
         if not sols and kind == "rect":
             print(f"  m={m}: direct solve failed; aspect-ratio continuation from the 40x40 square at b=5")
-            Mr, s5 = rect_state_via_square(args.h, m, 5.0)
+            Mr, s5 = rect_state_via_square(sample_h(args, kind), m, 5.0)
             if s5 is not None:
                 w5 = transfer_solution(Mr, s5["w"], M)
                 up, _ = newton.continuation(M, w5, 5.0, b_hi, db, verbose=False)
@@ -98,7 +98,7 @@ def assemble(args, ms):
         info_files = [os.path.join(dat, f"{kind}_m{m}_info.json") for m in ms]
         if not any(os.path.exists(f) for f in info_files):
             continue
-        sample, nsym = build_sample(kind, args.h, sample_size(kind, args.rho))
+        sample, nsym = build_sample(kind, sample_h(args, kind), sample_size(kind, args.rho))
         M = NonlocalModel(sample)
         for m, finfo in zip(ms, info_files):
             if not os.path.exists(finfo):
@@ -115,7 +115,7 @@ def assemble(args, ms):
             pred = theory.selection_rule(m, nsym) if nsym else dict(mu=m, central=m, n_satellites=0,
                                                                        degenerate=False, rings=[])
             num_central = int(round(r_at["W_small"]))
-            resolved = (pred["central"] == m) or (r_at.get("r_s_fit", 0) >= 2 * args.h)
+            resolved = (pred["central"] == m) or (r_at.get("r_s_fit", 0) >= 2 * M.h)
             agree = (num_central == pred["central"]) and abs(r_at["total_charge"] - m) < 0.1
             table.append(dict(
                 sample=kind, n=nsym or 0, m=m, b=round(s_at["b"], 4), U=round(s_at["power"], 4),
@@ -186,12 +186,16 @@ def main():
                    help="不计算, 只从 data/ 中已有的解族重建 atlas_table.csv 与图谱 (拆分运行后使用)")
     args = finalize_args(p, "E2_transmutation_atlas")
     ms = args.ms or ([1, 2, 3, 4] if args.quick else [1, 2, 3, 4, 5, 6])
-    b_lo, b_hi, db = (0.5, 6.0, 0.5) if args.quick else (0.2, 7.0, 0.2)
+    b_lo, b_hi, db = (0.5, 6.0, 0.5) if args.quick else (0.2, 7.0, 0.2 * args.db_factor)
     if not args.plot_only:
         for kind in args.samples:
             compute_families(args, kind, ms, b_lo, b_hi, db)
-    print("\nassembling atlas from all families stored in", args.data_dir)
-    assemble(args, ms)
+    if args.job and not args.plot_only:
+        # 拆分并行任务: 各任务同时写同一张图谱会互相覆盖, 所以只存解族; 全部结束后用 --plot_only 汇总
+        print("\nsplit job (--job given): atlas not assembled here; run --plot_only after all jobs finish")
+    else:
+        print("\nassembling atlas from all families stored in", args.data_dir)
+        assemble(args, ms)
     print("E2a done.")
 
 

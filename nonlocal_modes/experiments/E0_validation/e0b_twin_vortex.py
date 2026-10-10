@@ -22,7 +22,7 @@ import sys
 import numpy as np
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from common import (finalize_args, param_continuation, pick_closest, rect_state_via_square,  # noqa: E402
+from common import (finalize_args, param_continuation, pick, pick_closest, rect_state_via_square,  # noqa: E402
                     robust_family, save_family, standard_args, transfer_solution)
 
 from nlmodes import diagnostics as dg  # noqa: E402
@@ -41,8 +41,8 @@ def lg(model, m):
     return lambda W: guesses.lg_vortex(model, m, W)
 
 
-def stability_summary(model, sol, shifts):
-    st = stability.stability_arnoldi(model, sol, shifts=shifts, k=12)
+def stability_summary(model, sol, shifts, k=12):
+    st = stability.stability_arnoldi(model, sol, shifts=shifts, k=k)
     lam = st["eigenvalues"]
     k = int(np.argmax(lam.real))
     return dict(max_growth=st["max_growth"], lam_re=float(lam[k].real), lam_im=float(lam[k].imag))
@@ -50,14 +50,19 @@ def stability_summary(model, sol, shifts):
 
 def main():
     p = standard_args(__doc__)
-    p.add_argument("--zmax", type=float, default=None, help="传播距离 (默认 300, quick 30)")
+    p.add_argument("--zmax", type=float, default=None, help="传播距离 (默认 300, quick 30, hq 1000)")
     args = finalize_args(p, "E0_validation")
-    zmax = args.zmax or (30.0 if args.quick else 300.0)
-    h = args.h
+    zmax = args.zmax or pick(args, quick=30.0, main=300.0, hq=1000.0)
+    h = args.h_large                      # 20x40 矩形是“大样品”, hq 档用 h_large
+    db = 0.25 * args.db_factor
     out, dat = args.res_dir, args.data_dir
     M = NonlocalModel(rectangle_sample(20, 40, h))
     print(M.describe())
-    shifts = (0.01, 0.01 + 0.3j, 0.01 + 0.6j, 0.01 + 1.0j)
+    # hq: 更密、更宽的 shift 扫描 (omega 到 2, 每个 shift 求 16 个本征值), 避免漏掉虚部较大的不稳定模
+    shifts = pick(args, quick=(0.01, 0.01 + 0.3j, 0.01 + 0.6j, 0.01 + 1.0j),
+                  main=(0.01, 0.01 + 0.3j, 0.01 + 0.6j, 0.01 + 1.0j),
+                  hq=tuple(0.01 + 1j * om for om in np.arange(0.0, 2.0 + 1e-9, 0.25)))
+    kst = pick(args, quick=12, main=12, hq=16)
 
     # ------------------------------------------------------------------ A + E
     print("\n[A] Fig.1 cases + linear stability")
@@ -66,7 +71,7 @@ def main():
     for m, bt in FIG1_CASES:
         if args.quick and m > 4:
             continue
-        sols, info = robust_family(M, lg(M, m), bt, bt + 1.5, db=0.25, b_start=bt + 1.0, verbose=False)
+        sols, info = robust_family(M, lg(M, m), bt, bt + 1.5, db=db, b_start=bt + 1.0, verbose=False)
         print(f"  m={m}: b in [{info.get('b_min')}, {info.get('b_max')}]  ({info['stop_down']})")
         s = pick_closest(sols, "b", bt)
         if s is None or abs(s["b"] - bt) > 1e-6:
@@ -85,7 +90,7 @@ def main():
                            title=f"20x40 sample, m={m}, b={bt:g}, U={s['power']:.3f}")
         io_utils.save_solution(os.path.join(dat, f"e0b_m{m}_b{bt:g}.npz"), M, s, extra=dict(m=m))
         row = dg.mode_summary(M, s, nsym=2, m=m)
-        row.update(m=m, **stability_summary(M, s, shifts))
+        row.update(m=m, **stability_summary(M, s, shifts, kst))
         fig1_rows.append(row)
         print(f"   b={bt}: U={s['power']:.4f} central={row['central_charge']} sats={row['satellites']}"
               f"  max Re(lambda)={row['max_growth']:.2e}")
@@ -94,7 +99,7 @@ def main():
     # ------------------------------------------------------------------ B
     print("\n[B] m=2 family in 20x40: U(b), D_s(b)")
     b_lo = 0.5 if args.quick else 0.1
-    sols, info = robust_family(M, lg(M, 2), b_lo, 6.0, db=0.25, b_start=4.0, verbose=False)
+    sols, info = robust_family(M, lg(M, 2), b_lo, 6.0, db=db, b_start=4.0, verbose=False)
     print(f"  b range reached: [{info['b_min']:.3f}, {info['b_max']:.3f}];  lower end: {info['stop_down']}")
     rows = save_family(M, sols, out, dat, "e0b_m2_20x40", nsym=2, m=2, plot_bs=[1.0, 2.0, 4.0])
     for r in rows:
@@ -168,12 +173,12 @@ def main():
     for m, bt in [(1, 2.0), (2, 2.0), (3, 6.0)]:
         s = fig1_sols.get(m)
         if s is None:
-            sols_m, _ = robust_family(M, lg(M, m), bt, bt + 1.5, db=0.25, b_start=bt + 1.0, verbose=False)
+            sols_m, _ = robust_family(M, lg(M, m), bt, bt + 1.5, db=db, b_start=bt + 1.0, verbose=False)
             s = pick_closest(sols_m, "b", bt)
         if s is None:
             continue
         q0 = propagate.add_noise(s["w"], 0.01, seed=1)
-        res = propagate.propagate(M, q0, zmax, dz=0.02, diag_every=25, snapshot_zs=snap, w_ref=s["w"],
+        res = propagate.propagate(M, q0, zmax, dz=args.dz, diag_every=25, snapshot_zs=snap, w_ref=s["w"],
                                   nsym=2, verbose=True)
         tag = f"e0b_prop_m{m}_b{s['b']:g}"
         plotting.plot_snapshots(M, res["snapshots"], os.path.join(out, tag + "_snapshots.png"),
@@ -190,7 +195,7 @@ def main():
         Mp = NonlocalModel(rectangle_sample(21, 39, h))
         saved = dict(x=M.grid.x, y=M.grid.y, h=M.grid.h, q=dg.field_grid(M, s2["w"]))
         q0 = io_utils.solution_on_model(saved, Mp)
-        res = propagate.propagate(Mp, q0, zmax, dz=0.02, diag_every=25, snapshot_zs=snap,
+        res = propagate.propagate(Mp, q0, zmax, dz=args.dz, diag_every=25, snapshot_zs=snap,
                                   track_singularities=True, verbose=True)
         angles = []
         for z, sg in zip(res["z"], res["singularities"]):

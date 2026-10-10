@@ -20,7 +20,7 @@ import sys
 import numpy as np
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from common import finalize_args, initial_solution, save_family, standard_args  # noqa: E402
+from common import finalize_args, initial_solution, pick, save_family, standard_args  # noqa: E402
 
 from nlmodes import diagnostics as dg  # noqa: E402
 from nlmodes import guesses, io_utils, newton, plotting, propagate, stability  # noqa: E402
@@ -133,14 +133,17 @@ def search_bound_state(M, U=8.0, x0=-3.5, w0=2.5):
 
 def main():
     p = standard_args(__doc__)
-    p.add_argument("--zmax", type=float, default=None, help="传播距离 (默认 300, quick 30)")
+    p.add_argument("--zmax", type=float, default=None, help="传播距离 (默认 300, quick 30, hq 1000)")
     args = finalize_args(p, "E0_validation")
-    zmax = args.zmax or (30.0 if args.quick else 300.0)
+    zmax = args.zmax or pick(args, quick=30.0, main=300.0, hq=1000.0)
     out, dat = args.res_dir, args.data_dir
-    M = NonlocalModel(surface_interface_sample(L=40.0, nd=-100.0, h=args.h))
+    M = NonlocalModel(surface_interface_sample(L=40.0, nd=-100.0, h=args.h_large))   # 大样品
     print(M.describe())
     b0 = 3.0
-    shifts = (0.01, 0.01 + 0.3j, 0.01 + 0.6j, 0.01 + 1.0j)
+    shifts = pick(args, quick=(0.01, 0.01 + 0.3j, 0.01 + 0.6j, 0.01 + 1.0j),
+                  main=(0.01, 0.01 + 0.3j, 0.01 + 0.6j, 0.01 + 1.0j),
+                  hq=tuple(0.01 + 1j * om for om in np.arange(0.0, 2.0 + 1e-9, 0.25)))
+    kst = pick(args, quick=12, main=12, hq=16)
     cases = dict(dipole=(dipole_shape(M), True), vortex=(vortex_shape(M), False),
                  bound_state=(bound_state_shape(M), False))
     sols_b3 = {}
@@ -167,7 +170,7 @@ def main():
         plotting.plot_mode(M, s, os.path.join(out, f"e0c_{name}_b3.png"), zoom=8,
                            title=f"surface {name}, b=3, U={s['power']:.3f}", center=None)
         row = dg.mode_summary(M, s, center=None)
-        st = stability.stability_arnoldi(M, s, shifts=shifts, k=12)
+        st = stability.stability_arnoldi(M, s, shifts=shifts, k=kst)
         row.update(state=name, max_growth=st["max_growth"])
         rows.append(row)
         print(f"   {name}: U={s['power']:.4f} xc={row['xc']:.3f} sings={row['satellites']} "
@@ -183,14 +186,15 @@ def main():
         if s is None:
             continue
         real = cases[name][1]
-        up, _ = newton.continuation(M, s["w"], b0, b_hi, 0.25, real=real, verbose=False)
-        dn, info = newton.continuation(M, s["w"], b0, b_lo, -0.25, real=real, verbose=False)
+        db = 0.25 * args.db_factor
+        up, _ = newton.continuation(M, s["w"], b0, b_hi, db, real=real, verbose=False)
+        dn, info = newton.continuation(M, s["w"], b0, b_lo, -db, real=real, verbose=False)
         fam = sorted(dn[1:] + up, key=lambda x: x["b"])
         print(f"   {name}: b in [{fam[0]['b']:.3f}, {fam[-1]['b']:.3f}]  lower end: {info['stop_reason']}")
         rr = save_family(M, fam, out, dat, f"e0c_{name}_family", center=None)
         every = 2 if args.quick else 4
         for r, sol in zip(rr[::every], fam[::every]):
-            r["max_growth"] = stability.stability_arnoldi(M, sol, shifts=shifts, k=12)["max_growth"]
+            r["max_growth"] = stability.stability_arnoldi(M, sol, shifts=shifts, k=kst)["max_growth"]
         io_utils.write_csv(os.path.join(out, f"e0c_{name}_family_summary.csv"), rr)
         fam_rows[name] = rr
     if fam_rows:
@@ -240,7 +244,7 @@ def main():
     prow = []
     for name, s in sols_b3.items():
         xc, yc = dg.center_of_mass(M, s["w"])
-        res = propagate.propagate(M, propagate.add_noise(s["w"], 0.01, seed=2), zmax, dz=0.02, diag_every=25,
+        res = propagate.propagate(M, propagate.add_noise(s["w"], 0.01, seed=2), zmax, dz=args.dz, diag_every=25,
                                   snapshot_zs=snap, w_ref=s["w"], verbose=True)
         plotting.plot_snapshots(M, res["snapshots"], os.path.join(out, f"e0c_prop_{name}.png"), zoom=8,
                                 center=(xc, yc), title=f"surface {name}, b=3", show_phase=True)

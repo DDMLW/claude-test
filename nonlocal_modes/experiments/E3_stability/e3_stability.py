@@ -19,22 +19,26 @@ E3 —— 嬗变涡旋孤子的稳定性: 线性稳定性谱 + 加噪声传播
     <sample>_m<m>_spectrum.csv     每个 b: max Re(lambda), 最不稳定本征值
     <sample>_m<m>_stability.png    U(b) 曲线, 稳定段实线/不稳定段红叉, 及增长率 vs b
     <sample>_m<m>_prop_b<val>_*.png/csv  传播结果
-    stability_table.csv            总表
+    <sample>_m<m>_row.json         该解族的汇总行 (拆分并行时各任务分别写, 互不覆盖)
+    stability_table.csv            总表 (由目录中所有 *_row.json 汇总; 拆分运行后用 --table_only 重建)
 
 运行:
   python e3_stability.py --quick                       (约 10-20 分钟, 需先跑 E2a --quick)
   python e3_stability.py                               (数小时; 可按样品/荷拆开并行)
   python e3_stability.py --samples poly3 --ms 2 3      (只算一部分)
+  python e3_stability.py --samples poly3 --ms 2 --bs 0.5 1.0 3.0 --tag check   (只在指定的 b 处算谱, 用于复核个别点)
+  python e3_stability.py --table_only                  (拆分运行全部结束后重建 stability_table.csv)
 """
 
 import glob
+import json
 import os
 import sys
 
 import numpy as np
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from common import build_sample, finalize_args, standard_args  # noqa: E402
+from common import build_sample, finalize_args, pick, sample_h, standard_args  # noqa: E402
 
 from nlmodes import io_utils, plotting, propagate, stability  # noqa: E402
 from nlmodes import diagnostics as dg  # noqa: E402
@@ -58,40 +62,74 @@ def load_family(data_dir, kind, m, model):
     return sorted(sols, key=lambda s: s["b"])
 
 
+def pick_spectrum_points(sols, stride):
+    """
+    选出要算谱的解: b 取在固定网格 b = k * stride * db 上 (db 为解族步长), 而不是简单地每隔 stride 个取一个,
+    这样不同网格 (hq 与 hq_coarse) 的谱在相同的 b 处计算, 可以逐点比较。
+    """
+    if len(sols) < 3 or stride <= 1:
+        return sols[::max(stride, 1)]
+    bs = np.array([s["b"] for s in sols])
+    db = float(np.median(np.diff(bs)))
+    step = stride * db
+    picked = [s for s in sols if abs(s["b"] / step - round(s["b"] / step)) < 0.2 / stride]
+    return picked if len(picked) >= 2 else sols[::stride]
+
+
+def assemble_table(out):
+    """把目录中所有 <sample>_m<m>_row.json 汇总成 stability_table.csv (按样品、m 排序)。"""
+    rows = []
+    for f in glob.glob(os.path.join(out, "*_row.json")):
+        with open(f, encoding="utf-8") as fh:
+            rows.append(json.load(fh))
+    order = {k: i for i, k in enumerate(SAMPLES)}
+    rows.sort(key=lambda r: (order.get(r["sample"], 99), r["m"]))
+    io_utils.write_csv(os.path.join(out, "stability_table.csv"), rows)
+    print(f"stability_table.csv: {len(rows)} families")
+
+
 def main():
     p = standard_args(__doc__)
     p.add_argument("--samples", nargs="+", default=SAMPLES)
     p.add_argument("--ms", nargs="+", type=int, default=None)
     p.add_argument("--rho", type=float, default=8.0)
     p.add_argument("--stride", type=int, default=None, help="每隔几个 b 算一次谱 (默认 2, quick 3)")
-    p.add_argument("--omega_max", type=float, default=None, help="shift 扫描的最大虚部 (默认 3, quick 2)")
-    p.add_argument("--zmax", type=float, default=None, help="传播距离 (默认 500, quick 40)")
+    p.add_argument("--bs", nargs="+", type=float, default=None,
+                   help="只在这些 b 处算谱 (取最接近的已存解; 给出时忽略 --stride)")
+    p.add_argument("--omega_max", type=float, default=None, help="shift 扫描的最大虚部 (默认 3, quick 2, hq 4)")
+    p.add_argument("--zmax", type=float, default=None, help="传播距离 (默认 500, quick 40, hq 1000)")
     p.add_argument("--no_prop", action="store_true", help="只算线性谱, 不做传播")
+    p.add_argument("--table_only", action="store_true", help="不计算, 只由已有的 *_row.json 重建总表")
     args = finalize_args(p, "E3_stability")
     out = args.res_dir
+    if args.table_only:
+        assemble_table(out)
+        return
     e2_data = os.path.join(io_utils.PROJECT_ROOT, "data", "E2_transmutation_atlas", args.tag)
     if not os.path.isdir(e2_data):
         raise SystemExit(f"找不到 E2a 的数据目录 {e2_data}; 请先运行 E2a (相同的 --tag)")
     ms = args.ms or ([1, 2, 3, 4] if args.quick else [1, 2, 3, 4, 5, 6])
     stride = args.stride or (3 if args.quick else 2)
-    om_max = args.omega_max or (2.0 if args.quick else 3.0)
-    d_om = 0.25 if args.quick else 0.15
+    om_max = args.omega_max or pick(args, quick=2.0, main=3.0, hq=4.0)
+    d_om = pick(args, quick=0.25, main=0.15, hq=0.1)
     shifts = [0.02 + 1j * om for om in np.arange(0.0, om_max + 1e-9, d_om)]
-    zmax = args.zmax or (40.0 if args.quick else 500.0)
-    kk = 12 if args.quick else 16
-    table = []
+    zmax = args.zmax or pick(args, quick=40.0, main=500.0, hq=1000.0)
+    kk = pick(args, quick=12, main=16, hq=24)
     for kind in args.samples:
         size = (20.0, 40.0) if kind == "rect" else args.rho
-        sample, nsym = build_sample(kind, args.h, size)
+        sample, nsym = build_sample(kind, sample_h(args, kind), size)
         M = NonlocalModel(sample)
         for m in ms:
             sols = load_family(e2_data, kind, m, M)
             if not sols:
                 continue
             name = f"{kind}_m{m}"
-            print(f"\n{name}: {len(sols)} stored solutions; spectra every {stride}")
+            print(f"\n{name}: {len(sols)} stored solutions; "
+                  + (f"spectra at b = {args.bs}" if args.bs else f"spectra every {stride}"))
             rows = []
-            for s in sols[::stride]:
+            points = (sorted({id(s): s for s in (min(sols, key=lambda x: abs(x["b"] - bt)) for bt in args.bs)}
+                                 .values(), key=lambda x: x["b"]) if args.bs else pick_spectrum_points(sols, stride))
+            for s in points:
                 st = stability.stability_arnoldi(M, s, shifts=shifts, k=kk)
                 lam = st["eigenvalues"]
                 j = int(np.argmax(lam.real))
@@ -126,7 +164,7 @@ def main():
                 for bp in sorted(picks):
                     s = min(sols, key=lambda x: abs(x["b"] - bp))
                     snap = [0, zmax / 4, zmax / 2, 3 * zmax / 4, zmax]
-                    res = propagate.propagate(M, propagate.add_noise(s["w"], 0.01, seed=7), zmax, dz=0.02,
+                    res = propagate.propagate(M, propagate.add_noise(s["w"], 0.01, seed=7), zmax, dz=args.dz,
                                               diag_every=25, snapshot_zs=snap, w_ref=s["w"], nsym=nsym,
                                               verbose=False)
                     tag = f"{name}_prop_b{s['b']:.2f}"
@@ -143,13 +181,18 @@ def main():
                     print(f"   propagation b={s['b']:.2f}: max deviation {dev.max():.3f} "
                           f"(second half {second_half.max():.3f})")
                 io_utils.write_csv(os.path.join(out, f"{name}_propagation.csv"), prop)
-            table.append(dict(sample=kind, n=nsym or 0, m=m, b_min=sols[0]["b"], b_max=sols[-1]["b"],
-                              n_spectra=len(rows), n_unstable=sum(r["unstable"] for r in rows),
-                              max_growth_overall=max(r["max_growth"] for r in rows),
-                              stable_b=";".join(f"{r['b']:.2f}" for r in rows if not r["unstable"]),
-                              propagation=";".join(f"b={x['b']:.2f}:{'ok' if x['survived'] else 'broke'}"
-                                                   for x in prop)))
-    io_utils.write_csv(os.path.join(out, "stability_table.csv"), table)
+            row = dict(sample=kind, n=nsym or 0, m=m, h=M.h, b_min=sols[0]["b"], b_max=sols[-1]["b"],
+                       n_spectra=len(rows), n_unstable=sum(r["unstable"] for r in rows),
+                       max_growth_overall=max(r["max_growth"] for r in rows),
+                       stable_b=";".join(f"{r['b']:.2f}" for r in rows if not r["unstable"]),
+                       propagation=";".join(f"b={x['b']:.2f}:{'ok' if x['survived'] else 'broke'}"
+                                            for x in prop))
+            with open(os.path.join(out, f"{name}_row.json"), "w", encoding="utf-8") as fh:
+                json.dump(row, fh, indent=1, default=io_utils.json_default)
+    if args.job:
+        print("\nsplit job (--job given): run --table_only after all jobs finish to build stability_table.csv")
+    else:
+        assemble_table(out)
     print("\nE3 done.")
 
 

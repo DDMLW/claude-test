@@ -23,7 +23,7 @@ import sys
 import numpy as np
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from common import finalize_args, robust_family, pick_closest, standard_args  # noqa: E402
+from common import finalize_args, pick, pick_closest, robust_family, standard_args  # noqa: E402
 
 from nlmodes import diagnostics as dg  # noqa: E402
 from nlmodes import guesses, io_utils  # noqa: E402
@@ -44,7 +44,7 @@ def main():
     args = finalize_args(p, "E0_validation")
     out = args.res_dir
     rows = []
-    hs = [0.4, 0.3] if args.quick else [0.3, 0.2, 0.15]
+    hs = pick(args, quick=[0.4, 0.3], main=[0.3, 0.2, 0.15], hq=[0.3, 0.2, 0.15, 0.1])
     print("\n(a) disk control: grid-induced satellites")
     for h in hs:
         M = NonlocalModel(disk_sample(8.0, h))
@@ -59,7 +59,7 @@ def main():
             print(f"   h={h} m={m}: central {r['central_charge']:+d}, grid-induced satellites {r['n_satellites']} "
                   f"at r={r['satellite_r_mean']:.4f}")
     print("\n(b) rotation test: polygon rotated against the grid")
-    h = 0.3 if args.quick else 0.2
+    h = pick(args, quick=0.3, main=0.2, hq=0.1)
     for (n, m) in ([(3, 2), (5, 3)] if args.quick else [(3, 2), (5, 3), (6, 4)]):
         for deg in (0.0, 7.0, 15.0):
             M = NonlocalModel(polygon_sample(n, h, rho=8.0, theta0=np.radians(deg)))

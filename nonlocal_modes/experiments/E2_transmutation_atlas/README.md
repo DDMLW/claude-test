@@ -16,11 +16,18 @@ python e2b_scaling.py --quick               # 约 5 分钟
 python e2a_atlas.py --samples rect
 python e2a_atlas.py --samples poly3 poly4
 python e2a_atlas.py --samples poly5 poly6 disk
+python e2a_atlas.py --plot_only             # 拆分运行全部结束后: 从 data/ 中所有解族重建完整的 atlas_table.csv 与图谱
 python e2a_atlas.py                         # 或者一次全跑 (约 1-3 小时)
 python e2b_scaling.py                       # 约 1-2 小时
 python e2b_scaling.py --h 0.15 --tag h015   # 加密网格复核标度律
 ```
-> 拆分运行时，每次运行会覆盖 `atlas_table.csv` 和 atlas 图（只含本次的样品）；最终论文图请用一次全样品运行生成。
+> 拆分运行时，每次运行结束会用当时已有的解族重建 `atlas_table.csv` 和 atlas 图；全部拆分任务结束后请再运行一次 `--plot_only`，得到完整图谱。
+
+**高精度（论文数据）**：在上面任一正式命令后加 `--hq`（结果写入 `hq/`），或在超算上用 [`../hpc/`](../hpc/README.md) 一次性拆分提交全部实验（推荐）。
+hq 档：多边形/圆盘 h=0.1、矩形 h=0.15，b 步长 0.1，e2b 用 16 个 ρ（5.5–24）。超算工具把 e2a 按（样品×m）拆成 36 个任务（每个 0.3–2 h），
+并在粗一档网格（`--h_scale 1.5`，tag `hq_coarse`）上重算 8 个关键解族，最后由 `compare_tags.py` 生成
+`hq/compare_hq_vs_hq_coarse.csv`：**中心荷、卫星数等整数量必须完全一致；U、ring_radius 的相对差应 < 1e-2**
+（细网格结果的误差约为差值 × 0.8）。不一致的条目一般是卫星环 < 2h 的“未分辨”情形，请在 Progress.md 中列出。
 > E3 需要读取 E2a 的原始数据，请保持相同的 `--tag`（默认 main），且不要删除 `nonlocal_modes/data/`。
 
 ## 输出与预期结果
@@ -33,6 +40,9 @@ python e2b_scaling.py --h 0.15 --tag h015   # 加密网格复核标度律
 * 预实验（h=0.4，ρ=8，m=1–4）：已分辨的 22 个解族中 **21 个与理论一致**，包括矩形 m=4（中心 0 + 4 卫星，自动从正方形延拓得到）、
   五边形 m=4（中心 −1 + 5 卫星）、六边形 m=4（中心 −2 + 6 卫星）；三角形 m=2（r_s≈0.19）与五边形 m=3（r_s≈0.06）卫星环小于网格，标为 unresolved
   （h=0.2 时三角形 m=2 可分辨）；唯一不一致的是圆盘 m=4（网格诱导分裂，假象，见 E0d）。
+* hq 云端测试（三角形 m=2，h=0.1 与 0.15 各 69 个解）：U 两套网格相对差 2.2e-3、ring_radius 3.5e-3、r_s_fit 2%；
+  嬗变核随功率缩小（r_s_fit：b=0.2 时 0.9，b=2 时 0.09，b=6.8 时 0.017），所以网格读出的中心荷在 b ≲ 2 为 −1、高 b 端为 +2（未分辨，不是理论失效）；
+  `compare_hq_vs_hq_coarse.csv` 中拓扑量的不一致全部出现在未分辨行（属正常），已分辨行 0 个不一致。
 * **判读规则**（重要）：
   1. `resolved=False`（卫星环 < 2h）时，网格检测到的卫星位置不可信，只看 `r_s_fit` 与 `W_profile`；
   2. n=5,6 在 ρ=8 时物理各向异性与网格误差同量级（E0d），这两行只作参考，结论以 E5a 为准；
@@ -45,5 +55,5 @@ python e2b_scaling.py --h 0.15 --tag h015   # 加密网格复核标度律
 * `scaling_n<n>_m<m>.csv`：每个 ρ 的全部诊断量。
 
 ## 上传清单
-`nonlocal_modes/results/E2_transmutation_atlas/main/`（以及 `h015` 等复核目录）。Progress.md 中记录：
+`nonlocal_modes/results/E2_transmutation_atlas/main/` 或 `hq/`（以及 `hq_coarse`、`h015` 等复核目录）。Progress.md 中记录：
 atlas_table 中 match 的个数与不一致的条目；各解族的 b 下限（阈值）；e2b 四个拟合斜率。

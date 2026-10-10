@@ -16,6 +16,8 @@ python e1b_protected_modes.py --quick      # 约 1 分钟
 python e1a_index_anisotropy.py             # 正式, 约 10 分钟
 python e1b_protected_modes.py              # 正式, 约 30-60 分钟
 ```
+**高精度（论文数据）**：在上面任一正式命令后加 `--hq`（结果写入 `hq/`），或在超算上用 [`../hpc/`](../hpc/README.md) 一次性拆分提交全部实验（推荐）。
+hq 档：h=0.1，e1a 用 8 个 ρ（6–18），e1b 的 b 步长 0.1。单核耗时：e1a 约 0.5 h，e1b 约 2–4 h。
 
 ## 输出与预期结果
 ### e1a_index_anisotropy.py
@@ -34,4 +36,4 @@ python e1b_protected_modes.py              # 正式, 约 30-60 分钟
 * 预实验数值（h=0.4）：b=0.5 时 m=1 调制深度 n=3: 1.5e-2, n=4: 1e-3, n=5: 1.3e-4, n=6: 1.9e-5。
 
 ## 上传清单
-`nonlocal_modes/results/E1_symmetry_transfer/main/` 整个目录。Progress.md 中记录：e1a 的 ratio 范围；e1b 中不同样品 U(b) 的最大相对差。
+`nonlocal_modes/results/E1_symmetry_transfer/main/`（或 `hq/`）整个目录。Progress.md 中记录：e1a 的 ratio 范围；e1b 中不同样品 U(b) 的最大相对差。

@@ -22,7 +22,7 @@ import sys
 import numpy as np
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from common import build_sample, finalize_args, robust_family, save_family, standard_args  # noqa: E402
+from common import build_sample, finalize_args, robust_family, sample_h, save_family, standard_args  # noqa: E402
 
 from nlmodes import diagnostics as dg  # noqa: E402
 from nlmodes import guesses, io_utils  # noqa: E402
@@ -54,11 +54,11 @@ def main():
     rho = 8.0
     samples = ["poly3", "poly4", "poly5", "poly6", "disk"]
     b_lo, b_hi = (0.5, 4.0) if args.quick else (0.2, 6.0)
-    db = 0.5 if args.quick else 0.2
+    db = 0.5 if args.quick else 0.2 * args.db_factor
     all_rows = []
     fig, axs = plt.subplots(1, 2, figsize=(9, 3.6))
     for kind in samples:
-        sample, nsym = build_sample(kind, args.h, rho)
+        sample, nsym = build_sample(kind, sample_h(args, kind), rho)
         M = NonlocalModel(sample)
         print("\n" + M.describe())
         for m in (0, 1):

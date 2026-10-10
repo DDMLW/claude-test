@@ -30,10 +30,15 @@ Windows 用户在 “Anaconda Prompt” 里执行同样的命令即可。
 2. **按顺序做正式运行**：E0 → E1 → E2 → E3 → E4 → E5。每个实验目录里的 `README.md` 写明了
    运行命令、耗时、输出文件、**预期结果**和**上传清单**。E3 依赖 E2a 的数据（同一台电脑、同一 tag）。
    长时间任务可以开多个终端并行（脚本都支持 `--samples`、`--ms` 等参数拆分）。
-3. **上传结果**：见 [`results/README.md`](results/README.md)。上传 `results/<实验>/main/`，并在 `Progress.md` 的运行记录表里加一行。
+3. **上传结果**：见 [`results/README.md`](results/README.md)。上传 `results/<实验>/<tag>/`，并在 `Progress.md` 的运行记录表里加一行。
 4. 有任何报错或与预期不符：不要改代码，上传 `log.txt` 并在 Progress.md 里写清楚。
 
-| 实验 | 目录 | 内容 | 正式运行耗时(估) |
+### 论文数据：hq 高精度档 + 超算批量运行
+所有脚本都支持 `--hq`（h=0.1、矩形/界面样品 0.15，牛顿判据 1e-12，dz=0.01，b 步长减半，更长传播、更密稳定性扫描；结果在 `hq/` 下）。
+计算量约为普通档的 10–30 倍，**请在超算上用 [`experiments/hpc/`](experiments/hpc/README.md) 的工具一次性拆分提交**（约 115 个单核任务，三个阶段，
+SLURM/PBS/无调度服务器均可），其中自动包含粗一档网格的收敛对照（`hq_coarse`）。为什么不把收敛判据设成 1e-20：见 hpc/README.md 第 0 节与 docs/numerics.md 第 8 节。
+
+| 实验 | 目录 | 内容 | 正式运行耗时(估, main 档) |
 |---|---|---|---|
 | E0 | `experiments/E0_validation` | 代码验证：解析解、收敛性、复现导师两篇论文、网格假象底线 | 3–5 h |
 | E1 | `experiments/E1_symmetry_transfer` | 对称性传递定律、保角半径普适性 | 0.5–1 h |
@@ -58,8 +63,11 @@ nonlocal_modes/
 │   ├── io_utils.py          数据保存/读取、run_info.json
 │   └── plotting.py          标准作图
 ├── experiments/             E0-E5 实验脚本, 每个目录有 README.md; run_all.py 一键运行
+│   ├── common.py            共用工具 + 精度档位 (quick / main / hq)
+│   ├── compare_tags.py      两个 tag 的结果表逐列比较 (网格收敛性检验)
+│   └── hpc/                 超算批量运行: make_jobs.py, submit_slurm.sh, pbs_array.sh, run_local.py, status.py
 ├── tests/test_core.py       单元测试
-├── results/                 上传的结果 (每个实验一个目录, 正式运行在 main/ 下)
+├── results/                 上传的结果 (每个实验一个目录, 正式运行在 main/ 或 hq/ 下)
 ├── data/                    原始数据 (本地保存, 不上传)
 └── docs/                    研究方案、理论、数值方法、参考文献
 ```

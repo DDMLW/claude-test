@@ -5,7 +5,8 @@ common.py —— 各实验脚本共用的工具
   * robust_family     : 稳健地求一个解族 (先在若干 b 上找到第一个收敛解, 再向上/向下双向延拓)
   * param_continuation: 沿“样品参数”(尺寸、边界温度等) 延拓, 失败时自动二分加密步长
   * Tee               : 把屏幕输出同时写进 log.txt (日志需要上传)
-  * standard_args     : 所有脚本共有的命令行参数 (--tag --quick --h ...)
+  * standard_args     : 所有脚本共有的命令行参数 (--tag --quick --hq --h ...)
+  * PROFILES / pick   : 精度档位 quick / main / hq 及各档参数
 """
 
 import argparse
@@ -41,33 +42,85 @@ class Tee:
         self.file.flush()
 
 
+# ---------------------------------------------------------------------------
+# 精度档位 (precision profiles)
+#   quick : 冒烟测试, 粗网格, 几分钟内跑完, 结果不上传
+#   main  : 普通正式运行 (h = 0.2)
+#   hq    : 高精度正式运行 (--hq), 用于论文数据; 计算量约为 main 的 10-20 倍, 建议在超算上拆分并行
+# 说明: 牛顿迭代的收敛判据不能设得比 ~1e-13 更小 —— 双精度浮点的机器精度约 2.2e-16, 乘上差分算子
+# 的系数后残差的舍入噪声在 1e-14~1e-13 量级; 设成 1e-20 会使所有求解都“不收敛”。
+# 论文结果的误差主要来自网格 h 和步长 dz (1e-3~1e-5 量级), 所以 hq 档把算力花在加密网格与步长上。
+# ---------------------------------------------------------------------------
+PROFILES = {
+    #        光学/热网格 h   大样品网格 h_large  牛顿判据   传播步长   b 步长缩放
+    "quick": dict(h=None, h_large=None, tol=1e-9, dz=0.02, db_factor=1.0),
+    "main": dict(h=None, h_large=None, tol=1e-9, dz=0.02, db_factor=1.0),
+    "hq": dict(h=0.1, h_large=0.15, tol=1e-12, dz=0.01, db_factor=0.5),
+}
+LARGE_SAMPLES = ("rect", "surface")     # 截面大 (20x40, 40x40) 的样品在 hq 档用 h_large 控制计算量
+
+
 def standard_args(description, default_h=0.2, quick_h=0.4):
     p = argparse.ArgumentParser(description=description)
     p.add_argument("--tag", default=None,
-                   help="结果子目录名 (默认: 正式运行 'main', --quick 时 'quick')")
+                   help="结果子目录名 (默认: 正式运行 'main', --hq 时 'hq', --quick 时 'quick')")
     p.add_argument("--quick", action="store_true",
                    help="快速冒烟测试: 粗网格 + 少量参数点, 几分钟内跑完, 只用于检查程序能否运行")
-    p.add_argument("--h", type=float, default=None, help=f"网格间距 (默认 {default_h}, quick 时 {quick_h})")
+    p.add_argument("--hq", action="store_true",
+                   help="高精度正式运行: h=0.1 (矩形/界面样品 0.15), 牛顿判据 1e-12, dz=0.01, b 步长减半, "
+                        "更长传播与更密的稳定性扫描 (论文数据用这一档)")
+    p.add_argument("--job", default=None,
+                   help="拆分并行运行时的任务名 (由 hpc/make_jobs.py 自动给出): 日志写入 log_<job>.txt、"
+                        "run_info_<job>.json, 避免多个进程同时写同一个文件")
+    p.add_argument("--h", type=float, default=None,
+                   help=f"网格间距 (默认 {default_h}; quick {quick_h}; hq 0.1, 矩形/界面样品 0.15)。"
+                        "显式给出时所有样品都用这个值")
+    p.add_argument("--h_scale", type=float, default=1.0,
+                   help="把本档的网格间距 (含大样品) 统一乘以此因子, 用于网格收敛性检验, "
+                        "例如 --hq --h_scale 1.5 --tag hq_coarse, 再用 compare_tags.py 与 hq 比较")
     p._nl_defaults = (default_h, quick_h)
     return p
 
 
 def finalize_args(p, exp_name):
     args = p.parse_args()
+    if args.quick and args.hq:
+        p.error("--quick 与 --hq 不能同时使用")
     default_h, quick_h = p._nl_defaults
+    args.profile = "quick" if args.quick else ("hq" if args.hq else "main")
+    prof = PROFILES[args.profile]
     if args.h is None:
-        args.h = quick_h if args.quick else default_h
+        args.h = {"quick": quick_h, "main": default_h, "hq": prof["h"]}[args.profile]
+        args.h_large = {"quick": quick_h, "main": default_h, "hq": prof["h_large"]}[args.profile]
+    else:
+        args.h_large = args.h
+    if args.h_scale != 1.0:
+        args.h = round(args.h * args.h_scale, 6)
+        args.h_large = round(args.h_large * args.h_scale, 6)
+    args.tol, args.dz, args.db_factor = prof["tol"], prof["dz"], prof["db_factor"]
+    newton.DEFAULT_TOL = args.tol
     if args.tag is None:
-        args.tag = "quick" if args.quick else "main"
+        args.tag = args.profile
     args.exp = exp_name
     args.res_dir = io_utils.results_dir(exp_name, args.tag)
     args.data_dir = io_utils.data_dir(exp_name, args.tag)
-    sys.stdout = Tee(os.path.join(args.res_dir, "log.txt"))
-    print(f"\n===== {exp_name}  tag={args.tag}  h={args.h}  quick={args.quick}  "
-          f"{time.strftime('%Y-%m-%d %H:%M:%S')} =====")
+    suffix = f"_{args.job}" if args.job else ""
+    sys.stdout = Tee(os.path.join(args.res_dir, f"log{suffix}.txt"))
+    print(f"\n===== {exp_name}  tag={args.tag}  profile={args.profile}  h={args.h} (large samples "
+          f"{args.h_large})  newton tol={args.tol:g}  dz={args.dz}  {time.strftime('%Y-%m-%d %H:%M:%S')} =====")
     print(f"results -> {args.res_dir}\nraw data -> {args.data_dir}")
-    io_utils.write_run_info(args.res_dir, args)
+    io_utils.write_run_info(args.res_dir, args, filename=f"run_info{suffix}.json")
     return args
+
+
+def pick(args, quick, main, hq):
+    """按精度档位选参数值: pick(args, quick=..., main=..., hq=...)。"""
+    return {"quick": quick, "main": main, "hq": hq}[args.profile]
+
+
+def sample_h(args, kind):
+    """该样品使用的网格间距 (hq 档中矩形/界面样品用 h_large)。"""
+    return args.h_large if kind in LARGE_SAMPLES else args.h
 
 
 def build_sample(kind, h, size):
@@ -108,18 +161,25 @@ def initial_solution(model, make_shape, b_candidates, widths=np.linspace(0.8, 6.
 
 
 def robust_family(model, make_shape, b_low, b_high, db=0.25, b_start=None, real=None,
-                  callback=None, verbose=True):
+                  callback=None, verbose=True, align_db=False):
     """
     求一个解族: 先在 b_start 附近找初解, 再分别向 b_high 与 b_low 延拓。
     返回 (按 b 升序的解列表, info dict)。
     callback(sol) 对每个收敛解调用一次。
+    align_db=True: 起点与备选起点都取在 db 的整数倍上, 于是解族的 b 网格与网格间距 h、与哪个备选起点收敛无关
+                   (不同网格的结果可以按 b 逐点比较, 见 compare_tags.py; E2a/E3 使用)。
     """
     if b_start is None:
         b_start = 0.5 * (b_low + b_high)
+    off = 0.75
+    if align_db:
+        step = abs(db)
+        b_start = round(b_start / step) * step
+        off = max(1, round(0.75 / step)) * step
     cands = [b_start]
     for k in (1, 2, 3):
         for s in (+1, -1):
-            b = b_start + s * 0.75 * k
+            b = b_start + s * off * k
             if b_low <= b <= b_high:
                 cands.append(b)
     first = initial_solution(model, make_shape, cands, real=real, verbose=verbose)
@@ -203,6 +263,9 @@ def param_continuation(build_model, start_value, start_model, start_sol, targets
                 depth = max(depth - 1, 0)
                 if vt == v:
                     out.append((v, Mt, sol))
+                    if verbose:
+                        print(f"   param continuation: value {v:g} reached (b={sol['b']:.4f}, "
+                              f"{sol.get('iterations', -1)} Newton its)", flush=True)
             else:
                 depth += 1
                 if depth > max_depth:

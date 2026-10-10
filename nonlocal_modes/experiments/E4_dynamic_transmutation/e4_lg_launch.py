@@ -13,19 +13,24 @@ E4 —— 动态嬗变: 把实验上最容易产生的正则 LG 涡旋光束 (�
     <sample>_m<m>_U<U>_irreps.png/csv  C_n 不可约表示权重随 xi (守恒检验)
     <sample>_m<m>_U<U>_interferogram.png  输出面与倾斜平面波的干涉图 (实验中看到的“叉形条纹”)
     e4_summary.csv                     每个 run 的最终中心荷 (小圆绕数)、卫星数、mu 守恒误差
+                                       (由目录中所有 *_row.json 汇总; 拆分运行后可用 --table_only 重建)
 
 运行:
   python e4_lg_launch.py --quick    (约 5-10 分钟)
   python e4_lg_launch.py            (约 1-3 小时)
+  python e4_lg_launch.py --samples poly3 --job poly3     (只算一个样品, 便于并行)
+  python e4_lg_launch.py --table_only                    (拆分运行全部结束后重建 e4_summary.csv)
 """
 
+import glob
+import json
 import os
 import sys
 
 import numpy as np
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from common import build_sample, finalize_args, standard_args  # noqa: E402
+from common import build_sample, finalize_args, pick, standard_args  # noqa: E402
 
 from nlmodes import diagnostics as dg  # noqa: E402
 from nlmodes import guesses, io_utils, plotting, propagate, theory  # noqa: E402
@@ -43,6 +48,17 @@ def interferogram(model, q, kx=4.0, ref_amp=None):
     return np.abs(qg + A * np.exp(1j * kx * model.grid.X) * (np.abs(qg) > 1e-3 * np.abs(qg).max())) ** 2
 
 
+def assemble_summary(out):
+    """把目录中所有 <sample>_m<m>_U<U>_row.json 汇总成 e4_summary.csv。"""
+    rows = []
+    for f in glob.glob(os.path.join(out, "*_row.json")):
+        with open(f, encoding="utf-8") as fh:
+            rows.append(json.load(fh))
+    rows.sort(key=lambda r: (r["sample"], r["m"], r["U"]))
+    io_utils.write_csv(os.path.join(out, "e4_summary.csv"), rows)
+    print(f"e4_summary.csv: {len(rows)} runs")
+
+
 def main():
     p = standard_args(__doc__)
     p.add_argument("--samples", nargs="+", default=["poly3", "poly4", "poly5", "poly6", "disk"])
@@ -50,15 +66,18 @@ def main():
     p.add_argument("--powers", nargs="+", type=float, default=None, help="输入能流 U 列表 (默认 10 20)")
     p.add_argument("--rho", type=float, default=8.0)
     p.add_argument("--w0", type=float, default=2.0, help="LG 光束宽度参数")
-    p.add_argument("--zmax", type=float, default=None, help="传播距离 (默认 200, quick 30)")
+    p.add_argument("--zmax", type=float, default=None, help="传播距离 (默认 200, quick 30, hq 400)")
     p.add_argument("--noise", type=float, default=0.0, help="输入噪声方差 (默认 0, 可设 0.01 检验鲁棒性)")
+    p.add_argument("--table_only", action="store_true", help="不计算, 只由已有的 *_row.json 重建 e4_summary.csv")
     args = finalize_args(p, "E4_dynamic_transmutation")
     out = args.res_dir
+    if args.table_only:
+        assemble_summary(out)
+        return
     ms = args.ms or ([2, 3] if args.quick else [2, 3, 4])
     powers = args.powers or ([15.0] if args.quick else [10.0, 20.0])
-    zmax = args.zmax or (30.0 if args.quick else 200.0)
+    zmax = args.zmax or pick(args, quick=30.0, main=200.0, hq=400.0)
     nsnap = 6
-    summary = []
     for kind in args.samples:
         sample, nsym = build_sample(kind, args.h, args.rho)
         M = NonlocalModel(sample)
@@ -70,7 +89,7 @@ def main():
                 if args.noise > 0:
                     q0 = propagate.add_noise(q0, args.noise, seed=11)
                 snap = list(np.linspace(0, zmax, nsnap))
-                res = propagate.propagate(M, q0, zmax, dz=0.02, diag_every=25, snapshot_zs=snap,
+                res = propagate.propagate(M, q0, zmax, dz=args.dz, diag_every=25, snapshot_zs=snap,
                                           nsym=nsym or 4, track_singularities=True, verbose=False)
                 tag = f"{kind}_m{m}_U{U:g}"
                 ring = dg.ring_radius(dg.field_grid(M, q0), M.grid, (0, 0), rmax=8.0)
@@ -130,14 +149,19 @@ def main():
                 mu0 = theory.irrep_label(m, nsym or 4)
                 drift = max(abs(v[mu0] - irr[0][mu0]) for v in irr)
                 pred = theory.selection_rule(m, nsym)["central"] if nsym else m
-                summary.append(dict(sample=kind, n=nsym or 0, m=m, U=U, zmax=zmax, noise=args.noise,
-                                    central_pred=pred, central_final=round(Wc, 2),
-                                    n_satellites_final=st["n_satellites"], r_s_final=st["satellite_r_mean"],
-                                    mu=mu0, mu_weight_initial=irr[0][mu0], mu_weight_drift=drift,
-                                    power_drift=float(np.ptp(res["power"]) / res["power"][0])))
+                row = dict(sample=kind, n=nsym or 0, m=m, U=U, h=M.h, zmax=zmax, noise=args.noise,
+                           central_pred=pred, central_final=round(Wc, 2),
+                           n_satellites_final=st["n_satellites"], r_s_final=st["satellite_r_mean"],
+                           mu=mu0, mu_weight_initial=irr[0][mu0], mu_weight_drift=drift,
+                           power_drift=float(np.ptp(res["power"]) / res["power"][0]))
+                with open(os.path.join(out, tag + "_row.json"), "w", encoding="utf-8") as fh:
+                    json.dump(row, fh, indent=1, default=io_utils.json_default)
                 print(f"  m={m} U={U:g}: central (pred {pred}) final {Wc:+.2f}, satellites {st['n_satellites']}, "
                       f"mu-weight drift {drift:.1e}  [{res['time']:.0f}s]")
-    io_utils.write_csv(os.path.join(out, "e4_summary.csv"), summary)
+    if args.job:
+        print("\nsplit job (--job given): run --table_only after all jobs finish to build e4_summary.csv")
+    else:
+        assemble_summary(out)
     print("\nE4 done.")
 
 

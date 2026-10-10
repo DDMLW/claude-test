@@ -7,3 +7,7 @@ __pycache__/
 nonlocal_modes/data/
 nonlocal_modes/results/*/quick*/
 .pytest_cache/
+nonlocal_modes/results/*/cloudtest*/
+# HPC: generated job lists and scheduler logs stay on the cluster
+nonlocal_modes/experiments/hpc/jobs/
+nonlocal_modes/experiments/hpc/logs/
