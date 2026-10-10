@@ -55,8 +55,9 @@ def satellite_tracks(res, rmax):
 def main():
     p = standard_args(__doc__)
     p.add_argument("--R", type=float, default=10.0)
-    p.add_argument("--Theta", type=float, default=4.0,
-                   help="C_3 图样的边界温度幅度 (默认 4: h=0.2 时卫星环 r~0.6 > 2h, 可分辨; 1 时卫星在亚网格)")
+    p.add_argument("--Theta", type=float, default=3.0,
+                   help="C_3 图样的边界温度幅度 (默认 3: 卫星环 r~0.44, h=0.2 时 >2h、h=0.1 时 ~4h, 可分辨; "
+                        "1 时卫星在亚网格; U=15 时 Theta >~ 3.8 涡旋会与样品边缘的热点模式杂化, 不要超过 3.5)")
     p.add_argument("--U", type=float, default=15.0)
     p.add_argument("--zmax", type=float, default=None, help="默认 300 (quick 40, hq 600)")
     args = finalize_args(p, "E5_thermal_reconfiguration")
@@ -77,14 +78,27 @@ def main():
         s.set_boundary_temperature(harmonic_multipole(3, T, R))
         return NonlocalModel(s)
 
-    scan = param_continuation(build, 0.0, M0, s0, [Th / 16, Th / 8, Th / 4, Th / 2, Th],
-                              lambda model, w0, prev: newton.solve_robust(model, w0, prev["b"], fixed_power=U))
+    # 加热增强时卫星环外移 (r_s ∝ Theta), 细网格上结构变化被完全分辨, 所以后半段用较小的步长 + 割线预测
+    scan = param_continuation(build, 0.0, M0, s0, [Th * f for f in (1 / 16, 1 / 8, 1 / 4, 3 / 8, 1 / 2, 5 / 8,
+                                                                     3 / 4, 7 / 8, 1.0)],
+                              lambda model, w0, prev: newton.solve_robust(model, w0, prev["b"], fixed_power=U,
+                                                                          maxit=25),
+                              secant=True)
     if not scan or scan[-1][0] != Th:
         raise SystemExit("未能得到 C_3 加热下的定态, 请减小 --Theta")
     _, M3, st3 = scan[-1]
     row = dg.mode_summary(M3, st3, nsym=3, m=m)
+    I3 = np.abs(st3["w"]) ** 2
+    p_out = float(I3[np.hypot(M3.xo, M3.yo) > 0.5 * R].sum() / I3.sum())
     print(f"start state: b={st3['b']:.4f}, central (small circle) {row['W_small']:+.0f}, "
-          f"satellites {row['n_satellites']} at r={row['satellite_r_mean']:.3f}")
+          f"satellites {row['n_satellites']} at r={row['satellite_r_mean']:.3f}, "
+          f"power fraction at r > R/2: {p_out:.1e}, outer singularities {row['n_outer_singularities']}")
+    if p_out > 0.01 or row["n_outer_singularities"] > 0:
+        print("WARNING: the start state is hybridized with the boundary hot-spot modes (Theta too large for this U);"
+              " results are not a clean demonstration - use a smaller --Theta or a larger --U")
+    if row["satellite_r_mean"] < 2 * h:
+        print(f"WARNING: satellite ring r={row['satellite_r_mean']:.3f} < 2h: not resolved, use a larger --Theta "
+              "or a finer grid")
     plotting.plot_mode(M3, st3, os.path.join(out, "control_start_state.png"),
                        title=f"m=2, C3 heating Theta={Th:g}, U={U:g}")
 

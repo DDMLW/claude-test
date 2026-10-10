@@ -11,9 +11,13 @@ E5a —— 可重构的热边界调控: 用边界温度多极图样代替样品�
     * Theta 反号 -> 卫星环整体旋转 pi/n
     * Theta -> 0 恢复正则涡旋 (可逆)
     * 调和函数无内部极大值 (极值原理), 外加图样本身不能导引光 —— 只有和自陷效应结合才产生定态
+    * 注意 (2026-10-10 诊断): 边界处的折射率增量 = Theta, 样品边缘 n 个“热点”附近存在局域线性模式;
+      Theta 大到这些模式的传播常数接近涡旋的 b 时, 涡旋与热点模式共振“杂化”(光功率漏到边缘、尾部出现额外零点,
+      解族在 Theta 方向难以延拓)。例: (3,2), U=15, R=10 时约在 Theta = 3.8 处。每个点记录外围功率比例 P_outer
+      (r > R/2) 与 hybrid 标记, 斜率拟合只用未杂化的点。
 
 本实验: 对 (n,m) = (3,2), (4,3), (3,3), (5,3), (6,4), (2,2): 固定能流 U, 沿 Theta 做参数延拓 (正负两个方向),
-记录 r_s(Theta) (检测值与拟合值)、第一颗卫星的方位角、中心荷。
+记录 r_s(Theta) (检测值与拟合值)、第一颗卫星的方位角、中心荷、外围功率比例 P_outer 与杂化标记 hybrid。
 
 输出: heating_n<n>_m<m>.csv, heating_rs.png (r_s vs |Theta| 对数图, 带理论斜率), heating_modes_*.png
 
@@ -54,6 +58,12 @@ def heated_disk(R, h, n, Theta, theta0=0.0):
     return NonlocalModel(s)
 
 
+def outer_power_fraction(model, w, R):
+    """r > R/2 (样品外半部) 的光功率比例: 明显增大说明涡旋与边缘热点模式杂化。"""
+    I = np.abs(w) ** 2
+    return float(I[np.hypot(model.xo, model.yo) > 0.5 * R].sum() / I.sum())
+
+
 def first_satellite_angle(sats_json):
     import json
     sats = json.loads(sats_json)
@@ -69,12 +79,14 @@ def main():
     args = finalize_args(p, "E5_thermal_reconfiguration")
     out = args.res_dir
     R = args.R
-    nst = pick(args, quick=4, main=10, hq=16)
+    # Theta 取等比数列: quick 4 点 (tmax/8..tmax, 公比 2); main 10 点 (tmax/512..tmax, 公比 2);
+    # hq 19 点 (同一范围, 公比 sqrt 2) —— 加密的是大 Theta 端 (卫星环可分辨的区域), 并配合割线预测
+    nst, span = pick(args, quick=(4, 8.0), main=(10, 512.0), hq=(19, 512.0))
     cases = CASES[:2] if args.quick else CASES
     fig, ax = plt.subplots(figsize=(5.5, 4.2))
     for (n, m, U, tmax) in cases:
         tmax = (1.0 if args.quick else tmax) * args.theta_scale
-        thetas = list(np.round(np.geomspace(tmax / 2 ** (nst - 1), tmax, nst), 6))
+        thetas = list(np.round(np.geomspace(tmax / span, tmax, nst), 6))
         rule = theory.selection_rule(m, n)
         s_pred = rule["rings"][0][2] if rule["rings"] else np.nan
         print(f"\n(n,m)=({n},{m}), U={U}: predicted central {rule['central']}, r_s ~ Theta^{s_pred:.3f}")
@@ -85,27 +97,30 @@ def main():
             print("   no initial solution")
             continue
         s0 = newton.solve_robust(M0, first["w"], first["b"], fixed_power=U)
+        p_out0 = outer_power_fraction(M0, s0["w"], R)
 
         def solve_fixed_U(model, w0, prev, U=U):
-            return newton.solve_robust(model, w0, prev["b"], fixed_power=U)
+            return newton.solve_robust(model, w0, prev["b"], fixed_power=U, maxit=25)
 
         rows = []
         for sign in (+1, -1):
             scan = param_continuation(lambda T, n=n: heated_disk(R, args.h, n, T), 0.0, M0, s0,
-                                      [sign * t for t in thetas], solve_fixed_U)
+                                      [sign * t for t in thetas], solve_fixed_U, secant=True)
             for T, M, s in scan:
                 row = dg.mode_summary(M, s, nsym=n, m=m)
-                row.update(n=n, m=m, Theta=T, sat_angle=first_satellite_angle(row["satellites"]))
+                p_out = outer_power_fraction(M, s["w"], R)
+                row.update(n=n, m=m, Theta=T, sat_angle=first_satellite_angle(row["satellites"]), P_outer=p_out,
+                           hybrid=bool(p_out > 2 * p_out0 + 2e-3))
                 rows.append(row)
                 print(f"   Theta={T:+8.4f}: b={s['b']:.4f} W_small={row['W_small']:+.0f} sats={row['n_satellites']} "
                       f"r_s(det)={row['satellite_r_mean']:.4f} r_s(fit)={row['r_s_fit']:.4f} "
-                      f"angle={row['sat_angle']:+.3f}")
+                      f"angle={row['sat_angle']:+.3f} P_outer={p_out:.1e}{' HYBRID' if row['hybrid'] else ''}")
                 if abs(T) == tmax:
                     plotting.plot_mode(M, s, os.path.join(out, f"heating_mode_n{n}_m{m}_T{T:+g}.png"),
                                        title=f"disk R={R:g}, T_b = {T:+g} cos({n} theta), m={m}, U={U:g}")
         rows.sort(key=lambda r: r["Theta"])
         io_utils.write_csv(os.path.join(out, f"heating_n{n}_m{m}.csv"), rows)
-        pos = [r for r in rows if r["Theta"] > 0 and r["r_s_fit"] > 0]
+        pos = [r for r in rows if r["Theta"] > 0 and r["r_s_fit"] > 0 and not r["hybrid"]]
         if len(pos) >= 3:
             T_ = np.array([r["Theta"] for r in pos])
             rs = np.array([r["r_s_fit"] for r in pos])

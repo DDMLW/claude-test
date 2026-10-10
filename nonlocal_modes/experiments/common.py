@@ -240,24 +240,32 @@ def transfer_solution(model_from, w, model_to):
 
 
 def param_continuation(build_model, start_value, start_model, start_sol, targets, solve_fn,
-                       max_depth=5, verbose=True):
+                       max_depth=5, verbose=True, secant=True):
     """
     沿样品参数延拓 (例如矩形宽度 d_eta、多边形保角半径 rho、边界温度幅度 Theta)。
     build_model(v) -> NonlocalModel;  solve_fn(model, w_guess, prev_sol) -> sol (dict, 含 converged)
     targets: 按远离 start_value 的顺序排列的目标参数值。
     某一步牛顿失败时, 在上一个成功值与目标值之间插入中点重试, 最多二分 max_depth 层。
+    secant=True (默认): 用最近两个解做线性外推作为初值 (割线预测)。解的结构随参数明显变化时
+                 (例如加热增强、卫星环外移) 比直接用上一个解作初值好得多, 细网格上尤其如此。
     返回 [(v, model, sol), ...] (只含 targets 中成功的点)。
     """
     out = []
     cur_v, cur_M, cur_s = start_value, start_model, start_sol
+    prev = None                                   # 上一个成功点 (v, model, sol), 供割线预测
     for v in targets:
         pending = [v]
         depth = 0
         while pending:
             vt = pending[-1]
             Mt = build_model(vt)
-            sol = solve_fn(Mt, transfer_solution(cur_M, cur_s["w"], Mt), cur_s)
+            w_guess = transfer_solution(cur_M, cur_s["w"], Mt)
+            if secant and prev is not None and prev[0] != cur_v:
+                w_prev = newton.align_phase(transfer_solution(prev[1], prev[2]["w"], Mt), w_guess)
+                w_guess = w_guess + (vt - cur_v) / (cur_v - prev[0]) * (w_guess - w_prev)
+            sol = solve_fn(Mt, w_guess, cur_s)
             if sol["converged"]:
+                prev = (cur_v, cur_M, cur_s)
                 cur_v, cur_M, cur_s = vt, Mt, sol
                 pending.pop()
                 depth = max(depth - 1, 0)
