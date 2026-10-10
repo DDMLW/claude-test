@@ -1,0 +1,4 @@
+__pycache__/
+*.pyc
+# research-lit scratch output (candidate/verified paper lists)
+.aris/verify-papers/
