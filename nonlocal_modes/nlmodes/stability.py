@@ -25,7 +25,7 @@ import time
 
 import numpy as np
 import scipy.sparse as sp
-from scipy.sparse.linalg import LinearOperator, eigs, splu
+from scipy.sparse.linalg import ArpackNoConvergence, LinearOperator, eigs, splu
 
 from .diagnostics import center_of_mass
 
@@ -136,8 +136,13 @@ def stability_arnoldi(model, sol, shifts=(0.05,), k=20, tol=1e-10):
                  [2 * model.PT @ Wr, 2 * model.PT @ Wi, model.K]], format="csc")
     Bdiag = np.concatenate([np.ones(2 * No), np.zeros(Nt)])
     found = []
+    n_failed = 0          # ARPACK 未完全收敛的 shift 个数 (只用已收敛的本征值, 不中断长任务)
     for sigma in shifts:
-        lu = splu((A - sigma * sp.diags(Bdiag)).astype(complex).tocsc())
+        try:
+            lu = splu((A - sigma * sp.diags(Bdiag)).astype(complex).tocsc())
+        except RuntimeError:                 # shift 恰好是本征值 (矩阵奇异): 稍微移开
+            sigma = sigma + 1e-6 * (1 + 1j)
+            lu = splu((A - sigma * sp.diags(Bdiag)).astype(complex).tocsc())
 
         def mv(u, lu=lu):
             z = np.zeros(2 * No + Nt, complex)
@@ -145,7 +150,17 @@ def stability_arnoldi(model, sol, shifts=(0.05,), k=20, tol=1e-10):
             return lu.solve(z)[:2 * No]
 
         T = LinearOperator((2 * No, 2 * No), matvec=mv, dtype=complex)
-        mu = eigs(T, k=k, which="LM", return_eigenvectors=False, tol=tol)
-        found.append(sigma + 1.0 / mu)
-    lam = np.concatenate(found)
-    return dict(eigenvalues=lam, max_growth=float(np.max(lam.real)), time=time.time() - t0)
+        try:
+            mu = eigs(T, k=k, which="LM", return_eigenvectors=False, tol=tol)
+        except ArpackNoConvergence:
+            try:                             # 加大 Krylov 子空间重试一次
+                mu = eigs(T, k=k, which="LM", return_eigenvectors=False, tol=tol,
+                          ncv=min(2 * No - 1, max(4 * k + 1, 60)))
+            except ArpackNoConvergence as err:
+                mu = err.eigenvalues
+                n_failed += 1
+        if len(mu):
+            found.append(sigma + 1.0 / mu)
+    lam = np.concatenate(found) if found else np.array([np.nan + 0j])
+    return dict(eigenvalues=lam, max_growth=float(np.nanmax(lam.real)) if found else float("nan"),
+                n_failed_shifts=n_failed, time=time.time() - t0)

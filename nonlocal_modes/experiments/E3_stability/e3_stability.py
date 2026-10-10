@@ -135,9 +135,12 @@ def main():
                 j = int(np.argmax(lam.real))
                 rows.append(dict(b=s["b"], U=s["power"], max_growth=st["max_growth"],
                                  lam_re=float(lam[j].real), lam_im=float(abs(lam[j].imag)),
-                                 unstable=st["max_growth"] > UNSTABLE_TOL, n_eigs=len(lam)))
+                                 unstable=st["max_growth"] > UNSTABLE_TOL, n_eigs=len(lam),
+                                 n_failed_shifts=st.get("n_failed_shifts", 0)))
                 print(f"   b={s['b']:.3f} U={s['power']:.3f}  max Re(lambda) = {st['max_growth']:.3e} "
-                      f"(Im = {abs(lam[j].imag):.3f})  [{st['time']:.0f}s]")
+                      f"(Im = {abs(lam[j].imag):.3f})  [{st['time']:.0f}s]"
+                      + (f"  WARNING: ARPACK not fully converged for {st['n_failed_shifts']} shifts"
+                         if st.get("n_failed_shifts") else ""))
             io_utils.write_csv(os.path.join(out, f"{name}_spectrum.csv"), rows)
             fig, axs = plt.subplots(1, 2, figsize=(8.5, 3.4))
             axs[0].plot([s["b"] for s in sols], [s["power"] for s in sols], "-", color="0.7")
