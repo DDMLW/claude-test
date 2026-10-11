@@ -125,6 +125,21 @@ def test_stability_fundamental(square_model):
         assert np.min(np.abs(lam - l)) < 1e-6
 
 
+@pytest.mark.parametrize("m,L,nsym,kappa", [(2, -2, 3, 1), (2, -1, 3, -1), (1, 1, 3, 1), (3, 2, 4, 2)])
+def test_mode_angular_content_synthetic(m, L, nsym, kappa):
+    """人工构造的 Bogoliubov 模 u ~ e^{i(m+L)theta}, v ~ e^{i(L-m)theta}: 角向分析必须读出 L、kappa 与 Krein 符号。"""
+    M = NonlocalModel(disk_sample(6, 0.2))
+    z = M.xo + 1j * M.yo
+    r, th = np.abs(z), np.angle(z)
+    env = np.exp(-r ** 2 / 4)
+    mode = dict(u=r ** abs(m + L) * env * np.exp(1j * (m + L) * th),
+                v=0.5 * r ** abs(L - m) * env * np.exp(1j * (L - m) * th))
+    ac = stability.mode_angular_content(M, mode, m, nsym=nsym, w=z ** m * env)
+    assert ac["L"] == L and ac["L_from_v"] == L and ac["kappa"] == kappa
+    assert ac["w_u"] > 0.99 and ac["w_v"] > 0.99
+    assert stability.krein_sign(mode) == (1 if ac["norm_ratio"] < 1 else -1)
+
+
 # ---------------------------------------------------------------------------
 # 6. 传播: 能流守恒到机器精度, 定态解保持定态
 # ---------------------------------------------------------------------------
@@ -135,6 +150,18 @@ def test_propagation_conservation(square_model):
     res = propagate.propagate(M, sol["w"], 5.0, dz=0.02, w_ref=sol["w"], verbose=False)
     assert np.ptp(res["power"]) / res["power"][0] < 1e-10
     assert res["deviation"][-1] < 1e-3
+
+
+def test_propagation_custom_diag_hook(square_model):
+    """custom_diag 在每次诊断时被调用; sing_every=2 时奇点检测隔一次做一次 (其余记 None)。"""
+    M = square_model
+    q0 = guesses.lg_vortex(M, 1, 2.0)
+    res = propagate.propagate(M, q0, 1.0, dz=0.02, diag_every=5, track_singularities=True, sing_every=2,
+                              custom_diag=lambda z, qg: dict(z=z, peak=float(np.abs(qg).max())), verbose=False)
+    assert len(res["custom"]) == len(res["z"]) == len(res["singularities"])
+    assert all(abs(c["z"] - z) < 1e-12 for c, z in zip(res["custom"], res["z"]))
+    assert np.allclose([c["peak"] for c in res["custom"]], res["peak"])
+    assert all((sg is None) == (i % 2 == 1) for i, sg in enumerate(res["singularities"]))
 
 
 # ---------------------------------------------------------------------------

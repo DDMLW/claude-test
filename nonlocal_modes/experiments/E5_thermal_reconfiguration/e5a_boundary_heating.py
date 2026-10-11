@@ -33,12 +33,11 @@ import sys
 import numpy as np
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from common import finalize_args, initial_solution, param_continuation, pick, standard_args  # noqa: E402
+from common import (finalize_args, heated_disk, initial_solution, outer_power_fraction,  # noqa: E402
+                    param_continuation, pick, standard_args)
 
 from nlmodes import diagnostics as dg  # noqa: E402
 from nlmodes import guesses, io_utils, newton, plotting, theory  # noqa: E402
-from nlmodes.geometry import disk_sample, harmonic_multipole  # noqa: E402
-from nlmodes.model import NonlocalModel  # noqa: E402
 
 import matplotlib  # noqa: E402
 matplotlib.use("Agg")
@@ -50,19 +49,6 @@ import matplotlib.pyplot as plt  # noqa: E402
 # n=2 (四极加热) 的中心是外加势的鞍点, Theta 过大会把光束推离中心, 所以上限取小。
 CASES = [(3, 2, 15.0, 4.0), (4, 3, 20.0, 4.0), (3, 3, 20.0, 4.0), (5, 3, 20.0, 4.0), (6, 4, 25.0, 4.0),
          (2, 2, 15.0, 1.0)]
-
-
-def heated_disk(R, h, n, Theta, theta0=0.0):
-    s = disk_sample(R, h)
-    if Theta != 0:
-        s.set_boundary_temperature(harmonic_multipole(n, Theta, R, theta0))
-    return NonlocalModel(s)
-
-
-def outer_power_fraction(model, w, R):
-    """r > R/2 (样品外半部) 的光功率比例: 明显增大说明涡旋与边缘热点模式杂化。"""
-    I = np.abs(w) ** 2
-    return float(I[np.hypot(model.xo, model.yo) > 0.5 * R].sum() / I.sum())
 
 
 def first_satellite_angle(sats_json):

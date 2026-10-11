@@ -12,7 +12,7 @@ status.py —— 汇总超算任务的完成情况: 哪些成功、哪些失败�
 import os
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-LISTS = ("stage1", "indep", "stage2", "final")
+LISTS = ("stage1", "indep", "stage2", "final", "p2_main", "p2_final")      # 不存在的清单自动跳过
 
 
 def main():
@@ -33,7 +33,7 @@ def main():
         ok = [i for i in range(1, len(cmds) + 1) if last.get(i, (None,))[0] == 0]
         failed = [i for i in range(1, len(cmds) + 1) if i in last and last[i][0] != 0]
         pending = [i for i in range(1, len(cmds) + 1) if i not in last]
-        print(f"{name:7s}: {len(cmds):3d} jobs | OK {len(ok)} | FAILED {len(failed)} | not finished {len(pending)}")
+        print(f"{name:8s}: {len(cmds):3d} jobs | OK {len(ok)} | FAILED {len(failed)} | not finished {len(pending)}")
         for i in failed:
             print(f"   FAILED #{i} (exit {last[i][0]}, {last[i][1]}): {cmds[i - 1]}")
         if failed:

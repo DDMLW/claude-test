@@ -20,7 +20,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from nlmodes import diagnostics as dg  # noqa: E402
 from nlmodes import guesses, io_utils, newton, plotting  # noqa: E402
-from nlmodes.geometry import (disk_sample, polygon_sample, rectangle_sample,  # noqa: E402
+from nlmodes.geometry import (disk_sample, harmonic_multipole, polygon_sample, rectangle_sample,  # noqa: E402
                               surface_interface_sample)
 from nlmodes.model import NonlocalModel  # noqa: E402
 
@@ -121,6 +121,20 @@ def pick(args, quick, main, hq):
 def sample_h(args, kind):
     """该样品使用的网格间距 (hq 档中矩形/界面样品用 h_large)。"""
     return args.h_large if kind in LARGE_SAMPLES else args.h
+
+
+def heated_disk(R, h, n, Theta, theta0=0.0):
+    """圆盘样品 (半径 R), 边界温度 Theta cos(n (theta - theta0)) (E5 系列)。"""
+    s = disk_sample(R, h)
+    if Theta != 0:
+        s.set_boundary_temperature(harmonic_multipole(n, Theta, R, theta0))
+    return NonlocalModel(s)
+
+
+def outer_power_fraction(model, w, R):
+    """r > R/2 (样品外半部) 的光功率比例: 明显增大说明涡旋与边缘热点模式杂化 (Progress.md §5-9)。"""
+    I = np.abs(w) ** 2
+    return float(I[np.hypot(model.xo, model.yo) > 0.5 * R].sum() / I.sum())
 
 
 def build_sample(kind, h, size):

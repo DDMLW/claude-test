@@ -37,3 +37,52 @@ hq 云端测试（h=0.1，dz=0.01，三角形 m=2，U=15，ξ=20）：末态中�
 
 ## 上传清单
 `nonlocal_modes/results/E4_dynamic_transmutation/main/` 或 `hq/`（及 `noisy`、`hq_noisy` 等）。Progress.md 中记录：每个 (样品, m, U) 的末态中心荷是否等于预言、ξ_t、μ 权重漂移。
+
+---
+
+# E4b —— 动态嬗变（二）：稳定区发射、种子扫描、加热样品发射（第二轮，2026-10）
+
+**为什么要做**（Progress.md C9、§5 第 11 条）：E4（hq，ξ=400）中 μ 权重大面积漂移、三角形 m=2 的中心 −1 只在 ξ≈85–252 出现、
+圆盘 m=3 对照破裂。分析结论是“**被种子放大的线性不稳定性**”：E4 的 U=10/20 恰好落在 E3 的失稳窗口里
+（三角形 m=2：b(U=10)=0.85、b(U=20)=2.80，窗口上端 b_c≈2.7），网格的 C_4 各向异性或舍入误差作为种子，
+非 μ 权重按 exp(2γξ) 增长，破缺距离 ξ_b ≈ ln(1/种子)/(2γ)。E4b 用四组发射把“嬗变”与“失稳”分开，
+并给出论文/实验需要的**可观测距离窗口 ξ_t < ξ < ξ_b**。
+
+| 组 | 情形（`样品:m:U[:噪声方差]`） | 目的 | 预期 |
+|---|---|---|---|
+| A 稳定区 | `poly3:2:25`、`poly3:2:30`、`poly3:2:25:1e-2` | U 取在窗口之上（b≈3.9、5.2） | 卫星环形成后长期稳定，μ 守恒；1% 噪声不改变结论 |
+| B 种子扫描 | `poly3:2:15`（无噪声）及噪声 1e-7、1e-5、1e-3；`poly4:3:20` 噪声 1e-14、1e-11、1e-8、1e-5 | 破缺距离与种子的关系 | 破缺距离与 ln(噪声) 线性、斜率 −1/(2γ)；三角形中比网格种子（~1e-5）小的噪声不起作用；正方形（与网格相容，无网格种子）斜率最干净 |
+| C 圆盘对照 | `disk:3:20`（hq 与粗网格 `hq_coarse` 各一次） | E4 中圆盘 m=3 破裂的来源 | 破裂距离与网格无关 → 舍入误差种子（L 不是 4 的倍数的模式） |
+| D 加热样品 | `heat3:2:15`、`heat3:2:15:1e-2` | E5b 起点（Θ=3）的动态版本，卫星环 r≈0.43=4h 可直接分辨 | 线性稳定性由 E5c 给出（云端 h=0.2 显示该态可能不稳定，见 Progress.md） |
+
+另有网格对照 `poly3:2:25` 在 h=0.05（tag `hq_h005`）：稳定区的卫星环 r_s≈0.03–0.04 小于 h=0.1，只能用谐波拟合 r_s_fit（亚网格估计），
+加密一档检验它是否可靠。
+
+## 运行
+```bash
+cd nonlocal_modes/experiments/E4_dynamic_transmutation
+python e4b_stable_launch.py --quick                                  # 约 2 分钟 (三种情形各传播到 xi=20, h=0.4)
+python e4b_stable_launch.py --hq --cases poly3:2:25 --job e4b_poly3_2_25      # 一个 run (hq 单核约 1-3 h)
+python e4b_stable_launch.py --hq --table_only                        # 全部结束后重建汇总表与种子扫描图
+```
+超算上用 `python hpc/make_jobs.py --phase 2` 一次生成全部任务（见 [`../hpc/README.md`](../hpc/README.md) 第 7 节）。
+每个 run 先求同一 (样品, m, U) 的定态（作参考，并把 LG 光束宽度取为 w0 = r_ring·sqrt(2/|m|)，使亮环与定态重合、减小呼吸），
+再传播到 ξ=600（hq，dz=0.01）。
+
+## 输出
+* `e4b_<run>_timeseries.csv/png`：每 25 步一行——C_n 不可约表示权重（`mu_weight`、`nonmu_weight`）、多个半径的中心绕数
+  （`W_0.5h`、`W_0.1`、`W_0.2`、`W_0.4`）、中心附近 v 与 m 谐波的振幅比 `cv_over_cm_r0.2/0.5/1`、嬗变核半径 `r_s_fit`、与定态的偏离；
+  图中四幅：(a) r_s(ξ) 与定态 r_s*，(b) 非 μ 权重（对数）与指数拟合，(c) 中心绕数，(d) 与定态的偏离；
+* `e4b_<run>_snapshots.png`、`e4b_<run>_worldlines.png`：快照与奇点“世界线”；
+* `e4b_summary.csv`：每个 run 一行——`xi_t50`（r_s 首次达到平台值一半 = **嬗变距离**）、`r_s_plateau`（与 `r_s_stationary` 比较）、
+  `xi_flip`（W(0.5h) 首次等于预言中心荷）、`xi_b`/`xi_scan`（非 μ 权重首次 > 1e-3 / 1e-2 = **破缺距离**）、`xi_10x`（大噪声 run 用：首次超过初值 10 倍）、
+  `gamma_fit`（非 μ 权重的指数增长率）、`linear_growth_E3_or_E5c`（同一定态的线性增长率，来自 E3 或 E5c，作对照）；
+* `e4b_seed_scan.csv/png`：种子扫描的斜率与由此得到的 γ_seed，与 `gamma_fit`、线性增长率比较。
+
+**判读**：
+1. A 组 `nonmu_weight` 应始终保持在初值附近（无指数增长），`r_s_plateau` 与 `r_s_stationary` 相符（h=0.1 时是亚网格估计，以 `hq_h005` 为准）；
+2. B 组三个增长率（`gamma_seed`、`gamma_fit`、线性增长率）应一致到约 20%（线性增长率包含保持 C_n 对称的模式，可能偏大）；
+3. 论文中的“可观测窗口”：ξ_t50 到 ξ_b 之间（1% 噪声 run 用 ξ_10x）。换算成实际长度见 E4 一节。
+
+**上传**：`results/E4_dynamic_transmutation/hq/` 中新增的 `e4b_*` 与 `log_e4b_*.txt`，以及 `hq_coarse/`、`hq_h005/`。
+Progress.md 中记录：A 组是否稳定、B 组的三个增长率、C 组两套网格的破裂距离、D 组的 ξ_t50 与 ξ_b。

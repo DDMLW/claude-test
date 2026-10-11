@@ -13,6 +13,9 @@
 #     MAXPAR=40                            每个作业数组同时运行的最大任务数 (默认不限制)
 #     SBATCH=yhbatch                       天河等使用 yhbatch 的系统
 # 例:  SBATCH_EXTRA="-p normal" MAXPAR=50 bash hpc/submit_slurm.sh
+#
+# 第二轮 (python hpc/make_jobs.py --phase 2 之后):
+#     bash hpc/submit_slurm.sh p2          p2_main (全部独立) ──> p2_final (汇总表)
 # ============================================================================
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -32,6 +35,18 @@ submit () {   # submit <list-file> [dependency-spec, 例如 afterany:123:456]
     fi
     echo "${jid%%;*}"
 }
+
+if [ "${1:-}" = "p2" ]; then
+    for k in p2_main p2_final; do
+        [ -f "hpc/jobs/$k.txt" ] || { echo "hpc/jobs/$k.txt missing: run python hpc/make_jobs.py --phase 2 first"; exit 1; }
+    done
+    JM=$(submit hpc/jobs/p2_main.txt)
+    JF=$(submit hpc/jobs/p2_final.txt "afterany:$JM")
+    echo "submitted: p2_main=$JM  p2_final=$JF (after p2_main)"
+    echo "$(date '+%F %T') p2_main=$JM p2_final=$JF" >> hpc/logs/submitted.txt
+    echo "monitor:  squeue -u \$USER      progress:  python hpc/status.py"
+    exit 0
+fi
 
 for k in stage1 stage2 indep final; do
     [ -f "hpc/jobs/$k.txt" ] || { echo "hpc/jobs/$k.txt missing: run python hpc/make_jobs.py first"; exit 1; }

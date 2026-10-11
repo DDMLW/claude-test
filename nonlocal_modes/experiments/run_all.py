@@ -28,6 +28,10 @@ SCRIPTS = [
     ("E4", "E4_dynamic_transmutation/e4_lg_launch.py"),
     ("E5", "E5_thermal_reconfiguration/e5a_boundary_heating.py"),
     ("E5", "E5_thermal_reconfiguration/e5b_dynamic_control.py"),
+    # 第二轮 (2026-10): 正式运行只在超算上做 (hpc/make_jobs.py --phase 2); 这里只用于 --quick 冒烟测试
+    ("E3", "E3_stability/e3b_instability_windows.py"),
+    ("E4", "E4_dynamic_transmutation/e4b_stable_launch.py"),
+    ("E5", "E5_thermal_reconfiguration/e5c_heated_stability.py"),
 ]
 
 

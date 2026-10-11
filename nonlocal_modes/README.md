@@ -16,7 +16,7 @@ cd <仓库目录>
 git checkout claude/nice-planck-5809ej        # 代码所在分支 (若导师已合并到 main, 用 main)
 cd nonlocal_modes
 pip install -r requirements.txt
-python -m pytest -q tests                     # 24 个单元测试必须全部通过 (约 5 秒)
+python -m pytest -q tests                     # 29 个单元测试必须全部通过 (约 5 秒)
 ```
 Windows 用户在 “Anaconda Prompt” 里执行同样的命令即可。
 
@@ -43,9 +43,12 @@ SLURM/PBS/无调度服务器均可），其中自动包含粗一档网格的收�
 | E0 | `experiments/E0_validation` | 代码验证：解析解、收敛性、复现导师两篇论文、网格假象底线 | 3–5 h |
 | E1 | `experiments/E1_symmetry_transfer` | 对称性传递定律、保角半径普适性 | 0.5–1 h |
 | E2 | `experiments/E2_transmutation_atlas` | 拓扑荷嬗变“周期表”与标度律（核心） | 2–5 h |
-| E3 | `experiments/E3_stability` | 线性稳定性谱 + 加噪声传播 | 4–10 h |
-| E4 | `experiments/E4_dynamic_transmutation` | LG 光束动态嬗变（实验可验证的预言） | 1–3 h |
-| E5 | `experiments/E5_thermal_reconfiguration` | 边界温度可重构调控 | 1–3 h |
+| E3 | `experiments/E3_stability` | 线性稳定性谱 + 加噪声传播；E3b（第二轮）：低功率失稳窗口的阈值、模式结构（L、κ）、圆盘通道谱 | 4–10 h |
+| E4 | `experiments/E4_dynamic_transmutation` | LG 光束动态嬗变（实验可验证的预言）；E4b（第二轮）：稳定区发射、种子扫描、加热样品发射 | 1–3 h |
+| E5 | `experiments/E5_thermal_reconfiguration` | 边界温度可重构调控；E5c（第二轮）：加热态的 (Θ, b) 稳定性图 | 1–3 h |
+
+第二轮实验（2026-10，依据第一轮 hq 结果设计，见 `docs/research_plan.md` 6.1 节）只在超算上批量运行：`python experiments/hpc/make_jobs.py --phase 2`。
+`analysis/` 中的脚本只读取已上传的结果表、生成论文分析图（见 `analysis/README.md`），师弟不需要运行。
 
 ## 3. 代码结构
 ```
@@ -55,7 +58,7 @@ nonlocal_modes/
 │   ├── operators.py         各向同性九点差分 + Gibou 对称二阶边界的热传导算子
 │   ├── model.py             非局域模型 (折射率 = 热传导方程的解)
 │   ├── newton.py            定态牛顿迭代 (复/实, 定 b/定功率) + 参数延拓
-│   ├── stability.py         线性稳定性 (稀疏 shift-invert Arnoldi; 稠密法)
+│   ├── stability.py         线性稳定性 (稀疏 shift-invert Arnoldi; 稠密法; Bogoliubov 模的角向通道/Krein 符号)
 │   ├── propagate.py         传播 (Crank-Nicolson + Strang 分步, 严格保能流)
 │   ├── diagnostics.py       相位奇点、绕数剖面、角谐波、C_n 不可约表示投影
 │   ├── guesses.py           初值 (LG、多极、自洽线性模式、理论指导的嬗变初值)
@@ -64,8 +67,10 @@ nonlocal_modes/
 │   └── plotting.py          标准作图
 ├── experiments/             E0-E5 实验脚本, 每个目录有 README.md; run_all.py 一键运行
 │   ├── common.py            共用工具 + 精度档位 (quick / main / hq)
+│   ├── stability_tools.py   E3b/E5c 共用: 低功率 shift 扫描、阈值二分、失稳模式分析与作图
 │   ├── compare_tags.py      两个 tag 的结果表逐列比较 (网格收敛性检验)
 │   └── hpc/                 超算批量运行: make_jobs.py, submit_slurm.sh, pbs_array.sh, run_local.py, status.py
+├── analysis/                由已上传结果表生成分析与论文图 (只读 CSV; 输出 results/analysis/<tag>/)
 ├── tests/test_core.py       单元测试
 ├── results/                 上传的结果 (每个实验一个目录, 正式运行在 main/ 或 hq/ 下)
 ├── data/                    原始数据 (本地保存, 不上传)

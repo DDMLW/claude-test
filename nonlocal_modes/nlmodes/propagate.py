@@ -37,7 +37,8 @@ def add_noise(w, variance=0.01, seed=0):
 
 def propagate(model, q0, z_max, dz=0.02, diag_every=50, snapshot_zs=(), nbc_func=None,
               w_ref=None, nsym=None, center=(0.0, 0.0), track_singularities=False,
-              sing_region_threshold=1e-3, sing_core_radius=None, verbose=True, progress_every=None):
+              sing_region_threshold=1e-3, sing_core_radius=None, verbose=True, progress_every=None,
+              custom_diag=None, sing_every=1):
     """
     传播 q0 (光学点上的复向量) 到 xi = z_max。
 
@@ -51,6 +52,8 @@ def propagate(model, q0, z_max, dz=0.02, diag_every=50, snapshot_zs=(), nbc_func
     nsym          : 若给出, 记录 C_nsym 不可约表示权重 (角赝动量守恒检验)
     track_singularities: 记录光束区域内的单位奇点 (中心半径 sing_core_radius 以外, 默认 1.25h),
                   以及中心荷 central (以 center 为圆心、半径 0.5h 的圆周绕数) —— 动态嬗变的核心观测量
+    sing_every    : 奇点检测较慢, 每隔几次诊断才做一次 (其余诊断时刻记为 None)
+    custom_diag   : None 或 函数 (z, q_grid) -> dict, 在每次诊断时调用, 结果按时间顺序存入 out["custom"]
 
     返回 dict:
         z, power, peak, deviation, xc, yc, (irreps), (singularities), snapshots{z: q}, time
@@ -77,6 +80,9 @@ def propagate(model, q0, z_max, dz=0.02, diag_every=50, snapshot_zs=(), nbc_func
         rec["singularities"] = []
         rec["central"] = []
         core = 1.25 * model.h if sing_core_radius is None else sing_core_radius
+    if custom_diag is not None:
+        rec["custom"] = []
+    n_diag = [0]
     snapshots = {}
     ref_norm = None if w_ref is None else np.linalg.norm(w_ref)
 
@@ -89,15 +95,21 @@ def propagate(model, q0, z_max, dz=0.02, diag_every=50, snapshot_zs=(), nbc_func
         rec["yc"].append(yc)
         if w_ref is not None:
             rec["deviation"].append(float(np.linalg.norm(np.abs(q) - np.abs(w_ref)) / ref_norm))
-        if nsym or track_singularities:
+        if nsym or track_singularities or custom_diag is not None:
             qg = dg.field_grid(model, q)
             if nsym:
                 rec["irreps"].append(dg.cn_weights(qg, model.grid, nsym, center))
             if track_singularities:
-                reg = dg.beam_region(qg, model.grid, rel_threshold=sing_region_threshold) & model.opt_mask
-                rec["singularities"].append(dg.find_singularities(qg, model.grid, reg, exclude_center=center,
-                                                                  exclude_radius=core))
+                if n_diag[0] % max(sing_every, 1) == 0:
+                    reg = dg.beam_region(qg, model.grid, rel_threshold=sing_region_threshold) & model.opt_mask
+                    rec["singularities"].append(dg.find_singularities(qg, model.grid, reg, exclude_center=center,
+                                                                      exclude_radius=core))
+                else:
+                    rec["singularities"].append(None)
                 rec["central"].append(dg.winding_on_circle(qg, model.grid, center, 0.5 * model.h))
+            if custom_diag is not None:
+                rec["custom"].append(custom_diag(z, qg))
+        n_diag[0] += 1
 
     V = potential(q, 0.0)
     record(0.0, q)
@@ -120,7 +132,7 @@ def propagate(model, q0, z_max, dz=0.02, diag_every=50, snapshot_zs=(), nbc_func
             if w_ref is not None:
                 msg += f"  dev={rec['deviation'][-1]:.3e}"
             print(msg + f"  ({time.time() - t0:.0f}s)")
-    out = {k: (np.array(v) if k not in ("irreps", "singularities") else v) for k, v in rec.items()}
+    out = {k: (np.array(v) if k not in ("irreps", "singularities", "custom") else v) for k, v in rec.items()}
     out["snapshots"] = snapshots
     out["final"] = q
     out["time"] = time.time() - t0

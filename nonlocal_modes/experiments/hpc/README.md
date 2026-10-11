@@ -33,7 +33,7 @@ cd nonlocal_modes
 # Python 环境 (按集群情况; 例如 module load anaconda3 后):
 conda create -n nl python=3.11 numpy scipy matplotlib pytest -y
 conda activate nl
-python -m pytest -q tests                       # 24 passed (约 5 秒, 登录节点上跑即可)
+python -m pytest -q tests                       # 29 passed (约 5 秒, 登录节点上跑即可)
 ```
 SLURM 的 `sbatch` 默认继承提交时终端里的环境变量，所以**先 `conda activate nl` 再提交**一般就够了；
 如果计算节点上找不到 python 或 numpy，再把 `experiments/hpc/slurm_array.sh`（或 `pbs_array.sh`）开头“加载 Python 环境”的两行
@@ -127,3 +127,44 @@ nonlocal_modes/results/E4_dynamic_transmutation/hq_noisy/  上传
 （网格收敛性：输出中 “resolved rows” 的拓扑量不一致数必须为 0 —— “unresolved rows” 是卫星环小于网格的行，不一致属正常；
 连续量的相对差应 < 1e-2；E3 的 `unstable` 列不一致数应为 0），以及 `python hpc/status.py` 的输出 —— 请把它贴进 Progress.md 的运行记录。
 上传方法见 `nonlocal_modes/results/README.md`。
+
+## 7. 第二轮（phase 2，2026-10）：补充实验
+第一轮（115 个任务）的分析结论与第二轮的理由见 `Progress.md` 第 6.1 节与 `docs/research_plan.md` 第 6.1 节。
+第二轮共 **55 个计算任务 + 8 个汇总任务**，全部互相独立（不读取第一轮的 `data/`），只需两个清单：
+```
+p2_main (55 个, 提交后立即全部开始) ──> p2_final (8 个汇总表, 几分钟)
+```
+**不会**覆盖第一轮的清单和 `hpc/logs/status_stage1.tsv` 等状态文件；`python hpc/status.py` 会同时列出两轮。
+
+```bash
+cd nonlocal_modes/experiments
+git pull                                         # 先同步代码 (第二轮新增 E3b / E4b / E5c)
+python -m pytest -q ../tests                     # 应为 29 passed
+python hpc/make_jobs.py --phase 2                # 生成 hpc/jobs/p2_main.txt (55) 与 p2_final.txt (8)
+# SLURM:
+bash hpc/submit_slurm.sh p2                      # 可加 SBATCH_EXTRA="-p ..." MAXPAR=60, 同第 2 节
+# PBS:
+qsub -J 1-55 -v LIST=hpc/jobs/p2_main.txt hpc/pbs_array.sh
+qsub -J 1-8  -v LIST=hpc/jobs/p2_final.txt hpc/pbs_array.sh   # p2_main 全部结束后
+# 无作业调度的多核服务器:
+nohup python hpc/run_local.py -n 32 --phase 2 > hpc/logs/run_local_p2.out 2>&1 &
+python hpc/status.py                             # 进度
+```
+
+| 实验 | 任务数 | 内容 | 单核耗时（估） |
+|---|---|---|---|
+| E3b | 15 | 8 个情形的失稳窗口（阈值、模式结构、非线性结局）；三角形 m=2 高 b 端在同一组 b 点上的网格收敛表 h=0.15/0.075/0.05（tag `hq_coarse`/`hq_h0075`/`hq_h005`，与 `hq` 一起按 h² 外推）与旋转 15° 检验；圆盘 m=2 阈值在 h=0.05 加密；圆盘 m=1、2 的通道分解谱 | 2–8 h；h=0.05 的两个约 7–11 h（**最先开始**） |
+| E5c | 24 | 3 个情形（C_3 加热 m=2、C_4 加热 m=2、C_3 加热 m=1）× 8 个 Θ 的 (Θ, b) 稳定性 | 3–6 h |
+| E4b | 16 | 14 个发射（稳定区、种子扫描、圆盘对照、加热样品）+ 2 个网格对照（`hq_coarse`、`hq_h005`） | 1–3 h；h=0.05 约 6 h |
+
+总计约 250 核时；能同时运行 55 个任务时墙钟约 10–12 h（由 h=0.05 的 E3b 加密决定）。
+内存：h=0.05 的任务峰值约 5 GB（云端实测 4.9 GB；`slurm_array.sh` 默认 8G 够用），其余 ≤ 2 GB。
+（2026-10-12 修正了稳定性计算中相邻两个 shift 的 LU 同时占内存的问题，修正前 h=0.05 峰值 9.9 GB，会超过 8G。）
+
+**跑完上传**（`git add nonlocal_modes/results Progress.md`，`data/` 与 `quick*` 自动忽略）：
+```
+results/E3_stability/hq/            新增 e3b_* 与 log_*         results/E3_stability/hq_coarse/, hq_h0075/, hq_h005/   新增 e3b_*
+results/E5_thermal_reconfiguration/hq/   新增 e5c_*
+results/E4_dynamic_transmutation/hq/     新增 e4b_*            results/E4_dynamic_transmutation/hq_coarse/, hq_h005/
+```
+并把 `python hpc/status.py` 的输出与总耗时贴进 Progress.md 第 6 节的运行记录。
