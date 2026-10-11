@@ -1,0 +1,17 @@
+{
+ "sample": "poly6",
+ "n": 6,
+ "m": 3,
+ "U": 20.0,
+ "h": 0.1,
+ "zmax": 400.0,
+ "noise": 0.01,
+ "central_pred": 3,
+ "central_final": 0.0,
+ "n_satellites_final": 3,
+ "r_s_final": 1.4287666666666665,
+ "mu": 3,
+ "mu_weight_initial": 0.9930256211142429,
+ "mu_weight_drift": 0.3872571830910264,
+ "power_drift": 3.7124804554488327e-13
+}

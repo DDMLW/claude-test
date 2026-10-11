@@ -1,0 +1,37 @@
+sample,n,m,b,U,mu_pred,mu_num,mu_weight,central_pred,central_num,satellites_pred,satellite_charge_num,n_satellites_detected,r_s_detected,r_s_fit,total_charge,W_profile,unresolved_charge,resolved,degenerate_pred,b_min_reached,low_end,match
+rect,2,1,1.0,5.6582,1,1,1.0,1,1,0,0,0,0.0,0.0,1.0,"[1.0, 1.0, 1.0, 1.0, 1.0]",0,True,True,0.2,reached end of range,True
+rect,2,2,1.0,7.4597,0,0,1.0,0,0,2,2,2,1.1465,1.300415221844237,2.0,"[0.0, 0.0, 0.0, 0.0, 0.0]",0,True,True,0.2,reached end of range,True
+rect,2,3,4.0875,22.9046,1,1,1.0,1,1,2,2,2,0.8502,1.2065658543749669,3.0,"[1.0, 1.0, 1.0, 1.0, 1.0]",0,True,True,4.0874999999999995,continuation stopped near b=4.08750: stagnation (residual not reduced 100x after 15 iterations) (possible existence threshold/bifurcation),True
+rect,2,4,1.0,11.4026,0,0,1.0,0,0,4,4,4,2.3213500000000002,2.559793875915094,4.0,"[0.0, -0.0, 0.0, 0.0, -0.0]",0,True,True,0.42304687500000004,continuation stopped near b=0.42305: stagnation (residual not reduced 100x after 15 iterations) (possible existence threshold/bifurcation),True
+rect,2,5,1.0,13.6223,1,1,1.0,1,1,4,4,4,3.1738,3.7600248610504274,5.0,"[1.0, 1.0, 1.0, 1.0, 1.0]",0,True,True,0.4125,continuation stopped near b=0.41250: stagnation (residual not reduced 100x after 15 iterations) (possible existence threshold/bifurcation),True
+rect,2,6,1.0,16.033,0,0,1.0,0,0,6,6,6,2.9123666666666668,2.5291312278818574,6.0,"[0.0, 0.0, 0.0, 0.0, 0.0]",0,True,True,0.45781249999999996,continuation stopped near b=0.45781: stagnation (residual not reduced 100x after 15 iterations) (possible existence threshold/bifurcation),True
+poly3,3,1,1.0,7.7545,1,1,0.9999999750174153,1,1,0,0,0,0.0,0.0,1.0,"[1.0, 1.0, 1.0, 1.0, 1.0]",0,True,False,0.20000000000000018,reached end of range,True
+poly3,3,2,1.0,10.9219,-1,-1,0.9999998653721163,-1,-1,3,3,3,0.19879999999999998,0.19786424554585266,2.0,"[-1.0, -1.0, -1.0, 2.0, 2.0]",0,False,False,0.2,reached end of range,unresolved (agrees)
+poly3,3,3,1.0,14.5009,0,0,0.9999994246313605,0,0,3,3,3,1.0637333333333334,1.2445834830522993,3.0,"[0.0, 0.0, 0.0, 0.0, 0.0]",0,True,True,0.20000000000000018,reached end of range,True
+poly3,3,4,1.0,18.5614,1,1,0.9999981801921847,1,1,3,3,3,1.5189666666666666,1.9778966996058205,4.0,"[1.0, 1.0, 1.0, 1.0, 1.0]",0,True,False,0.4374999999999991,continuation stopped near b=0.43750: stagnation (residual not reduced 100x after 15 iterations) (possible existence threshold/bifurcation),True
+poly3,3,5,1.0,23.139,-1,-1,0.999997075846084,-1,-1,6,6,6,1.3084666666666667,1.7403148513223727,5.0,"[-1.0, -1.0, -1.0, -1.0, -1.0]",0,True,False,0.20000000000000018,reached end of range,True
+poly3,3,6,1.0,28.2621,0,0,0.9999949836055677,0,0,6,6,6,1.7549000000000001,1.956346528510805,6.0,"[-0.0, 0.0, -0.0, 0.0, -0.0]",0,True,True,0.2,reached end of range,True
+poly4,4,1,1.0,7.7539,1,1,1.0,1,1,0,0,0,0.0,0.0,1.0,"[1.0, 1.0, 1.0, 1.0, 1.0]",0,True,False,0.20000000000000018,reached end of range,True
+poly4,4,2,1.0,10.9183,2,2,1.0,2,2,0,0,0,0.0,0.0,2.0,"[2.0, 2.0, 2.0, 2.0, 2.0]",0,True,True,0.2,reached end of range,True
+poly4,4,3,1.0,14.4596,-1,-1,1.0,-1,-1,4,4,4,1.7749,2.2884961657310376,3.0,"[-1.0, -1.0, -1.0, -1.0, -1.0]",0,True,False,0.20000000000000018,reached end of range,True
+poly4,4,4,1.0,18.5989,0,0,1.0,0,0,4,4,4,1.4066,2.078560900460341,4.0,"[-0.0, -0.0, -0.0, -0.0, 0.0]",0,True,True,0.20000000000000018,reached end of range,True
+poly4,4,5,1.8583,29.715,1,1,1.0,1,1,4,4,4,1.814,2.396803827237085,5.0,"[1.0, 1.0, 1.0, 1.0, 1.0]",0,True,False,1.858309936523438,continuation stopped near b=1.85831: stagnation (residual not reduced 100x after 15 iterations) (possible existence threshold/bifurcation),True
+poly4,4,6,1.0,28.4842,2,2,1.0,2,2,4,4,4,2.3295,2.713957896692068,6.0,"[2.0, 2.0, 2.0, 2.0, 2.0]",0,True,True,0.20000000000000018,reached end of range,True
+poly5,5,1,1.0,7.7539,1,1,0.9999999986568913,1,1,0,0,0,0.0,0.0,1.0,"[1.0, 1.0, 1.0, 1.0, 1.0]",0,True,False,0.20000000000000018,reached end of range,True
+poly5,5,2,1.0,10.9202,2,2,0.9999999931332244,2,2,0,0,0,0.0,0.0,2.0,"[2.0, 2.0, 2.0, 2.0, 2.0]",0,True,False,0.2,reached end of range,True
+poly5,5,3,1.0,14.501,-2,-2,0.9999999677036328,-2,0,5,0,0,0.0,0.061889750278368315,3.0,"[-0.0, 3.0, 3.0, 3.0, 3.0]",3,False,False,0.20000000000000018,reached end of range,unresolved
+poly5,5,4,1.0,18.5692,-1,-1,0.9999999457580213,-1,-1,5,5,5,1.06658,1.1428260709390574,4.0,"[-1.0, -1.0, -1.0, -1.0, -1.0]",0,True,False,0.2,reached end of range,True
+poly5,5,5,1.0,23.1673,0,0,0.9999999071958962,0,0,5,5,5,1.2530000000000001,1.6825725518957455,5.0,"[-0.0, -0.0, 0.0, -0.0, -0.0]",0,True,True,0.20000000000000018,reached end of range,True
+poly5,5,6,1.0,28.3223,1,1,0.9999998344025095,1,1,5,5,5,1.78048,2.3862141783224957,6.0,"[1.0, 1.0, 1.0, 1.0, 1.0]",0,True,False,0.20000000000000018,reached end of range,True
+poly6,6,1,1.0,7.754,1,1,0.9999999994148826,1,1,0,0,0,0.0,0.0,1.0,"[1.0, 1.0, 1.0, 1.0, 1.0]",0,True,False,0.20000000000000018,reached end of range,True
+poly6,6,2,1.0,10.9202,2,2,0.9999999970508971,2,2,0,0,0,0.0,0.0,2.0,"[2.0, 2.0, 2.0, 2.0, 2.0]",0,True,False,0.2,reached end of range,True
+poly6,6,3,1.0,14.5002,3,3,0.999999987695487,3,3,0,0,0,0.0,0.0,3.0,"[3.0, 3.0, 3.0, 3.0, 3.0]",0,True,True,0.20000000000000018,reached end of range,True
+poly6,6,4,1.0,18.5777,-2,-2,0.9999999810376817,-2,-2,6,6,6,1.2345,1.3116249520922119,4.0,"[-2.0, -2.0, -2.0, -2.0, -2.0]",0,True,False,0.2001010894775389,continuation stopped near b=0.20010: stagnation (residual not reduced 100x after 15 iterations) (possible existence threshold/bifurcation),True
+poly6,6,5,1.0,23.1807,-1,-1,0.9999999673848988,-1,-1,6,6,6,1.5473,1.8346029898501668,5.0,"[-1.0, -1.0, -1.0, -1.0, -1.0]",0,True,False,0.20000000000000018,reached end of range,True
+poly6,6,6,1.0,28.3514,0,0,0.9999999507336673,0,0,6,6,6,1.2756333333333334,1.9445828467122837,6.0,"[0.0, 0.0, -0.0, 0.0, -0.0]",0,True,True,0.20000000000000018,reached end of range,True
+disk,0,1,1.0,7.7541,1,1,1.0,1,1,0,0,0,0.0,0.0,1.0,"[1.0, 1.0, 1.0, 1.0, 1.0]",0,True,False,0.20000000000000018,reached end of range,True
+disk,0,2,1.0,10.9205,2,2,1.0,2,2,0,0,0,0.0,0.0,2.0,"[2.0, 2.0, 2.0, 2.0, 2.0]",0,True,False,0.2,reached end of range,True
+disk,0,3,1.0,14.5014,3,3,1.0,3,3,0,0,0,0.0,0.0,3.0,"[3.0, 3.0, 3.0, 3.0, 3.0]",0,True,False,0.20000000000000018,reached end of range,True
+disk,0,4,1.0,18.5709,4,4,1.0,4,0,0,4,4,0.2826,0.0,4.0,"[0.0, -0.0, -0.0, -0.0, 4.0]",0,True,False,0.2,reached end of range,False
+disk,0,5,1.0,23.1746,5,5,1.0,5,1,0,4,4,0.3793,0.0,5.0,"[1.0, 1.0, 1.0, 1.0, 1.0]",0,True,False,0.20000000000000018,reached end of range,False
+disk,0,6,1.0,28.3447,6,6,1.0,6,2,0,4,12,0.3905333333333334,0.0,6.0,"[2.0, 2.0, 2.0, 2.0, 2.0]",0,True,False,0.20000000000000018,reached end of range,False

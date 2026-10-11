@@ -1,0 +1,53 @@
+
+===== E0_validation  tag=hq  profile=hq  h=0.1 (large samples 0.15)  newton tol=1e-12  dz=0.01  2026-10-11 13:02:51 =====
+results -> /public/home/liuxiuye/nonlocal_modes/results/E0_validation/hq
+raw data -> /public/home/liuxiuye/nonlocal_modes/data/E0_validation/hq
+surface_L40_nd-100: grid 274x274, h=0.15, stencil=9, optical unknowns=38836, thermal unknowns=35378
+
+[A] b=3 states
+  initial solve at b=3.000 (guess width 2.80): converged, its=12
+   dipole: U=5.7246 xc=-1.923 sings=[] total charge=0.0  max Re(lambda)=8.26e-03
+  initial solve at b=3.000 (guess width 2.80): line search failed (no descent direction; try a better initial guess), its=10
+  initial solve at b=3.500 (guess width 2.40): stagnation (residual not reduced 100x after 15 iterations), its=15
+  initial solve at b=2.500 (guess width 3.20): stagnation (residual not reduced 100x after 15 iterations), its=15
+  initial solve at b=4.000 (guess width 2.40): line search failed (no descent direction; try a better initial guess), its=3
+   LG-type guesses failed; trying self-consistent linear-mode guesses ...
+   found with modes (2,1), kappa=0.3: b=2.8537
+   vortex: U=6.2277 xc=-3.185 sings=[[0.592, -0.0, 1]] total charge=1.0  max Re(lambda)=6.00e-08
+  initial solve at b=3.000 (guess width 2.00): stagnation (residual not reduced 100x after 15 iterations), its=15
+  initial solve at b=3.500 (guess width 2.00): stagnation (residual not reduced 100x after 15 iterations), its=15
+  initial solve at b=2.500 (guess width 2.40): line search failed (no descent direction; try a better initial guess), its=9
+  initial solve at b=4.000 (guess width 2.00): stagnation (residual not reduced 100x after 15 iterations), its=15
+   product guesses failed; trying self-consistent linear-mode guesses (nodal classification) ...
+   !! bound_state: no convergence
+
+[B] U(b) for dipole and vortex bound state (+ stability along the branch)
+   dipole: b in [0.100, 8.000]  lower end: reached end of range
+
+[C] noncanonical phase of the surface vortex (Fig.4c)
+
+[D] noisy propagation (variance 0.01) up to xi=1000
+    xi=   100.00  U=5.79078778  peak=0.82157  dev=9.473e-02  (427s)
+    xi=   200.00  U=5.79078778  peak=0.82411  dev=1.159e-01  (856s)
+    xi=   300.00  U=5.79078778  peak=0.83075  dev=1.019e-01  (1287s)
+    xi=   400.00  U=5.79078778  peak=0.83309  dev=1.198e-01  (1716s)
+    xi=   500.00  U=5.79078778  peak=0.83363  dev=1.229e-01  (2146s)
+    xi=   600.00  U=5.79078778  peak=0.82611  dev=9.407e-02  (2577s)
+    xi=   700.00  U=5.79078778  peak=0.82385  dev=9.285e-02  (3009s)
+    xi=   800.00  U=5.79078778  peak=0.83296  dev=9.482e-02  (3437s)
+    xi=   900.00  U=5.79078778  peak=0.84262  dev=1.195e-01  (3868s)
+    xi=  1000.00  U=5.79078778  peak=0.81885  dev=1.059e-01  (4296s)
+   dipole: final deviation 1.059e-01
+    xi=   100.00  U=6.28739123  peak=0.82177  dev=9.625e-02  (428s)
+    xi=   200.00  U=6.28739123  peak=0.83178  dev=9.656e-02  (860s)
+    xi=   300.00  U=6.28739123  peak=0.81470  dev=9.679e-02  (1283s)
+    xi=   400.00  U=6.28739123  peak=0.83059  dev=9.620e-02  (1715s)
+    xi=   500.00  U=6.28739123  peak=0.83729  dev=9.658e-02  (2143s)
+    xi=   600.00  U=6.28739123  peak=0.82022  dev=9.624e-02  (2570s)
+    xi=   700.00  U=6.28739123  peak=0.82943  dev=9.658e-02  (2998s)
+    xi=   800.00  U=6.28739123  peak=0.82984  dev=9.632e-02  (3429s)
+    xi=   900.00  U=6.28739123  peak=0.82172  dev=9.650e-02  (3859s)
+    xi=  1000.00  U=6.28739123  peak=0.82698  dev=9.625e-02  (4285s)
+   vortex: final deviation 9.625e-02
+
+E0c done.

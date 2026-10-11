@@ -1,0 +1,9 @@
+sample,n,m,b,U,mu_pred,mu_num,mu_weight,central_pred,central_num,satellites_pred,satellite_charge_num,n_satellites_detected,r_s_detected,r_s_fit,total_charge,W_profile,unresolved_charge,resolved,degenerate_pred,b_min_reached,low_end,match
+rect,2,2,1.0,7.4502,0,0,1.0,0,0,2,2,2,1.1428,1.2890171050417316,2.0,"[0.0, 0.0, 0.0, 0.0, 0.0]",0,True,True,0.2,reached end of range,True
+rect,2,3,3.875,22.0167,1,1,1.0,1,1,2,2,2,0.8782,1.232223186872998,3.0,"[1.0, 1.0, 1.0, 1.0, 1.0]",0,True,True,3.875,continuation stopped near b=3.87500: stagnation (residual not reduced 100x after 15 iterations) (possible existence threshold/bifurcation),True
+poly3,3,2,1.0,10.9109,-1,-1,0.9999999842569679,-1,-1,3,2,2,0.1906,0.19684773542621756,2.0,"[-1.0, -1.0, 2.0, 2.0, 2.0]",0,False,False,0.2,reached end of range,unresolved (agrees)
+poly3,3,3,1.0,14.4813,0,0,0.999999955278851,0,0,3,3,3,1.0613,1.2382991316892162,3.0,"[0.0, 0.0, 0.0, 0.0, 0.0]",0,True,True,0.20000000000000018,reached end of range,True
+poly4,4,2,1.0,10.9073,2,2,1.0,2,2,0,0,0,0.0,0.0,2.0,"[2.0, 2.0, 2.0, 2.0, 2.0]",0,True,True,0.2,reached end of range,True
+poly4,4,3,1.0,14.4402,-1,-1,1.0,-1,-1,4,4,4,1.7685,2.2714080846059503,3.0,"[-1.0, -1.0, -1.0, -1.0, -1.0]",0,True,False,0.20000000000000018,reached end of range,True
+poly5,5,2,1.0,10.9094,2,2,0.9999999056346027,2,2,0,0,0,0.0,0.0,2.0,"[2.0, 2.0, 2.0, 2.0, 2.0]",0,True,False,0.2,reached end of range,True
+disk,0,2,1.0,10.9097,2,2,1.0,2,2,0,0,0,0.0,0.0,2.0,"[2.0, 2.0, 2.0, 2.0, 2.0]",0,True,False,0.2,reached end of range,True

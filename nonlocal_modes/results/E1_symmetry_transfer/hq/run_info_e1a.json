@@ -1,0 +1,26 @@
+{
+  "time": "2026-10-11T13:03:50",
+  "command": "E1_symmetry_transfer/e1a_index_anisotropy.py --hq --tag hq --job e1a",
+  "git_commit": "unknown",
+  "python": "3.12.6",
+  "numpy": "2.0.2",
+  "scipy": "1.15.1",
+  "platform": "Linux-4.18.0-348.el8.x86_64-x86_64-with-glibc2.28",
+  "machine": "comput4",
+  "args": {
+    "tag": "hq",
+    "quick": false,
+    "hq": true,
+    "job": "e1a",
+    "h": 0.1,
+    "h_scale": 1.0,
+    "profile": "hq",
+    "h_large": 0.15,
+    "tol": 1e-12,
+    "dz": 0.01,
+    "db_factor": 0.5,
+    "exp": "E1_symmetry_transfer",
+    "res_dir": "/public/home/liuxiuye/nonlocal_modes/results/E1_symmetry_transfer/hq",
+    "data_dir": "/public/home/liuxiuye/nonlocal_modes/data/E1_symmetry_transfer/hq"
+  }
+}

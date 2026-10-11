@@ -1,0 +1,17 @@
+
+===== E2_transmutation_atlas  tag=hq_coarse  profile=hq  h=0.15 (large samples 0.225)  newton tol=1e-12  dz=0.01  2026-10-11 18:24:52 =====
+results -> /public/home/liuxiuye/nonlocal_modes/results/E2_transmutation_atlas/hq_coarse
+raw data -> /public/home/liuxiuye/nonlocal_modes/data/E2_transmutation_atlas/hq_coarse
+
+assembling atlas from all families stored in /public/home/liuxiuye/nonlocal_modes/data/E2_transmutation_atlas/hq_coarse
+  rect m=2 b=1.00: central pred/num = 0/0, satellites pred/num = 2/2, r_s(det/fit) = 1.143/1.289
+  rect m=3 b=3.88: central pred/num = 1/1, satellites pred/num = 2/2, r_s(det/fit) = 0.878/1.232
+  poly3 m=2 b=1.00: central pred/num = -1/-1, satellites pred/num = 3/2, r_s(det/fit) = 0.191/0.197
+  poly3 m=3 b=1.00: central pred/num = 0/0, satellites pred/num = 3/3, r_s(det/fit) = 1.061/1.238
+  poly4 m=2 b=1.00: central pred/num = 2/2, satellites pred/num = 0/0, r_s(det/fit) = 0.000/0.000
+  poly4 m=3 b=1.00: central pred/num = -1/-1, satellites pred/num = 4/4, r_s(det/fit) = 1.768/2.271
+  poly5 m=2 b=1.00: central pred/num = 2/2, satellites pred/num = 0/0, r_s(det/fit) = 0.000/0.000
+  disk m=2 b=1.00: central pred/num = 2/2, satellites pred/num = 0/0, r_s(det/fit) = 0.000/0.000
+
+theory/numerics agreement: 7/7 resolved families; 1 unresolved/no-solution (see atlas_table.csv)
+E2a done.

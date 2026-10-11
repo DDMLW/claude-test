@@ -1,0 +1,116 @@
+
+===== E0_validation  tag=hq  profile=hq  h=0.1 (large samples 0.15)  newton tol=1e-12  dz=0.01  2026-10-11 13:01:50 =====
+results -> /public/home/liuxiuye/nonlocal_modes/results/E0_validation/hq
+raw data -> /public/home/liuxiuye/nonlocal_modes/data/E0_validation/hq
+rect_20x40: grid 140x274, h=0.15, stencil=9, optical unknowns=35644, thermal unknowns=35644
+
+[A] Fig.1 cases + linear stability
+  m=1: b in [2.0, 3.5]  (reached end of range)
+   b=2.0: U=9.2574 central=1 sats=[]  max Re(lambda)=1.05e-07
+  m=2: b in [2.0, 3.5]  (reached end of range)
+   b=2.0: U=11.7443 central=0 sats=[[0.759, -3.1416, 1], [0.759, -0.0, 1]]  max Re(lambda)=2.36e-07
+  m=3: b in [None, None]  (no initial solution)
+   direct solve failed for m=3; trying aspect-ratio continuation from the 40x40 square
+   param continuation: value 36 reached (b=4.6400, 9 Newton its)
+   param continuation: value 32 reached (b=4.6400, 6 Newton its)
+   param continuation: value 28 reached (b=4.6400, 6 Newton its)
+   param continuation: value 24 reached (b=4.6400, 15 Newton its)
+   param continuation: value 20 reached (b=4.6400, 9 Newton its)
+   obtained m=3 state in 20x40 by aspect-ratio continuation from the square
+   b=4.64: U=25.0124 central=1 sats=[[0.8437, -3.1416, 1], [0.8437, -0.0, 1]]  max Re(lambda)=1.21e-01
+  m=4: b in [None, None]  (no initial solution)
+   direct solve failed for m=4; trying aspect-ratio continuation from the 40x40 square
+   param continuation: value 36 reached (b=5.0000, 12 Newton its)
+   param continuation: value 32 reached (b=5.0000, 6 Newton its)
+   param continuation: value 28 reached (b=5.0000, 6 Newton its)
+   param continuation: value 24 reached (b=5.0000, 7 Newton its)
+   param continuation: value 20 reached (b=5.0000, 9 Newton its)
+   obtained m=4 state in 20x40 by aspect-ratio continuation from the square
+   b=5.0: U=30.1839 central=0 sats=[[0.6305, -3.1416, 1], [0.6305, -0.0, 1], [1.5033, -3.1416, 1], [1.5033, -0.0, 1]]  max Re(lambda)=1.62e-01
+  m=5: b in [None, None]  (no initial solution)
+   direct solve failed for m=5; trying aspect-ratio continuation from the 40x40 square
+   param continuation: value 36 reached (b=5.0000, 7 Newton its)
+   param continuation: value 32 reached (b=5.0000, 6 Newton its)
+   param continuation: value 28 reached (b=5.0000, 6 Newton its)
+   param continuation: value 24 reached (b=5.0000, 8 Newton its)
+   param continuation: value 20 reached (b=5.0000, 16 Newton its)
+   obtained m=5 state in 20x40 by aspect-ratio continuation from the square
+   b=5.0: U=34.0441 central=1 sats=[[1.1346, -3.1416, 1], [1.1346, -0.0, 1], [2.0107, -3.1416, 1], [2.0107, -0.0, 1]]  max Re(lambda)=1.78e-01
+  m=6: b in [None, None]  (no initial solution)
+   direct solve failed for m=6; trying aspect-ratio continuation from the 40x40 square
+   param continuation: value 36 reached (b=6.0000, 8 Newton its)
+   param continuation: value 32 reached (b=6.0000, 7 Newton its)
+   param continuation: value 28 reached (b=6.0000, 6 Newton its)
+   param continuation: value 24 reached (b=6.0000, 11 Newton its)
+   param continuation: value 20 reached (b=6.0000, 10 Newton its)
+   obtained m=6 state in 20x40 by aspect-ratio continuation from the square
+   b=6.0: U=42.5914 central=0 sats=[[0.5151, -3.1416, 1], [0.5151, -0.0, 1], [1.4711, -3.1416, 1], [1.4711, -0.0, 1], [2.2774, -3.1416, 1], [2.2774, -0.0, 1]]  max Re(lambda)=2.41e-01
+
+[B] m=2 family in 20x40: U(b), D_s(b)
+  b range reached: [0.100, 6.000];  lower end: reached end of range
+
+[C] vary d_eta at b=2 (d_zeta=40)
+   param continuation: value 25 reached (b=2.0000, 5 Newton its)
+   param continuation: value 30 reached (b=2.0000, 6 Newton its)
+   param continuation: value 35 reached (b=2.0000, 6 Newton its)
+   param continuation: value 40 reached (b=2.0000, 12 Newton its)
+   param continuation: value 17.5 reached (b=2.0000, 7 Newton its)
+   param continuation: value 15 reached (b=2.0000, 8 Newton its)
+   param continuation: value 12.5 reached (b=2.0000, 10 Newton its)
+   param continuation: value 10 reached (b=2.0000, 10 Newton its)
+   d_eta= 20.0: U=11.7443  W_eta=2.2929  W_zeta=2.0632  central=0  D_s=1.5180
+   d_eta= 25.0: U=10.3685  W_eta=2.4047  W_zeta=2.2473  central=0  D_s=1.3360
+   d_eta= 30.0: U=9.5317  W_eta=2.4773  W_zeta=2.3827  central=0  D_s=1.0816
+   d_eta= 35.0: U=9.0009  W_eta=2.5233  W_zeta=2.4815  central=0  D_s=0.7528
+   d_eta= 40.0: U=8.6563  W_eta=2.5523  W_zeta=2.5523  central=2  D_s=0.0000
+   d_eta= 17.5: U=12.7797  W_eta=2.2170  W_zeta=1.9467  central=0  D_s=1.5882
+   d_eta= 15.0: U=14.2075  W_eta=2.1233  W_zeta=1.8078  central=0  D_s=1.6414
+   d_eta= 12.5: U=16.2866  W_eta=2.0056  W_zeta=1.6388  central=0  D_s=1.6686
+   d_eta= 10.0: U=19.5801  W_eta=1.8491  W_zeta=1.4280  central=0  D_s=1.6562
+
+[D] noisy propagation up to xi=1000
+    xi=   100.00  U=9.35563124  peak=0.68347  dev=9.226e-02  (298s)
+    xi=   200.00  U=9.35563124  peak=0.69397  dev=9.494e-02  (693s)
+    xi=   300.00  U=9.35563124  peak=0.69441  dev=9.444e-02  (1092s)
+    xi=   400.00  U=9.35563124  peak=0.71099  dev=9.140e-02  (1488s)
+    xi=   500.00  U=9.35563124  peak=0.69514  dev=9.154e-02  (1880s)
+    xi=   600.00  U=9.35563124  peak=0.69178  dev=9.500e-02  (2278s)
+    xi=   700.00  U=9.35563124  peak=0.69245  dev=9.501e-02  (2675s)
+    xi=   800.00  U=9.35563124  peak=0.68689  dev=9.209e-02  (3066s)
+    xi=   900.00  U=9.35563124  peak=0.69226  dev=9.087e-02  (3465s)
+    xi=  1000.00  U=9.35563124  peak=0.68736  dev=9.279e-02  (3862s)
+   m=1: final deviation 9.279e-02  (max 9.658e-02)
+    xi=   100.00  U=11.84131940  peak=0.63243  dev=8.878e-02  (394s)
+    xi=   200.00  U=11.84131940  peak=0.64015  dev=8.905e-02  (792s)
+    xi=   300.00  U=11.84131940  peak=0.64329  dev=8.923e-02  (1191s)
+    xi=   400.00  U=11.84131940  peak=0.63563  dev=8.947e-02  (1588s)
+    xi=   500.00  U=11.84131940  peak=0.62791  dev=8.893e-02  (1979s)
+    xi=   600.00  U=11.84131940  peak=0.64224  dev=8.917e-02  (2380s)
+    xi=   700.00  U=11.84131940  peak=0.63414  dev=8.861e-02  (2778s)
+    xi=   800.00  U=11.84131940  peak=0.63581  dev=8.966e-02  (3178s)
+    xi=   900.00  U=11.84131940  peak=0.63750  dev=8.906e-02  (3573s)
+    xi=  1000.00  U=11.84131940  peak=0.63464  dev=8.942e-02  (3973s)
+   m=2: final deviation 8.942e-02  (max 9.206e-02)
+    xi=   100.00  U=25.20713242  peak=1.15119  dev=2.900e-01  (401s)
+    xi=   200.00  U=25.20713242  peak=1.08784  dev=2.547e-01  (799s)
+    xi=   300.00  U=25.20713242  peak=1.12898  dev=3.479e-01  (1193s)
+    xi=   400.00  U=25.20713242  peak=1.15914  dev=3.603e-01  (1594s)
+    xi=   500.00  U=25.20713242  peak=1.15182  dev=3.508e-01  (1993s)
+    xi=   600.00  U=25.20713242  peak=1.15185  dev=3.788e-01  (2386s)
+    xi=   700.00  U=25.20713242  peak=1.12318  dev=3.750e-01  (2787s)
+    xi=   800.00  U=25.20713242  peak=1.30602  dev=3.677e-01  (3188s)
+    xi=   900.00  U=25.20713242  peak=1.15349  dev=3.564e-01  (3583s)
+    xi=  1000.00  U=25.20713242  peak=1.34571  dev=3.752e-01  (3982s)
+   m=3: final deviation 3.752e-01  (max 4.565e-01)
+    xi=   100.00  U=11.74429903  peak=0.61009  (412s)
+    xi=   200.00  U=11.74429903  peak=0.61495  (825s)
+    xi=   300.00  U=11.74429903  peak=0.61557  (1232s)
+    xi=   400.00  U=11.74429903  peak=0.60791  (1643s)
+    xi=   500.00  U=11.74429903  peak=0.61742  (2057s)
+    xi=   600.00  U=11.74429903  peak=0.61214  (2465s)
+    xi=   700.00  U=11.74429903  peak=0.61285  (2875s)
+    xi=   800.00  U=11.74429903  peak=0.61553  (3289s)
+    xi=   900.00  U=11.74429903  peak=0.60940  (3699s)
+    xi=  1000.00  U=11.74429903  peak=0.61580  (4105s)
+
+E0b done.

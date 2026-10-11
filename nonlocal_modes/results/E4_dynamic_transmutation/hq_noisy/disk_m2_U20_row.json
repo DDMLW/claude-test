@@ -1,0 +1,17 @@
+{
+ "sample": "disk",
+ "n": 0,
+ "m": 2,
+ "U": 20.0,
+ "h": 0.1,
+ "zmax": 400.0,
+ "noise": 0.01,
+ "central_pred": 2,
+ "central_final": -0.0,
+ "n_satellites_final": 1,
+ "r_s_final": 0.1529,
+ "mu": 2,
+ "mu_weight_initial": 0.9926575320218052,
+ "mu_weight_drift": 0.0004655373787472161,
+ "power_drift": 1.0332045151418716e-12
+}

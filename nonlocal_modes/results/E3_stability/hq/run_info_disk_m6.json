@@ -1,0 +1,39 @@
+{
+  "time": "2026-10-11T18:24:52",
+  "command": "E3_stability/e3_stability.py --hq --tag hq --samples disk --ms 6 --job disk_m6",
+  "git_commit": "unknown",
+  "python": "3.12.6",
+  "numpy": "2.0.2",
+  "scipy": "1.15.1",
+  "platform": "Linux-4.18.0-348.el8.x86_64-x86_64-with-glibc2.28",
+  "machine": "comput5",
+  "args": {
+    "tag": "hq",
+    "quick": false,
+    "hq": true,
+    "job": "disk_m6",
+    "h": 0.1,
+    "h_scale": 1.0,
+    "samples": [
+      "disk"
+    ],
+    "ms": [
+      6
+    ],
+    "rho": 8.0,
+    "stride": null,
+    "bs": null,
+    "omega_max": null,
+    "zmax": null,
+    "no_prop": false,
+    "table_only": false,
+    "profile": "hq",
+    "h_large": 0.15,
+    "tol": 1e-12,
+    "dz": 0.01,
+    "db_factor": 0.5,
+    "exp": "E3_stability",
+    "res_dir": "/public/home/liuxiuye/nonlocal_modes/results/E3_stability/hq",
+    "data_dir": "/public/home/liuxiuye/nonlocal_modes/data/E3_stability/hq"
+  }
+}

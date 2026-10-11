@@ -1,0 +1,17 @@
+
+===== E2_transmutation_atlas  tag=hq  profile=hq  h=0.1 (large samples 0.15)  newton tol=1e-12  dz=0.01  2026-10-11 12:50:51 =====
+results -> /public/home/liuxiuye/nonlocal_modes/results/E2_transmutation_atlas/hq
+raw data -> /public/home/liuxiuye/nonlocal_modes/data/E2_transmutation_atlas/hq
+
+rect_20x40: grid 140x274, h=0.15, stencil=9, optical unknowns=35644, thermal unknowns=35644
+  m=6: direct solve failed; aspect-ratio continuation from the 40x40 square at b=5
+   param continuation: value 36 reached (b=5.0000, 8 Newton its)
+   param continuation: value 32 reached (b=5.0000, 7 Newton its)
+   param continuation: value 28 reached (b=5.0000, 6 Newton its)
+   param continuation: value 24 reached (b=5.0000, 8 Newton its)
+   param continuation: value 20 reached (b=5.0000, 12 Newton its)
+   obtained m=6 state in 20x40 by aspect-ratio continuation from the square
+  m=6: 74 solutions; b in [0.45781249999999996, 7.0]; low end: continuation stopped near b=0.45781: stagnation (residual not reduced 100x after 15 iterations) (possible existence threshold/bifurcation)
+
+split job (--job given): atlas not assembled here; run --plot_only after all jobs finish
+E2a done.

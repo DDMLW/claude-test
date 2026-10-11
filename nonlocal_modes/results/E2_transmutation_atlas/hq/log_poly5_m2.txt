@@ -1,0 +1,10 @@
+
+===== E2_transmutation_atlas  tag=hq  profile=hq  h=0.1 (large samples 0.15)  newton tol=1e-12  dz=0.01  2026-10-11 12:50:50 =====
+results -> /public/home/liuxiuye/nonlocal_modes/results/E2_transmutation_atlas/hq
+raw data -> /public/home/liuxiuye/nonlocal_modes/data/E2_transmutation_atlas/hq
+
+poly5_rho8: grid 194x194, h=0.1, stencil=9, optical unknowns=20992, thermal unknowns=20992
+  m=2: 69 solutions; b in [0.2, 7.0]; low end: reached end of range
+
+split job (--job given): atlas not assembled here; run --plot_only after all jobs finish
+E2a done.

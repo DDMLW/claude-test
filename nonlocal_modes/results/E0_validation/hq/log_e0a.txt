@@ -1,0 +1,68 @@
+
+===== E0_validation  tag=hq  profile=hq  h=0.1 (large samples 0.15)  newton tol=1e-12  dz=0.01  2026-10-11 13:02:50 =====
+results -> /public/home/liuxiuye/nonlocal_modes/results/E0_validation/hq
+raw data -> /public/home/liuxiuye/nonlocal_modes/data/E0_validation/hq
+
+[1] Poisson solver error vs h
+   h=0.400 stencil=5  max error = 1.490e-02
+   h=0.400 stencil=9  max error = 1.992e-02
+   h=0.300 stencil=5  max error = 8.608e-03
+   h=0.300 stencil=9  max error = 1.149e-02
+   h=0.200 stencil=5  max error = 3.890e-03
+   h=0.200 stencil=9  max error = 5.190e-03
+   h=0.150 stencil=5  max error = 2.202e-03
+   h=0.150 stencil=9  max error = 2.937e-03
+   h=0.100 stencil=5  max error = 9.834e-04
+   h=0.100 stencil=9  max error = 1.311e-03
+   h=0.075 stencil=5  max error = 5.548e-04
+   h=0.075 stencil=9  max error = 7.396e-04
+   h=0.050 stencil=5  max error = 2.466e-04
+   h=0.050 stencil=9  max error = 3.288e-04
+
+[2] symmetry-transfer ratio (numerics / theory), should -> 1
+   n=3 h=0.400  ratio = 1.000049
+   n=3 h=0.300  ratio = 1.000018
+   n=3 h=0.200  ratio = 1.000003
+   n=3 h=0.150  ratio = 0.999990
+   n=3 h=0.100  ratio = 0.999995
+   n=4 h=0.400  ratio = 1.004195
+   n=4 h=0.300  ratio = 1.001288
+   n=4 h=0.200  ratio = 1.000272
+   n=4 h=0.150  ratio = 1.000088
+   n=4 h=0.100  ratio = 1.000017
+   n=5 h=0.400  ratio = 0.999943
+   n=5 h=0.300  ratio = 0.999965
+   n=5 h=0.200  ratio = 0.999945
+   n=5 h=0.150  ratio = 0.999977
+   n=5 h=0.100  ratio = 1.000001
+   n=6 h=0.400  ratio = 0.999771
+   n=6 h=0.300  ratio = 0.999776
+   n=6 h=0.200  ratio = 0.999795
+   n=6 h=0.150  ratio = 0.999968
+   n=6 h=0.100  ratio = 0.999995
+
+[3] twin-vortex singularity separation D_s(b=2) in 20x40 rectangle vs h
+   h=0.300  D_s = 1.51980   U = 11.69620
+   h=0.250  D_s = 1.50800   U = 11.71589
+   h=0.200  D_s = 1.51560   U = 11.73190
+   h=0.150  D_s = 1.51800   U = 11.74430
+   h=0.100  D_s = 1.52240   U = 11.75313
+
+[4] grid-induced |c_-2/c_2| for m=2 vortex in a disk (pure numerical artefact)
+   h=0.300 stencil=5  |c_-2/c_2| = 7.317e-03
+   h=0.300 stencil=9  |c_-2/c_2| = 4.753e-05
+   h=0.200 stencil=5  |c_-2/c_2| = 3.278e-03
+   h=0.200 stencil=9  |c_-2/c_2| = 1.204e-05
+   h=0.150 stencil=5  |c_-2/c_2| = 1.838e-03
+   h=0.150 stencil=9  |c_-2/c_2| = 3.226e-06
+   h=0.100 stencil=5  |c_-2/c_2| = 8.152e-04
+   h=0.100 stencil=9  |c_-2/c_2| = 5.996e-07
+
+[5] propagation of a stationary m=1 vortex (triangle rho=8): deviation at xi=20 vs dz
+   dz= 0.1000  deviation(xi=20) = 6.537e-04   relative power drift = 3.7e-15
+   dz= 0.0500  deviation(xi=20) = 1.643e-04   relative power drift = 1.9e-14
+   dz= 0.0250  deviation(xi=20) = 4.115e-05   relative power drift = 2.4e-14
+   dz= 0.0125  deviation(xi=20) = 1.029e-05   relative power drift = 8.6e-14
+   dz= 0.0063  deviation(xi=20) = 2.574e-06   relative power drift = 1.8e-13
+
+E0a done.

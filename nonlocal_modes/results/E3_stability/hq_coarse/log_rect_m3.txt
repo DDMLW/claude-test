@@ -1,0 +1,28 @@
+
+===== E3_stability  tag=hq_coarse  profile=hq  h=0.15 (large samples 0.225)  newton tol=1e-12  dz=0.01  2026-10-11 18:24:52 =====
+results -> /public/home/liuxiuye/nonlocal_modes/results/E3_stability/hq_coarse
+raw data -> /public/home/liuxiuye/nonlocal_modes/data/E3_stability/hq_coarse
+
+rect_m3: 33 stored solutions; spectra every 2
+   b=4.000 U=22.502  max Re(lambda) = 1.039e-01 (Im = 1.202)  [236s]
+   b=4.200 U=23.271  max Re(lambda) = 1.089e-01 (Im = 1.241)  [237s]
+   b=4.400 U=24.033  max Re(lambda) = 1.134e-01 (Im = 1.281)  [236s]
+   b=4.600 U=24.786  max Re(lambda) = 1.176e-01 (Im = 1.320)  [233s]
+   b=4.800 U=25.533  max Re(lambda) = 1.216e-01 (Im = 1.359)  [237s]
+   b=5.000 U=26.273  max Re(lambda) = 1.256e-01 (Im = 1.397)  [235s]
+   b=5.200 U=27.007  max Re(lambda) = 1.294e-01 (Im = 1.436)  [232s]
+   b=5.400 U=27.735  max Re(lambda) = 1.332e-01 (Im = 1.474)  [227s]
+   b=5.600 U=28.457  max Re(lambda) = 1.369e-01 (Im = 1.511)  [223s]
+   b=5.800 U=29.174  max Re(lambda) = 1.406e-01 (Im = 1.549)  [226s]
+   b=6.000 U=29.885  max Re(lambda) = 1.442e-01 (Im = 1.586)  [228s]
+   b=6.200 U=30.591  max Re(lambda) = 1.478e-01 (Im = 1.623)  [228s]
+   b=6.400 U=31.293  max Re(lambda) = 1.513e-01 (Im = 1.660)  [225s]
+   b=6.600 U=31.990  max Re(lambda) = 1.547e-01 (Im = 1.697)  [228s]
+   b=6.800 U=32.683  max Re(lambda) = 1.582e-01 (Im = 1.733)  [239s]
+   b=7.000 U=33.372  max Re(lambda) = 1.615e-01 (Im = 1.769)  [236s]
+   propagation b=4.00: max deviation 0.428 (second half 0.428)
+   propagation b=7.00: max deviation 0.443 (second half 0.443)
+
+split job (--job given): run --table_only after all jobs finish to build stability_table.csv
+
+E3 done.

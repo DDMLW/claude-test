@@ -1,0 +1,13 @@
+{
+ "sample": "rect",
+ "n": 2,
+ "m": 3,
+ "h": 0.15,
+ "b_min": 4.0874999999999995,
+ "b_max": 7.0,
+ "n_spectra": 15,
+ "n_unstable": 15,
+ "max_growth_overall": 0.16700488559944565,
+ "stable_b": "",
+ "propagation": "b=4.20:ok;b=7.00:ok"
+}

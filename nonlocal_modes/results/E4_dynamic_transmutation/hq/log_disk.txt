@@ -1,0 +1,16 @@
+
+===== E4_dynamic_transmutation  tag=hq  profile=hq  h=0.1 (large samples 0.15)  newton tol=1e-12  dz=0.01  2026-10-11 13:06:50 =====
+results -> /public/home/liuxiuye/nonlocal_modes/results/E4_dynamic_transmutation/hq
+raw data -> /public/home/liuxiuye/nonlocal_modes/data/E4_dynamic_transmutation/hq
+
+disk_R8: grid 166x166, h=0.1, stencil=9, optical unknowns=20108, thermal unknowns=20108
+  m=2 U=10: central (pred 2) final +2.00, satellites 0, mu-weight drift 0.0e+00  [598s]
+  m=2 U=20: central (pred 2) final +2.00, satellites 0, mu-weight drift 0.0e+00  [570s]
+  m=3 U=10: central (pred 3) final -1.00, satellites 12, mu-weight drift 3.6e-09  [554s]
+  m=3 U=20: central (pred 3) final -0.00, satellites 0, mu-weight drift 3.9e-01  [560s]
+  m=4 U=10: central (pred 4) final +0.00, satellites 4, mu-weight drift 4.4e-10  [560s]
+  m=4 U=20: central (pred 4) final +0.00, satellites 0, mu-weight drift 1.9e-02  [561s]
+
+split job (--job given): run --table_only after all jobs finish to build e4_summary.csv
+
+E4 done.

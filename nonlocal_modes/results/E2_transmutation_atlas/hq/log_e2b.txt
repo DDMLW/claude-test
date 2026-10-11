@@ -1,0 +1,134 @@
+
+===== E2_transmutation_atlas  tag=hq  profile=hq  h=0.1 (large samples 0.15)  newton tol=1e-12  dz=0.01  2026-10-11 13:02:51 =====
+results -> /public/home/liuxiuye/nonlocal_modes/results/E2_transmutation_atlas/hq
+raw data -> /public/home/liuxiuye/nonlocal_modes/data/E2_transmutation_atlas/hq
+
+(n,m)=(3,2), U=12.0: predicted central -1, ring exponent s=1.000, slope -3.000
+   param continuation: value 11 reached (b=1.7967, 5 Newton its)
+   param continuation: value 12 reached (b=1.9629, 4 Newton its)
+   param continuation: value 13 reached (b=2.1158, 4 Newton its)
+   param continuation: value 14 reached (b=2.2574, 4 Newton its)
+   param continuation: value 16 reached (b=2.5124, 5 Newton its)
+   param continuation: value 9.5 reached (b=1.5167, 4 Newton its)
+   param continuation: value 9 reached (b=1.4134, 4 Newton its)
+   param continuation: value 8.5 reached (b=1.3042, 4 Newton its)
+   param continuation: value 8 reached (b=1.1885, 3 Newton its)
+   param continuation: value 7.5 reached (b=1.0658, 4 Newton its)
+   param continuation: value 7 reached (b=0.9356, 4 Newton its)
+   param continuation: value 6.5 reached (b=0.7986, 13 Newton its)
+   param continuation: value 6 reached (b=0.6545, 5 Newton its)
+   param continuation: value 5.5 reached (b=0.5037, 4 Newton its)
+   rho=16.00: b=2.5124 W_small=+2 sats=0 r_s(det)=0.0000 r_s(fit)=0.0202
+   rho=14.00: b=2.2574 W_small=+2 sats=0 r_s(det)=0.0000 r_s(fit)=0.0302
+   rho=13.00: b=2.1158 W_small=+2 sats=0 r_s(det)=0.0000 r_s(fit)=0.0377
+   rho=12.00: b=1.9629 W_small=+2 sats=0 r_s(det)=0.0000 r_s(fit)=0.0479
+   rho=11.00: b=1.7967 W_small=-1 sats=0 r_s(det)=0.0000 r_s(fit)=0.0622
+   rho=10.00: b=1.6147 W_small=-1 sats=0 r_s(det)=0.0000 r_s(fit)=0.0829
+   rho= 9.50: b=1.5167 W_small=-1 sats=0 r_s(det)=0.0000 r_s(fit)=0.0967
+   rho= 9.00: b=1.4134 W_small=-1 sats=0 r_s(det)=0.0000 r_s(fit)=0.1139
+   rho= 8.50: b=1.3042 W_small=-1 sats=3 r_s(det)=0.1385 r_s(fit)=0.1354
+   rho= 8.00: b=1.1885 W_small=-1 sats=3 r_s(det)=0.1689 r_s(fit)=0.1630
+   rho= 7.50: b=1.0658 W_small=-1 sats=3 r_s(det)=0.2003 r_s(fit)=0.1994
+   rho= 7.00: b=0.9356 W_small=-1 sats=3 r_s(det)=0.2504 r_s(fit)=0.2489
+   rho= 6.50: b=0.7986 W_small=-1 sats=3 r_s(det)=0.3171 r_s(fit)=0.3193
+   rho= 6.00: b=0.6545 W_small=-1 sats=3 r_s(det)=0.4143 r_s(fit)=0.4174
+   rho= 5.50: b=0.5037 W_small=-1 sats=3 r_s(det)=0.5386 r_s(fit)=0.5489
+   fitted slope -3.082  vs predicted -3.000
+
+(n,m)=(4,3), U=18.0: predicted central -1, ring exponent s=0.500, slope -2.000
+   param continuation: value 11 reached (b=2.4627, 7 Newton its)
+   param continuation: value 12 reached (b=2.7118, 5 Newton its)
+   param continuation: value 13 reached (b=2.9410, 5 Newton its)
+   param continuation: value 14 reached (b=3.1533, 4 Newton its)
+   param continuation: value 16 reached (b=3.5358, 5 Newton its)
+   param continuation: value 9.5 reached (b=2.0432, 8 Newton its)
+   param continuation: value 9 reached (b=1.8887, 5 Newton its)
+   param continuation: value 8.5 reached (b=1.7256, 5 Newton its)
+   param continuation: value 8 reached (b=1.5531, 5 Newton its)
+   param continuation: value 7.5 reached (b=1.3706, 5 Newton its)
+   param continuation: value 7 reached (b=1.1795, 5 Newton its)
+   param continuation: value 6.5 reached (b=0.9817, 5 Newton its)
+   param continuation: value 6 reached (b=0.7859, 7 Newton its)
+   param continuation: value 5.5 reached (b=0.5720, 5 Newton its)
+   rho=16.00: b=3.5358 W_small=-1 sats=4 r_s(det)=0.4691 r_s(fit)=0.4762
+   rho=14.00: b=3.1533 W_small=-1 sats=4 r_s(det)=0.6053 r_s(fit)=0.6210
+   rho=13.00: b=2.9410 W_small=-1 sats=4 r_s(det)=0.6948 r_s(fit)=0.7188
+   rho=12.00: b=2.7118 W_small=-1 sats=4 r_s(det)=0.8023 r_s(fit)=0.8406
+   rho=11.00: b=2.4627 W_small=-1 sats=4 r_s(det)=0.9309 r_s(fit)=0.9933
+   rho=10.00: b=2.1899 W_small=-1 sats=4 r_s(det)=1.0816 r_s(fit)=1.1850
+   rho= 9.50: b=2.0432 W_small=-1 sats=4 r_s(det)=1.1643 r_s(fit)=1.2980
+   rho= 9.00: b=1.8887 W_small=-1 sats=4 r_s(det)=1.2510 r_s(fit)=1.4238
+   rho= 8.50: b=1.7256 W_small=-1 sats=4 r_s(det)=1.3404 r_s(fit)=1.5639
+   rho= 8.00: b=1.5531 W_small=-1 sats=4 r_s(det)=1.4320 r_s(fit)=1.7218
+   rho= 7.50: b=1.3706 W_small=-1 sats=4 r_s(det)=1.5251 r_s(fit)=1.9033
+   rho= 7.00: b=1.1795 W_small=-1 sats=4 r_s(det)=1.6221 r_s(fit)=2.1298
+   rho= 6.50: b=0.9817 W_small=-1 sats=4 r_s(det)=1.7165 r_s(fit)=2.4210
+   rho= 6.00: b=0.7859 W_small=-1 sats=8 r_s(det)=2.9631 r_s(fit)=2.8757
+   rho= 5.50: b=0.5720 W_small=-1 sats=0 r_s(det)=0.0000 r_s(fit)=3.1762
+   fitted slope -1.773  vs predicted -2.000
+
+(n,m)=(3,3), U=18.0: predicted central 0, ring exponent s=0.333, slope -1.000
+   param continuation: value 11 reached (b=2.4623, 6 Newton its)
+   param continuation: value 12 reached (b=2.7116, 5 Newton its)
+   param continuation: value 13 reached (b=2.9409, 4 Newton its)
+   param continuation: value 14 reached (b=3.1532, 4 Newton its)
+   param continuation: value 16 reached (b=3.5358, 6 Newton its)
+   param continuation: value 9.5 reached (b=2.0422, 4 Newton its)
+   param continuation: value 9 reached (b=1.8873, 4 Newton its)
+   param continuation: value 8.5 reached (b=1.7235, 4 Newton its)
+   param continuation: value 8 reached (b=1.5499, 4 Newton its)
+   param continuation: value 7.5 reached (b=1.3657, 4 Newton its)
+   param continuation: value 7 reached (b=1.1702, 4 Newton its)
+   param continuation: value 6.5 reached (b=0.9651, 5 Newton its)
+   param continuation: value 6 reached (b=0.7509, 5 Newton its)
+   param continuation: value 5.5 reached (b=0.5287, 5 Newton its)
+   rho=16.00: b=3.5358 W_small=+0 sats=3 r_s(det)=0.4807 r_s(fit)=0.4968
+   rho=14.00: b=3.1532 W_small=+0 sats=3 r_s(det)=0.5462 r_s(fit)=0.5678
+   rho=13.00: b=2.9409 W_small=+0 sats=3 r_s(det)=0.5828 r_s(fit)=0.6115
+   rho=12.00: b=2.7116 W_small=+0 sats=3 r_s(det)=0.6270 r_s(fit)=0.6625
+   rho=11.00: b=2.4623 W_small=+0 sats=3 r_s(det)=0.6752 r_s(fit)=0.7229
+   rho=10.00: b=2.1892 W_small=+0 sats=3 r_s(det)=0.7333 r_s(fit)=0.7954
+   rho= 9.50: b=2.0422 W_small=+0 sats=3 r_s(det)=0.7657 r_s(fit)=0.8374
+   rho= 9.00: b=1.8873 W_small=+0 sats=3 r_s(det)=0.7997 r_s(fit)=0.8843
+   rho= 8.50: b=1.7235 W_small=+0 sats=3 r_s(det)=0.8378 r_s(fit)=0.9369
+   rho= 8.00: b=1.5499 W_small=+0 sats=3 r_s(det)=0.8784 r_s(fit)=0.9966
+   rho= 7.50: b=1.3657 W_small=+0 sats=3 r_s(det)=0.9230 r_s(fit)=1.0656
+   rho= 7.00: b=1.1702 W_small=+0 sats=3 r_s(det)=0.9729 r_s(fit)=1.1466
+   rho= 6.50: b=0.9651 W_small=+0 sats=3 r_s(det)=1.0258 r_s(fit)=1.2430
+   rho= 6.00: b=0.7509 W_small=+0 sats=3 r_s(det)=1.0776 r_s(fit)=1.3510
+   rho= 5.50: b=0.5287 W_small=+0 sats=3 r_s(det)=1.1184 r_s(fit)=1.4568
+   fitted slope -1.015  vs predicted -1.000
+
+(n,m)=(4,4), U=24.0: predicted central 0, ring exponent s=0.250, slope -1.000
+   param continuation: value 11 reached (b=2.9962, 9 Newton its)
+   param continuation: value 12 reached (b=3.3287, 5 Newton its)
+   param continuation: value 13 reached (b=3.6346, 5 Newton its)
+   param continuation: value 14 reached (b=3.9177, 5 Newton its)
+   param continuation: value 16 reached (b=4.4277, 5 Newton its)
+   param continuation: value 9.5 reached (b=2.4356, 6 Newton its)
+   param continuation: value 9 reached (b=2.2287, 4 Newton its)
+   param continuation: value 8.5 reached (b=2.0097, 5 Newton its)
+   param continuation: value 8 reached (b=1.7773, 5 Newton its)
+   param continuation: value 7.5 reached (b=1.5303, 5 Newton its)
+   param continuation: value 7 reached (b=1.2689, 5 Newton its)
+   param continuation: value 6.5 reached (b=0.9955, 5 Newton its)
+   param continuation: value 6 reached (b=0.7228, 5 Newton its)
+   param continuation: value 5.5 reached (b=0.4458, 7 Newton its)
+   rho=16.00: b=4.4277 W_small=+0 sats=4 r_s(det)=0.7851 r_s(fit)=0.8690
+   rho=14.00: b=3.9177 W_small=-0 sats=4 r_s(det)=0.8705 r_s(fit)=0.9930
+   rho=13.00: b=3.6346 W_small=+0 sats=4 r_s(det)=0.9191 r_s(fit)=1.0693
+   rho=12.00: b=3.3287 W_small=-0 sats=4 r_s(det)=0.9716 r_s(fit)=1.1580
+   rho=11.00: b=2.9962 W_small=+0 sats=4 r_s(det)=1.0276 r_s(fit)=1.2624
+   rho=10.00: b=2.6319 W_small=+0 sats=4 r_s(det)=1.0868 r_s(fit)=1.3863
+   rho= 9.50: b=2.4356 W_small=+0 sats=4 r_s(det)=1.1168 r_s(fit)=1.4566
+   rho= 9.00: b=2.2287 W_small=-0 sats=4 r_s(det)=1.1463 r_s(fit)=1.5327
+   rho= 8.50: b=2.0097 W_small=+0 sats=4 r_s(det)=1.1746 r_s(fit)=1.6134
+   rho= 8.00: b=1.7773 W_small=-0 sats=4 r_s(det)=1.2004 r_s(fit)=1.6955
+   rho= 7.50: b=1.5303 W_small=-0 sats=4 r_s(det)=1.2222 r_s(fit)=1.7720
+   rho= 7.00: b=1.2689 W_small=-0 sats=4 r_s(det)=1.2390 r_s(fit)=1.8322
+   rho= 6.50: b=0.9955 W_small=+0 sats=4 r_s(det)=1.2500 r_s(fit)=1.8624
+   rho= 6.00: b=0.7228 W_small=+0 sats=4 r_s(det)=1.2489 r_s(fit)=1.8369
+   rho= 5.50: b=0.4458 W_small=+0 sats=4 r_s(det)=1.2351 r_s(fit)=1.7515
+   fitted slope -0.744  vs predicted -1.000
+
+E2b done.

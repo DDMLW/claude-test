@@ -1,0 +1,45 @@
+
+===== E3_stability  tag=hq  profile=hq  h=0.1 (large samples 0.15)  newton tol=1e-12  dz=0.01  2026-10-11 14:13:51 =====
+results -> /public/home/liuxiuye/nonlocal_modes/results/E3_stability/hq
+raw data -> /public/home/liuxiuye/nonlocal_modes/data/E3_stability/hq
+
+rect_m4: 72 stored solutions; spectra every 2
+   b=0.600 U=8.858  max Re(lambda) = 3.533e-02 (Im = 0.465)  [876s]
+   b=0.800 U=10.174  max Re(lambda) = 3.572e-02 (Im = 0.505)  [888s]
+   b=1.000 U=11.403  max Re(lambda) = 4.110e-02 (Im = 0.548)  [896s]
+   b=1.200 U=12.569  max Re(lambda) = 4.822e-02 (Im = 0.591)  [895s]
+   b=1.400 U=13.687  max Re(lambda) = 5.583e-02 (Im = 0.634)  [895s]
+   b=1.600 U=14.766  max Re(lambda) = 6.343e-02 (Im = 0.677)  [913s]
+   b=1.800 U=15.813  max Re(lambda) = 7.079e-02 (Im = 0.719)  [908s]
+   b=2.000 U=16.831  max Re(lambda) = 7.788e-02 (Im = 0.760)  [911s]
+   b=2.200 U=17.825  max Re(lambda) = 8.467e-02 (Im = 0.800)  [904s]
+   b=2.400 U=18.798  max Re(lambda) = 9.119e-02 (Im = 0.840)  [918s]
+   b=2.600 U=19.751  max Re(lambda) = 9.748e-02 (Im = 0.879)  [913s]
+   b=2.800 U=20.687  max Re(lambda) = 1.036e-01 (Im = 0.918)  [908s]
+   b=3.000 U=21.608  max Re(lambda) = 1.094e-01 (Im = 0.957)  [906s]
+   b=3.200 U=22.514  max Re(lambda) = 1.152e-01 (Im = 0.994)  [904s]
+   b=3.400 U=23.408  max Re(lambda) = 1.208e-01 (Im = 1.032)  [913s]
+   b=3.600 U=24.289  max Re(lambda) = 1.262e-01 (Im = 1.069)  [915s]
+   b=3.800 U=25.159  max Re(lambda) = 1.315e-01 (Im = 1.105)  [909s]
+   b=4.000 U=26.019  max Re(lambda) = 1.368e-01 (Im = 1.142)  [913s]
+   b=4.200 U=26.869  max Re(lambda) = 1.419e-01 (Im = 1.177)  [913s]
+   b=4.400 U=27.710  max Re(lambda) = 1.469e-01 (Im = 1.213)  [918s]
+   b=4.600 U=28.543  max Re(lambda) = 1.519e-01 (Im = 1.248)  [895s]
+   b=4.800 U=29.367  max Re(lambda) = 1.568e-01 (Im = 1.283)  [888s]
+   b=5.000 U=30.184  max Re(lambda) = 1.616e-01 (Im = 1.318)  [901s]
+   b=5.200 U=30.993  max Re(lambda) = 1.663e-01 (Im = 1.352)  [885s]
+   b=5.400 U=31.796  max Re(lambda) = 1.710e-01 (Im = 1.386)  [806s]
+   b=5.600 U=32.592  max Re(lambda) = 1.756e-01 (Im = 1.420)  [814s]
+   b=5.800 U=33.382  max Re(lambda) = 1.802e-01 (Im = 1.453)  [804s]
+   b=6.000 U=34.167  max Re(lambda) = 1.847e-01 (Im = 1.487)  [793s]
+   b=6.200 U=34.945  max Re(lambda) = 1.892e-01 (Im = 1.520)  [800s]
+   b=6.400 U=35.718  max Re(lambda) = 1.936e-01 (Im = 1.553)  [804s]
+   b=6.600 U=36.486  max Re(lambda) = 1.980e-01 (Im = 1.586)  [798s]
+   b=6.800 U=37.249  max Re(lambda) = 2.023e-01 (Im = 1.618)  [798s]
+   b=7.000 U=38.007  max Re(lambda) = 2.066e-01 (Im = 1.650)  [718s]
+   propagation b=0.60: max deviation 0.757 (second half 0.757)
+   propagation b=7.00: max deviation 0.879 (second half 0.879)
+
+split job (--job given): run --table_only after all jobs finish to build stability_table.csv
+
+E3 done.

@@ -1,0 +1,45 @@
+
+===== E2_transmutation_atlas  tag=hq  profile=hq  h=0.1 (large samples 0.15)  newton tol=1e-12  dz=0.01  2026-10-11 14:13:50 =====
+results -> /public/home/liuxiuye/nonlocal_modes/results/E2_transmutation_atlas/hq
+raw data -> /public/home/liuxiuye/nonlocal_modes/data/E2_transmutation_atlas/hq
+
+assembling atlas from all families stored in /public/home/liuxiuye/nonlocal_modes/data/E2_transmutation_atlas/hq
+  rect m=1 b=1.00: central pred/num = 1/1, satellites pred/num = 0/0, r_s(det/fit) = 0.000/0.000
+  rect m=2 b=1.00: central pred/num = 0/0, satellites pred/num = 2/2, r_s(det/fit) = 1.147/1.300
+  rect m=3 b=4.09: central pred/num = 1/1, satellites pred/num = 2/2, r_s(det/fit) = 0.850/1.207
+  rect m=4 b=1.00: central pred/num = 0/0, satellites pred/num = 4/4, r_s(det/fit) = 2.321/2.560
+  rect m=5 b=1.00: central pred/num = 1/1, satellites pred/num = 4/4, r_s(det/fit) = 3.174/3.760
+  rect m=6 b=1.00: central pred/num = 0/0, satellites pred/num = 6/6, r_s(det/fit) = 2.912/2.529
+  poly3 m=1 b=1.00: central pred/num = 1/1, satellites pred/num = 0/0, r_s(det/fit) = 0.000/0.000
+  poly3 m=2 b=1.00: central pred/num = -1/-1, satellites pred/num = 3/3, r_s(det/fit) = 0.199/0.198
+  poly3 m=3 b=1.00: central pred/num = 0/0, satellites pred/num = 3/3, r_s(det/fit) = 1.064/1.245
+  poly3 m=4 b=1.00: central pred/num = 1/1, satellites pred/num = 3/3, r_s(det/fit) = 1.519/1.978
+  poly3 m=5 b=1.00: central pred/num = -1/-1, satellites pred/num = 6/6, r_s(det/fit) = 1.308/1.740
+  poly3 m=6 b=1.00: central pred/num = 0/0, satellites pred/num = 6/6, r_s(det/fit) = 1.755/1.956
+  poly4 m=1 b=1.00: central pred/num = 1/1, satellites pred/num = 0/0, r_s(det/fit) = 0.000/0.000
+  poly4 m=2 b=1.00: central pred/num = 2/2, satellites pred/num = 0/0, r_s(det/fit) = 0.000/0.000
+  poly4 m=3 b=1.00: central pred/num = -1/-1, satellites pred/num = 4/4, r_s(det/fit) = 1.775/2.288
+  poly4 m=4 b=1.00: central pred/num = 0/0, satellites pred/num = 4/4, r_s(det/fit) = 1.407/2.079
+  poly4 m=5 b=1.86: central pred/num = 1/1, satellites pred/num = 4/4, r_s(det/fit) = 1.814/2.397
+  poly4 m=6 b=1.00: central pred/num = 2/2, satellites pred/num = 4/4, r_s(det/fit) = 2.329/2.714
+  poly5 m=1 b=1.00: central pred/num = 1/1, satellites pred/num = 0/0, r_s(det/fit) = 0.000/0.000
+  poly5 m=2 b=1.00: central pred/num = 2/2, satellites pred/num = 0/0, r_s(det/fit) = 0.000/0.000
+  poly5 m=3 b=1.00: central pred/num = -2/0, satellites pred/num = 5/0, r_s(det/fit) = 0.000/0.062
+  poly5 m=4 b=1.00: central pred/num = -1/-1, satellites pred/num = 5/5, r_s(det/fit) = 1.067/1.143
+  poly5 m=5 b=1.00: central pred/num = 0/0, satellites pred/num = 5/5, r_s(det/fit) = 1.253/1.683
+  poly5 m=6 b=1.00: central pred/num = 1/1, satellites pred/num = 5/5, r_s(det/fit) = 1.780/2.386
+  poly6 m=1 b=1.00: central pred/num = 1/1, satellites pred/num = 0/0, r_s(det/fit) = 0.000/0.000
+  poly6 m=2 b=1.00: central pred/num = 2/2, satellites pred/num = 0/0, r_s(det/fit) = 0.000/0.000
+  poly6 m=3 b=1.00: central pred/num = 3/3, satellites pred/num = 0/0, r_s(det/fit) = 0.000/0.000
+  poly6 m=4 b=1.00: central pred/num = -2/-2, satellites pred/num = 6/6, r_s(det/fit) = 1.234/1.312
+  poly6 m=5 b=1.00: central pred/num = -1/-1, satellites pred/num = 6/6, r_s(det/fit) = 1.547/1.835
+  poly6 m=6 b=1.00: central pred/num = 0/0, satellites pred/num = 6/6, r_s(det/fit) = 1.276/1.945
+  disk m=1 b=1.00: central pred/num = 1/1, satellites pred/num = 0/0, r_s(det/fit) = 0.000/0.000
+  disk m=2 b=1.00: central pred/num = 2/2, satellites pred/num = 0/0, r_s(det/fit) = 0.000/0.000
+  disk m=3 b=1.00: central pred/num = 3/3, satellites pred/num = 0/0, r_s(det/fit) = 0.000/0.000
+  disk m=4 b=1.00: central pred/num = 4/0, satellites pred/num = 0/4, r_s(det/fit) = 0.283/0.000
+  disk m=5 b=1.00: central pred/num = 5/1, satellites pred/num = 0/4, r_s(det/fit) = 0.379/0.000
+  disk m=6 b=1.00: central pred/num = 6/2, satellites pred/num = 0/12, r_s(det/fit) = 0.391/0.000
+
+theory/numerics agreement: 31/34 resolved families; 2 unresolved/no-solution (see atlas_table.csv)
+E2a done.

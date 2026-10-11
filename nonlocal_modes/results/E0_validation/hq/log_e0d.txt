@@ -1,0 +1,35 @@
+
+===== E0_validation  tag=hq  profile=hq  h=0.1 (large samples 0.15)  newton tol=1e-12  dz=0.01  2026-10-11 13:03:50 =====
+results -> /public/home/liuxiuye/nonlocal_modes/results/E0_validation/hq
+raw data -> /public/home/liuxiuye/nonlocal_modes/data/E0_validation/hq
+
+(a) disk control: grid-induced satellites
+   h=0.3 m=2: central +2, grid-induced satellites 0 at r=0.0000
+   h=0.3 m=3: central +3, grid-induced satellites 0 at r=0.0000
+   h=0.3 m=4: central +0, grid-induced satellites 4 at r=0.4457
+   h=0.3 m=5: central +1, grid-induced satellites 12 at r=0.5821
+   h=0.2 m=2: central +2, grid-induced satellites 0 at r=0.0000
+   h=0.2 m=3: central +3, grid-induced satellites 0 at r=0.0000
+   h=0.2 m=4: central +0, grid-induced satellites 4 at r=0.3517
+   h=0.2 m=5: central +1, grid-induced satellites 4 at r=0.4922
+   h=0.15 m=2: central +2, grid-induced satellites 0 at r=0.0000
+   h=0.15 m=3: central +3, grid-induced satellites 0 at r=0.0000
+   h=0.15 m=4: central +0, grid-induced satellites 4 at r=0.2311
+   h=0.15 m=5: central +1, grid-induced satellites 4 at r=0.2637
+   h=0.1 m=2: central +2, grid-induced satellites 0 at r=0.0000
+   h=0.1 m=3: central +3, grid-induced satellites 0 at r=0.0000
+   h=0.1 m=4: central +0, grid-induced satellites 4 at r=0.2826
+   h=0.1 m=5: central +1, grid-induced satellites 4 at r=0.3793
+
+(b) rotation test: polygon rotated against the grid
+   n=3 m=2 theta0= 0.0: central -1, sats 3, r_s=0.1988, satellite angles relative to sample (mod 360/n): [np.float64(0.0), np.float64(0.29999999999999716), np.float64(119.7)]
+   n=3 m=2 theta0= 7.0: central -1, sats 3, r_s=0.1972, satellite angles relative to sample (mod 360/n): [np.float64(0.1), np.float64(119.4), np.float64(119.9)]
+   n=3 m=2 theta0=15.0: central -1, sats 3, r_s=0.1914, satellite angles relative to sample (mod 360/n): [np.float64(0.0), np.float64(0.5), np.float64(119.5)]
+   n=5 m=3 theta0= 0.0: central +0, sats 0, r_s=0.0000, satellite angles relative to sample (mod 360/n): []
+   n=5 m=3 theta0= 7.0: central -1, sats 0, r_s=0.0000, satellite angles relative to sample (mod 360/n): []
+   n=5 m=3 theta0=15.0: central +0, sats 0, r_s=0.0000, satellite angles relative to sample (mod 360/n): []
+   n=6 m=4 theta0= 0.0: central -2, sats 6, r_s=1.2345, satellite angles relative to sample (mod 360/n): [np.float64(0.0), np.float64(0.0), np.float64(0.0), np.float64(0.0), np.float64(0.0), np.float64(0.0)]
+   n=6 m=4 theta0= 7.0: central +0, sats 6, r_s=1.2319, satellite angles relative to sample (mod 360/n): [np.float64(0.0), np.float64(0.0), np.float64(0.0), np.float64(0.0), np.float64(0.09999999999999432), np.float64(0.10000000000000142)]
+   n=6 m=4 theta0=15.0: central +0, sats 8, r_s=0.9556, satellite angles relative to sample (mod 360/n): [np.float64(0.0), np.float64(0.0), np.float64(0.0), np.float64(0.0), np.float64(0.0), np.float64(0.0), np.float64(0.0), np.float64(0.0)]
+
+E0d done.

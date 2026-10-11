@@ -1,0 +1,5 @@
+case,zmax,central_final,power_drift
+switch_off,600.0,-1.0,2.5934809855243647e-13
+switch_C3_to_C4,600.0,0.0,2.1624183924965706e-13
+rotate_slow,600.0,0.0,7.666756118851477e-13
+rotate_fast,600.0,0.0,7.509252479091322e-13
