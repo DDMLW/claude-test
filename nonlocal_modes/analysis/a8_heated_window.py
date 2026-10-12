@@ -98,12 +98,14 @@ def main():
         edges[fnum(r["Theta"])] = (fnum(r["b_up"]), r["b_up_is_bound"] == "True")
     bc = np.array(sorted({r["b"] for r in rows}))
     c_med = np.array([np.median([r["c_inferred"] for r in rows if abs(r["b"] - b) < 1e-9]) for b in bc])
-    pred = {}
-    for T in Ts:
-        bb = np.linspace(bc.min(), bd.max(), 400)
+    def edge(T):
+        """delta_disk(b) = 2 c(b) Theta 的最高根 (c 取各 Theta 推出值的中位数, 随 b 插值); 超出数据范围返回 nan。"""
+        bb = np.linspace(bc.min(), min(bc.max(), bd.max()), 800)
         f = np.interp(bb, bd, delta) - 2 * T * np.interp(bb, bc, c_med)
         k = np.where((f[:-1] < 0) & (f[1:] >= 0))[0]
-        pred[T] = float(bb[k[-1]] - f[k[-1]] * (bb[k[-1] + 1] - bb[k[-1]]) / (f[k[-1] + 1] - f[k[-1]])) if len(k) else np.nan
+        return float(bb[k[-1]] - f[k[-1]] * (bb[k[-1] + 1] - bb[k[-1]]) / (f[k[-1] + 1] - f[k[-1]])) if len(k) else np.nan
+
+    pred = {T: edge(T) for T in Ts}
     for r in rows:
         r["b_up_measured"] = edges.get(r["Theta"], (np.nan, False))[0]
         r["b_up_predicted"] = pred.get(r["Theta"], np.nan)
@@ -150,11 +152,16 @@ def main():
     ax.legend(loc="lower left", fontsize=7)
 
     ax = axs[2]
-    Tm = [T for T in Ts if T in edges and np.isfinite(pred.get(T, np.nan))]
+    tt = np.linspace(0.6, max(Ts) + 0.2, 120)
+    be = np.array([edge(t) for t in tt])
+    ax.plot(tt, be, "-", color=style.INK_SECONDARY, lw=1.2, label="Hamilton-Hopf: delta_disk(b) = 2 c(b) Theta")
+    Tm = [T for T in Ts if T in edges and not edges[T][1]]
     ax.plot(Tm, [edges[T][0] for T in Tm], "o", ms=7, color=style.PALETTE[0], mec=style.PALETTE[0],
             label="E5c upper edge b_up")
-    ax.plot(Tm, [pred[T] for T in Tm], "D", ms=7, color=style.PALETTE[1], mfc="none", mec=style.PALETTE[1],
-            label="Hamilton-Hopf: delta_disk(b) = 2 c Theta")
+    Tb = [T for T in Ts if T in edges and edges[T][1]]
+    if Tb:
+        ax.plot(Tb, [edges[T][0] for T in Tb], "^", ms=7, color=style.PALETTE[0], mfc="none", mec=style.PALETTE[0],
+                label="lower bound (window open at the scan end)")
     ax.set_xlabel("heating amplitude Theta")
     ax.set_ylabel("upper edge of the window b_up")
     ax.set_title("(c) window edge set by the disk detuning", loc="left")

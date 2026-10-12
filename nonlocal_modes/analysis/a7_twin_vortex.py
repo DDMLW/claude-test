@@ -150,7 +150,8 @@ def main():
         if r is not None:
             osc = abs(fnum(r["lam_im_at_max"])) > 1e-6
             st = style.series_style(0 if osc else 1)
-            lab = ("oscillatory instability (disk window)" if osc else "real instability (anisotropy-driven)")
+            # Im λ = 0 的窗口: 低 b 端是 κ=0 (L=-2) 模, Theta >= 0.75 时上端由破坏 C_2 的 κ=1 平移模决定 (Progress.md C10)
+            lab = ("oscillatory instability (disk window)" if osc else "non-oscillatory instability (Im lambda = 0)")
             ax.plot([T, T], [fnum(r["b_lo"]), fnum(r["b_hi"])], "-", lw=4.5, color=st["color"],
                     solid_capstyle="butt", label=lab if first[osc] else None)
             first[osc] = False
