@@ -192,22 +192,23 @@ python hpc/status.py
 中新增或更新的文件（(3:1) 的 `e5c_n3_m1_*` 会被重跑覆盖，这是预期的），并在 Progress.md §6 记录运行情况。
 
 ## 9. 第四轮（phase 4，2026-10-13）：双涡旋的旋转跟随（Fig.6）
-第三轮的分析与第四轮的理由见 `Progress.md` §6.1“Claude 分析（第三轮）”与 §8、`docs/theory.md` §5.1。共 **59 个计算任务 + 3 个汇总任务**，全部互相独立：
+第三轮的分析与第四轮的理由见 `Progress.md` §6.1“Claude 分析（第三轮）”与 §8、`docs/theory.md` §5.1。共 **61 个计算任务 + 4 个汇总任务**，全部互相独立：
 ```bash
 cd nonlocal_modes/experiments
 git pull && python -m pytest -q ../tests        # 应为 30 passed
-python hpc/make_jobs.py --phase 4                # 生成 hpc/jobs/p4_main.txt (59) 与 p4_final.txt (3)
-bash hpc/submit_slurm.sh p4                      # PBS: qsub -J 1-59 -v LIST=hpc/jobs/p4_main.txt hpc/pbs_array.sh, 结束后 1-3 的 p4_final
+python hpc/make_jobs.py --phase 4                # 生成 hpc/jobs/p4_main.txt (61) 与 p4_final.txt (4)
+bash hpc/submit_slurm.sh p4                      # PBS: qsub -J 1-61 -v LIST=hpc/jobs/p4_main.txt hpc/pbs_array.sh, 结束后 1-4 的 p4_final
 python hpc/status.py
 ```
 | 任务 | 数量 | 内容 | 单核耗时（估） |
 |---|---|---|---|
 | E3b 圆盘通道谱（`hq_disk10`） | 1 | 半径 10 圆盘（与 E5 同一网格）m=2，b=2.8–6.2、Im 0.55–1.3：C_3 加热高 b 窗口的 Hamilton-Hopf 检验所需的圆盘频差 | 3–5 h |
+| E5c 网格对照（`hq_hib_h0075`） | 2 | C_3 加热 m=2 高 b 窗口上端（Θ=1：b=3.0–4.2；Θ=2：b=4.4–5.6）在 h=0.075 上重算：上端是否随网格移动 | 2–4 h |
 | E5d 双涡旋的低频谱（`hq`） | 1 | U=15，Θ=0–1.5：转动/分裂模频率 ω_{−2}(Θ) → 预言 Ω_c = ω_{−2}/2 | 0.5–1 h |
-| E5c 四极加热（`hq`） | 4 | (2:2)，Θ=1.1、1.2、1.3、1.5：U=15 处双涡旋稳定的上限（第三轮外推 Θ_c≈1.2） | 3–7 h |
+| E5c 四极加热（`hq`） | 4 | (2:2)，Θ=1.1、1.2、1.3、1.5：U=15 处双涡旋稳定的上限（云端谱给出 Θ_c=1.18：预言 1.1 稳定，1.2/1.3/1.5 失稳） | 3–7 h |
 | E5b 网格对照（`hq_h0075`） | 1 | Θ=1 的关断与快转（Ω=0.05）在 h=0.075 上重复：失锁距离（h=0.1 时 ξ≈164）与共转角速度是否不变 | 2–3 h |
-| E5b Ω 扫描（`hq_omega`） | 52 | Θ=0.25/0.5/0.75/1 × Ω=+0.01…+0.06（间隔 0.01）、0.08、0.10、0.12、0.14 与 −0.05/−0.10/−0.20；角速度在 ξ≤100 内线性升起，传播到 ξ=400 | 每个约 0.5 h |
+| E5b Ω 扫描（`hq_omega`） | 52 | Θ=0.25/0.5/0.75/1 × Ω=+0.01…+0.06（间隔 0.01）、0.08、0.10、0.12、0.14 与 −0.05/−0.10/−0.20；角速度在 ξ≤100 内线性升起，传播到 ξ=600 | 每个约 0.5 h |
 
-**上传**：`results/E5_thermal_reconfiguration/{hq,hq_omega,hq_h0075}`、`results/E3_stability/hq_disk10` 中新增或更新的文件（`hq` 的 e5c 汇总表会被 p4_final 重建，属正常），
+**上传**：`results/E5_thermal_reconfiguration/{hq,hq_omega,hq_h0075,hq_hib_h0075}`、`results/E3_stability/hq_disk10` 中新增或更新的文件（`hq` 的 e5c 汇总表会被 p4_final 重建，属正常），
 并在 Progress.md §6 记录运行情况。自查：`hq_omega/control_runs.csv` 中每个 Θ 的正向 Ω 是否在某个值以上出现 `xi_lock_lost`
 （失锁），负向是否全部不失锁；`r2_ratio` 是否随 Ω 单调（正向 > 1、反向 < 1）。

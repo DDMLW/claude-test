@@ -8,6 +8,7 @@
 
 | 脚本 | 读取 | 输出 | 回答的问题 |
 |---|---|---|---|
+| `a0_symmetry_transfer.py`（Fig.1） | E1 `e1a_index_anisotropy.csv`、`e1b_all.csv` | `symmetry_transfer.png`、`symmetry_transfer_summary.csv` | 对称性传递定律：dn_n·πn(n+1)/U 对各 n、ρ 塌缩到 (r/ρ)^n；系数与光束形状无关、对 U 线性（偏差 ≤ 1.6e-5）；保角半径相同的多边形与圆盘 U(b) 重合（m=0 ≤ 3.7e-4） |
 | `a1_scaling_laws.py` | E2b `scaling_n*_m*.csv`、E5a `heating_n*_m*.csv` | `scaling_summary.csv`、`scaling_local_slopes.csv/png` | r_s ∝ ε^s 的指数是否等于牛顿多边形的预言？（渐近律，只在 r_s/r_ring → 0 时成立，所以给出局部斜率与渐近窗口 r_s/r_ring ≤ 0.2 内的拟合） |
 | `a2_stability_map.py` | E3 `<样品>_m<m>_spectrum.csv`（及 `hq_coarse` 对照） | `stability_windows.csv`、`stability_map.png` | 各样品、各拓扑荷的失稳区间；低功率窗口的上端 b_c（Hamilton-Hopf 外推 g² ∝ b_c − b）；m ≥ 3 在高功率端的增长率 |
 | `a3_e4_growth.py` | E4 `*_irreps.csv`、E2a 解族、E3 谱 | `e4_growth_vs_e3.csv/png` | E4 中 μ 权重漂移是不是“被种子放大的线性不稳定性”：非 μ 权重的指数增长率与同一定态（b(U)）的 E3 增长率比较 |
@@ -19,6 +20,7 @@
 
 运行（在 `nonlocal_modes/analysis/` 下）：
 ```bash
+python a0_symmetry_transfer.py
 python a1_scaling_laws.py --tag hq
 python a2_stability_map.py --tag hq --coarse hq_coarse
 python a3_e4_growth.py --tag hq

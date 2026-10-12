@@ -22,9 +22,10 @@ make_jobs.py —— 生成超算批量任务清单 (每行一条独立命令, �
          小 Theta 线性律检验 (3:1, Theta=0.02-0.16)、E5b 四极加热双涡旋的关断/旋转、E4b 定态发射对照与四极加热发射。
 
 第四轮 (--phase 4, 第三轮结果分析后, 见 Progress.md §8) 写 p4_main.txt / p4_final.txt:
-  四极加热双涡旋的临界跟随角速度: E5b Omega 扫描 (4 个 Theta x 13 个 Omega, 角速度在 xi<=100 内线性升起, 传播到 400);
+  四极加热双涡旋的临界跟随角速度: E5b Omega 扫描 (4 个 Theta x 13 个 Omega, 角速度在 xi<=100 内线性升起, 传播到 600);
   U=15 处可调范围的上限: E5c (2:2) Theta=1.1-1.5 (第三轮外推 Theta_c≈1.2); 网格对照: Theta=1 快转失锁与关断共转 (h=0.075);
-  半径 10 圆盘 m=2 的通道谱 b=2.8-6.2 (C_3 加热高 b 窗口的 Hamilton-Hopf 检验); E5d 双涡旋的低频 Bogoliubov 谱 vs Theta。
+  半径 10 圆盘 m=2 的通道谱 b=2.8-6.2 (C_3 加热高 b 窗口的 Hamilton-Hopf 检验) 与该窗口上端的网格对照 (h=0.075);
+  E5d 双涡旋的低频 Bogoliubov 谱 vs Theta。
 
 用法 (在 nonlocal_modes/experiments 目录下):
   python hpc/make_jobs.py                       # 默认 --profile hq (论文数据)
@@ -257,6 +258,10 @@ def phase4_lists(cmd, tag):
     main.append(cmd("E3_stability/e3b_instability_windows.py", "--cases", "disk:2", "--channels", "--rho", 10,
                     "--b_range", 2.8, 6.2, "--omega", 0.55, 1.3, "--spec_step", 0.2, "--job", "disk_m2_channels_R10",
                     t=f"{tag}_disk10"))
+    # E5c 网格对照: C_3 加热 m=2 高 b 窗口上端在 h=0.075 上是否移动 (h=0.1 时 b_up 处 r_s≈0.05≈h/2 的巧合; 三角形窗口上端随 h² 移动 9%)
+    for T, (b1, b2), (w1, w2) in ((1.0, (3.0, 4.2), (0.70, 0.90)), (2.0, (4.4, 5.6), (0.85, 1.10))):
+        main.append(cmd(e5c, "--cases", "3:2", "--thetas", T, "--b_range", b1, b2, "--spec_step", 0.2, "--omega", w1, w2,
+                        "--U_mark", 0, "--h_scale", 0.75, "--job", f"e5c_n3_m2_T{T:g}_h0075", t=f"{tag}_hib_h0075"))
     # E5d: 双涡旋 (U=15) 的低频 Bogoliubov 谱 vs Theta -> omega_{-2}(Theta) (分裂/转动模) 与 omega_{-4}, 给 Omega 扫描的理论对照
     main.append(cmd("E5_thermal_reconfiguration/e5d_twin_modes.py", "--job", "e5d_n2"))
     # E5c (2:2): U=15 处双涡旋稳定的上限 Theta_c (第三轮: 失稳区上端 0.58/1.17/1.81 @ Theta=0.5/0.75/1, 外推 1.2)
@@ -265,15 +270,17 @@ def phase4_lists(cmd, tag):
     # 网格对照: Theta=1 的快转失锁 (Omega=0.05 突然启动, h=0.1 时 xi≈164) 与关断后的自由共转, h=0.075
     main.append(cmd(e5b, "--n", 2, "--Theta", 1.0, "--cases", "switch_off", "rotate_fast", "--h_scale", 0.75,
                     "--job", "e5b_n2_T1_h0075", t=fine))
-    # E5b Omega 扫描: 每个 (Theta, Omega) 一个任务 (约 25 min); 角速度在 xi in [0, 100] 内线性升到 Omega, 传播到 xi=400
+    # E5b Omega 扫描: 每个 (Theta, Omega) 一个任务 (约 30 min); 角速度在 xi in [0, 100] 内线性升到 Omega, 传播到 xi=600
+    # (阈值附近旋转系中的失稳很弱, 失锁可能很晚; 第三轮突然启动时 Theta=1 在 xi=164 才失锁)
     for T in P4_THETAS:
         for Om in P4_OMEGAS:
             main.append(cmd(e5b, "--n", 2, "--Theta", T, "--cases", "none", "--omegas", Om, "--ramp", 100,
-                            "--zmax", 400, "--job", f"n2_T{T:g}_Om{Om:+g}", t=om))
+                            "--zmax", 600, "--job", f"n2_T{T:g}_Om{Om:+g}", t=om))
     # 汇总
     fin.append(cmd(e5c, "--table_only", "--job", "assemble"))
     for t in (om, fine):
         fin.append(cmd(e5b, "--table_only", "--job", "assemble", t=t))
+    fin.append(cmd(e5c, "--table_only", "--job", "assemble", t=f"{tag}_hib_h0075"))
     return {"p4_main": main, "p4_final": fin}
 
 

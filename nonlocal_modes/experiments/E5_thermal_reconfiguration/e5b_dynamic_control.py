@@ -30,7 +30,7 @@ xi≈164 失锁; 关断后的自由共转角速度 = 圆盘 L=-2 模频率的一
   python e5b_dynamic_control.py --quick    (约 5-10 分钟)
   python e5b_dynamic_control.py            (约 1-2 小时)
   python e5b_dynamic_control.py --hq --n 2 --Theta 0.5 --job e5b_n2_T0.5     (四极加热双涡旋)
-  python e5b_dynamic_control.py --hq --n 2 --Theta 1 --cases none --omegas 0.03 --ramp 100 --zmax 400 \
+  python e5b_dynamic_control.py --hq --n 2 --Theta 1 --cases none --omegas 0.03 --ramp 100 --zmax 600 \
          --tag hq_omega --job n2_T1_Om+0.03                                    (Omega 扫描的一个任务)
   python e5b_dynamic_control.py --hq --tag hq_omega --table_only               (汇总 control_runs.csv)
 """

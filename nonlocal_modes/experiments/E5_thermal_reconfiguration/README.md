@@ -119,11 +119,11 @@ C_4 加热平滑增长 0.68→2.39（Θ=0.25→3）；U=15 处：C_3 加热 Θ�
 
 ## E5b（第四轮）—— Ω 扫描：临界跟随角速度与旋转方向的不对称
 `--omegas` 列出角速度（负值 = 与涡旋自由共转反向），每个 Ω 一个情形 `rotate_Om<±Ω>`；`--ramp 100` 让角速度在 ξ≤100 内线性升起
-（测稳态旋转的临界值，避免突然启动激发的振荡）；`--cases none` 不跑基本情形；`--zmax 400`。每个情形写 `<前缀><情形>_row.json`，
+（测稳态旋转的临界值，避免突然启动激发的振荡）；`--cases none` 不跑基本情形；`--zmax 600`。每个情形写 `<前缀><情形>_row.json`，
 含跟随指标：`xi_lock_lost`（奇点集合第一次改变的 ξ，空 = 不失锁）、`lag_mean/lag_max`（取向相对图样的滞后）、`r2_ratio`
 （斜坡之后卫星半径平方的平均 / 起点）、`corotation_rate`（关断情形）；`--table_only` 由全部 row.json 汇总成 `control_runs.csv`。
 ```bash
-python e5b_dynamic_control.py --hq --n 2 --Theta 1 --cases none --omegas 0.04 --ramp 100 --zmax 400 --tag hq_omega --job n2_T1_Om+0.04
+python e5b_dynamic_control.py --hq --n 2 --Theta 1 --cases none --omegas 0.04 --ramp 100 --zmax 600 --tag hq_omega --job n2_T1_Om+0.04
 python e5b_dynamic_control.py --hq --tag hq_omega --table_only        # 汇总
 ```
 quick（h=0.4，ξ=40，约 1 min）：`--quick --n 2 --Theta 0.5 --cases switch_off --omegas 0.1 -0.1 --ramp 10` 已跑通
@@ -136,7 +136,8 @@ r2_ratio ≈ ω_rot/(ω_rot − 2Ω)。单核每个任务约 0.5 h。
 固定能流 U 的加热态沿 Θ 延拓，每个 Θ 求 Im λ ≤ 0.62 的本征值，按 L、Krein 符号分类（`e5d_n2_m2_U15_modes.csv/png`）；
 `e5d_n2_m2_U15_summary.csv` 给出 ω_{−2}（L=−2、Krein + 的最低支 = 双涡旋整体转动/分裂模）与预言的临界角速度 Ω_c = ω_{−2}/2，
 以及二阶共振 ω_{−4}/4。云端 hq 预算（2026-10-13）：ω_{−2} = 0.2523/0.2558/0.2657/0.2808（Θ=0/0.25/0.5/0.75），即 Ω_c 预言 0.126–0.140；
-ω_{−4}/4 ≈ 0.030/0.029/0.028/0.026；另有一支破坏 C_2 的 Krein − 模（L=−1）随 Θ 变软 0.154/0.137/0.117/0.093——U=15 处稳定上限的候选。
+ω_{−4}/4 ≈ 0.030/0.029/0.028/0.026；另有一支破坏 C_2 的 Krein − 模（κ=1，双涡旋整体平移）随 Θ 变软 0.154/0.137/0.117/0.093/0.060，
+ω² 严格线性 → Θ_c = 1.18，Θ=1.2 时已失稳（实本征值 0.022）：双涡旋稳定上限是破坏 C_2 的叉式分岔（Progress.md C10）。
 
 ## 上传清单
 `nonlocal_modes/results/E5_thermal_reconfiguration/main/` 或 `hq/`（及 `T6` 等）。Progress.md 中记录：各 (n,m) 的拟合斜率；Θ 反号时的方位角变化；E5b 四种情形的末态中心荷与卫星轨迹（转动角速度、呼吸周期）的描述。
