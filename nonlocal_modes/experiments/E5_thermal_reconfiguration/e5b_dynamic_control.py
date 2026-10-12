@@ -19,12 +19,24 @@ E5b 原有四条轨迹在 xi≈26-160 之后由不稳定性主导; 而 C_2 (四�
 且卫星间距可调 (r_s ∝ Theta^(1/2), Theta=0.5/1 时 r_s=0.67/0.95)。--n 2 即用四极加热做同样的关断/旋转实验
 (n=2 时没有 C_3 -> C_4 切换这一情形)。
 
+2026-10-13 Omega 扫描 (第四轮): 第三轮中双涡旋在 Omega=0.005 时绝热跟随, Omega=0.05 时 Theta=0.5 跟随、Theta=1 在
+xi≈164 失锁; 关断后的自由共转角速度 = 圆盘 L=-2 模频率的一半 (0.126)。--omegas 列出若干角速度 (可为负 = 反向旋转),
+每个 Omega 一个情形 rotate_Om<+-Omega>; --ramp 让角速度在 [0, ramp] 内线性升到 Omega (避免突然启动激发的振荡,
+测的是稳态旋转的临界值); --cases 只跑列出的基本情形 (switch_off/switch_C3_to_C4/rotate_slow/rotate_fast, 给 none 则不跑)。
+每个情形另写 <前缀><情形>_row.json (含跟随指标: 取向滞后、失锁距离、卫星半径范围、关断后的共转角速度),
+--table_only 由全部 row.json 重建 control_runs.csv (拆分运行时的汇总表)。
+
 运行:
   python e5b_dynamic_control.py --quick    (约 5-10 分钟)
   python e5b_dynamic_control.py            (约 1-2 小时)
   python e5b_dynamic_control.py --hq --n 2 --Theta 0.5 --job e5b_n2_T0.5     (四极加热双涡旋)
+  python e5b_dynamic_control.py --hq --n 2 --Theta 1 --cases none --omegas 0.03 --ramp 100 --zmax 400 \
+         --tag hq_omega --job n2_T1_Om+0.03                                    (Omega 扫描的一个任务)
+  python e5b_dynamic_control.py --hq --tag hq_omega --table_only               (汇总 control_runs.csv)
 """
 
+import glob
+import json
 import os
 import sys
 
@@ -50,6 +62,75 @@ def pattern_field(R, h, n, Theta, theta0):
     return NonlocalModel(s).n_bc
 
 
+def pattern_angle(Om, ramp):
+    """图样转角 theta0(xi): 角速度在 [0, ramp] 内由 0 线性升到 Omega (ramp <= 0: 突然启动, theta0 = Omega xi)。"""
+    if ramp <= 0:
+        return lambda z: Om * z
+    return lambda z: Om * z * z / (2 * ramp) if z < ramp else Om * (z - ramp / 2)
+
+
+def following_metrics(tr, n, angle_fn=None, z_from=None, z_avg=0.0):
+    """
+    由奇点轨迹 (satellite_tracks 的行) 计算图样跟随指标, 对任意 n 适用:
+      卫星 = +1 奇点, 取向 Phi = arg(sum_k exp(i n phi_k)) / n (mod 2 pi / n);
+      失锁距离 xi_lock_lost = 奇点集合 (+1 与 -1 的个数) 第一次与起点不同的 xi ('' = 到终点一直相同);
+      angle_fn 给出图样转角时: 滞后 = Phi - Phi(0) - theta0(xi), 折回 (-pi/n, pi/n], 只统计失锁之前;
+      z_from 给出时 (关断情形): z_from 之后 (到失锁为止) 取向的平均角速度 = 自由共转角速度;
+      r2_ratio = xi >= z_avg (到失锁为止) 的卫星半径平方的平均 / 起点的值。
+    受迫振子图像 (theory.md 第 5 节): 双涡旋 = m=2 涡旋 + 被加热静态驱动的 L=-2 分裂模 (中心处振幅 c ∝ Theta, r_s^2 ∝ |c|);
+    图样以 Omega 旋转时驱动频率为 2 Omega, |c| 放大 omega_rot / (omega_rot - 2 Omega) -> r2_ratio 的预言值。
+    """
+    by_z = {}
+    for t in tr:
+        by_z.setdefault(t["z"], []).append(t)
+    zs = sorted(by_z)
+
+    def counts(rows):
+        return (sum(1 for t in rows if t["charge"] > 0), sum(1 for t in rows if t["charge"] < 0))
+
+    c0 = counts(by_z[zs[0]]) if zs else (0, 0)
+    z_ok, phi, rsat, lost = [], [], [], ""
+    for z in zs:
+        rows = by_z[z]
+        if counts(rows) != c0:
+            lost = z
+            break
+        sat = [t for t in rows if t["charge"] > 0]
+        if not sat:
+            continue
+        z_ok.append(z)
+        phi.append(np.angle(sum(np.exp(1j * n * t["angle"]) for t in sat)))
+        rsat.append(float(np.mean([t["r"] for t in sat])))
+    out = dict(n_plus0=c0[0], n_minus0=c0[1], xi_lock_lost=lost, lag_mean="", lag_max="", corotation_rate="",
+               r_sat_min=min(rsat) if rsat else "", r_sat_max=max(rsat) if rsat else "", r2_ratio="")
+    if len(z_ok) < 2:
+        return out
+    z_ok = np.array(z_ok)
+    r2 = np.array(rsat) ** 2
+    if (z_ok >= z_avg).sum() > 2 and r2[0] > 0:
+        out["r2_ratio"] = float(np.mean(r2[z_ok >= z_avg]) / r2[0])
+    Phi = np.unwrap(np.array(phi)) / n
+    if angle_fn is not None:
+        lag = Phi - Phi[0] - np.array([angle_fn(z) for z in z_ok])
+        lag = (lag + np.pi / n) % (2 * np.pi / n) - np.pi / n
+        out.update(lag_mean=float(np.mean(lag)), lag_max=float(np.max(np.abs(lag))))
+    if z_from is not None:
+        sel = z_ok >= z_from
+        if sel.sum() > 2:
+            out["corotation_rate"] = float(np.polyfit(z_ok[sel], Phi[sel], 1)[0])
+    return out
+
+
+def assemble(out):
+    rows = []
+    for f in sorted(glob.glob(os.path.join(out, "control*_row.json"))):
+        with open(f, encoding="utf-8") as fh:
+            rows.append(json.load(fh))
+    rows.sort(key=lambda r: (r.get("n", 0), r.get("Theta", 0), r.get("omega", 0) or 0, r.get("case", "")))
+    io_utils.write_csv(os.path.join(out, "control_runs.csv"), rows)
+    print(f"control_runs.csv: {len(rows)} runs")
+
+
 def satellite_tracks(res, rmax):
     rows = []
     for z, sg in zip(res["z"], res["singularities"]):
@@ -70,8 +151,18 @@ def main():
                         "1 时卫星在亚网格; U=15 时 Theta >~ 3.8 涡旋会与样品边缘的热点模式杂化, 不要超过 3.5)")
     p.add_argument("--U", type=float, default=15.0)
     p.add_argument("--zmax", type=float, default=None, help="默认 300 (quick 40, hq 600)")
+    p.add_argument("--cases", nargs="+", default=None,
+                   help="只跑这些基本情形 (switch_off switch_C3_to_C4 rotate_slow rotate_fast; none = 一个也不跑); 默认全部")
+    p.add_argument("--omegas", nargs="+", type=float, default=None,
+                   help="另加以这些角速度旋转的情形 rotate_Om<+-Omega> (负值 = 反向旋转); 用于临界角速度扫描")
+    p.add_argument("--ramp", type=float, default=0.0,
+                   help="--omegas 情形的角速度在 [0, ramp] 内线性升到 Omega (默认 0: 突然启动, 与 rotate_slow/fast 相同)")
+    p.add_argument("--table_only", action="store_true", help="不计算, 只由 control*_row.json 重建 control_runs.csv")
     args = finalize_args(p, "E5_thermal_reconfiguration")
     out = args.res_dir
+    if args.table_only:
+        assemble(out)
+        return
     R, h, Th, U, n, m = args.R, args.h, args.Theta, args.U, args.n, args.m
     zmax = args.zmax or pick(args, quick=40.0, main=300.0, hq=600.0)
     zs = zmax / 4                                        # 切换位置
@@ -97,7 +188,7 @@ def main():
     if not scan or scan[-1][0] != Th:
         raise SystemExit(f"未能得到 C_{n} 加热下的定态, 请减小 --Theta")
     _, M3, st3 = scan[-1]
-    row = dg.mode_summary(M3, st3, nsym=n, m=m)
+    row_start = row = dg.mode_summary(M3, st3, nsym=n, m=m)
     I3 = np.abs(st3["w"]) ** 2
     p_out = float(I3[np.hypot(M3.xo, M3.yo) > 0.5 * R].sum() / I3.sum())
     print(f"start state: b={st3['b']:.4f}, central (small circle) {row['W_small']:+.0f}, "
@@ -117,18 +208,31 @@ def main():
     H4 = pattern_field(R, h, 4, Th, 0.0)
     ring = dg.ring_radius(dg.field_grid(M3, st3["w"]), M3.grid, (0, 0), rmax=8.0)
 
-    def rotating(Om):
-        # cos(n(theta - Om z)) = cos(n Om z) cos n theta + sin(n Om z) sin n theta, 而 Hs 对应 sin n theta
-        return lambda z: np.cos(n * Om * z) * Hc + np.sin(n * Om * z) * Hs
+    def rotating(ang):
+        # cos(n(theta - a)) = cos(n a) cos n theta + sin(n a) sin n theta, 而 Hs 对应 sin n theta; a = theta0(xi)
+        return lambda z: np.cos(n * ang(z)) * Hc + np.sin(n * ang(z)) * Hs
 
-    cases = {"switch_off": lambda z: Hc if z < zs else 0.0 * Hc}
+    # 每个情形: (图样函数, 图样转角 theta0(xi) 或 None, 角速度, 启动斜坡长度)
+    om_slow, om_fast = (0.005, 0.05) if not args.quick else (0.02, 0.2)
+    cases = {"switch_off": (lambda z: Hc if z < zs else 0.0 * Hc, None, 0.0, 0.0)}
     if n == 3:
-        cases["switch_C3_to_C4"] = lambda z: Hc if z < zs else H4
-    cases["rotate_slow"] = rotating(0.005 if not args.quick else 0.02)
-    cases["rotate_fast"] = rotating(0.05 if not args.quick else 0.2)
+        cases["switch_C3_to_C4"] = (lambda z: Hc if z < zs else H4, None, 0.0, 0.0)
+    for name, Om in (("rotate_slow", om_slow), ("rotate_fast", om_fast)):
+        ang = pattern_angle(Om, 0.0)
+        cases[name] = (rotating(ang), ang, Om, 0.0)
+    if args.cases is not None:
+        keep = [c for c in args.cases if c != "none"]
+        bad = [c for c in keep if c not in cases]
+        if bad:
+            raise SystemExit(f"unknown --cases {bad}; available: {list(cases)} or none")
+        cases = {k: v for k, v in cases.items() if k in keep}
+    for Om in (args.omegas or []):
+        ang = pattern_angle(Om, args.ramp)
+        cases[f"rotate_Om{Om:+g}"] = (rotating(ang), ang, Om, args.ramp)
+    full_set = args.cases is None and not args.omegas
     summary = []
     snap = list(np.linspace(0, zmax, 6))
-    for name, f in cases.items():
+    for name, (f, ang, Om, ramp) in cases.items():
         res = propagate.propagate(M0, st3["w"], zmax, dz=args.dz, diag_every=25, snapshot_zs=snap, nbc_func=f,
                                   w_ref=st3["w"], nsym=n, track_singularities=True, verbose=False)
         plotting.plot_snapshots(M0, res["snapshots"], os.path.join(out, f"{pre}{name}_snapshots.png"),
@@ -161,9 +265,18 @@ def main():
                             power_drift=float(np.ptp(res["power"]) / res["power"][0]),
                             nonmu_initial=float(nm[0]), nonmu_max=float(nm.max()),
                             xi_nonmu_1e3=float(res["z"][np.argmax(nm > 1e-3)]) if (nm > 1e-3).any() else ""))
+        fm = following_metrics(tr, n, angle_fn=ang, z_from=(zs + 50.0) if name == "switch_off" else None, z_avg=ramp)
+        row = dict(summary[-1], omega=Om, ramp=ramp, h=h, R=R, b_start=st3["b"],
+                   satellite_r_start=row_start["satellite_r_mean"], **fm)
+        with open(os.path.join(out, f"{pre}{name}_row.json"), "w", encoding="utf-8") as fh:
+            json.dump(row, fh, indent=1, default=io_utils.json_default)
         print(f"  {name}: final central charge {summary[-1]['central_final']:+.2f}, non-mu weight "
-              f"{nm[0]:.1e} -> {nm.max():.1e}  [{res['time']:.0f}s]")
-    io_utils.write_csv(os.path.join(out, f"{pre}summary.csv"), summary)
+              f"{nm[0]:.1e} -> {nm.max():.1e}; lock lost at xi={fm['xi_lock_lost'] or 'never'}, "
+              f"max lag {fm['lag_max'] if fm['lag_max'] == '' else round(fm['lag_max'], 4)}, "
+              f"co-rotation {fm['corotation_rate'] if fm['corotation_rate'] == '' else round(fm['corotation_rate'], 4)}"
+              f"  [{res['time']:.0f}s]", flush=True)
+    if full_set:              # 完整运行时保持原来的汇总文件; 拆分运行用 --table_only 汇总 control_runs.csv
+        io_utils.write_csv(os.path.join(out, f"{pre}summary.csv"), summary)
     print("\nE5b done.")
 
 

@@ -1,12 +1,12 @@
 {
-  "time": "2026-10-13T01:44:55",
-  "command": "E5_thermal_reconfiguration/e5c_heated_stability.py --hq --tag hq_smallT --table_only --job assemble",
-  "git_commit": "unknown",
-  "python": "3.12.6",
-  "numpy": "2.0.2",
-  "scipy": "1.15.1",
-  "platform": "Linux-4.18.0-348.el8.x86_64-x86_64-with-glibc2.28",
-  "machine": "comput4",
+  "time": "2026-10-12T18:25:53",
+  "command": "e5c_heated_stability.py --hq --tag hq_smallT --table_only --job assemble",
+  "git_commit": "1ee9aa3",
+  "python": "3.13.16",
+  "numpy": "2.5.3",
+  "scipy": "1.18.1",
+  "platform": "Linux-6.18.44-fc-v114-x86_64-with-glibc2.39",
+  "machine": "vm",
   "args": {
     "tag": "hq_smallT",
     "quick": false,
@@ -28,7 +28,7 @@
     "dz": 0.01,
     "db_factor": 0.5,
     "exp": "E5_thermal_reconfiguration",
-    "res_dir": "/public/home/liuxiuye/nonlocal_modes/results/E5_thermal_reconfiguration/hq_smallT",
-    "data_dir": "/public/home/liuxiuye/nonlocal_modes/data/E5_thermal_reconfiguration/hq_smallT"
+    "res_dir": "/home/user/claude-test/nonlocal_modes/results/E5_thermal_reconfiguration/hq_smallT",
+    "data_dir": "/home/user/claude-test/nonlocal_modes/data/E5_thermal_reconfiguration/hq_smallT"
   }
 }

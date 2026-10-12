@@ -140,6 +140,13 @@ def test_mode_angular_content_synthetic(m, L, nsym, kappa):
     assert stability.krein_sign(mode) == (1 if ac["norm_ratio"] < 1 else -1)
 
 
+def test_most_unstable_index_prefers_positive_frequency():
+    """λ 与 λ* 增长率相同, 必须取 Im λ >= 0 的那个 (L 的符号才唯一)。"""
+    lam = np.array([0.01 + 0.3j, 0.02 - 0.5j, 0.02 + 0.5j, -0.02 + 0.5j, np.nan + 0j])
+    assert stability.most_unstable_index(lam) == 2
+    assert stability.most_unstable_index(np.array([0.05 - 0.1j, 0.01 + 0.2j])) == 0
+
+
 # ---------------------------------------------------------------------------
 # 6. 传播: 能流守恒到机器精度, 定态解保持定态
 # ---------------------------------------------------------------------------

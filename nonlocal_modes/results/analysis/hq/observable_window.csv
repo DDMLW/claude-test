@@ -1,0 +1,7 @@
+run,xi_t50,xi_b,zmax
+e4b_poly3_m2_U25,2.0,nan,600.0
+e4b_poly3_m2_U30,1.75,nan,600.0
+e4b_poly3_m2_U15,5.0,278.0,600.0
+e4b_poly3_m2_U15_noise1e-05,4.0,243.5,600.0
+e4b_heat3_m2_U15,4.25,70.5,600.0
+e4b_heat2_m2_U15,4.0,nan,600.0

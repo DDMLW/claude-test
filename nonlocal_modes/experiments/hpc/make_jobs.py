@@ -21,10 +21,16 @@ make_jobs.py —— 生成超算批量任务清单 (每行一条独立命令, �
   新实验: 圆盘 m=2 通道谱延伸到 b=3.4 (检验三角形宽窗口的 Krein 机理)、E5c 四极加热 (2:2) 与 C_3 加热高 b 端、
          小 Theta 线性律检验 (3:1, Theta=0.02-0.16)、E5b 四极加热双涡旋的关断/旋转、E4b 定态发射对照与四极加热发射。
 
+第四轮 (--phase 4, 第三轮结果分析后, 见 Progress.md §8) 写 p4_main.txt / p4_final.txt:
+  四极加热双涡旋的临界跟随角速度: E5b Omega 扫描 (4 个 Theta x 13 个 Omega, 角速度在 xi<=100 内线性升起, 传播到 400);
+  U=15 处可调范围的上限: E5c (2:2) Theta=1.1-1.5 (第三轮外推 Theta_c≈1.2); 网格对照: Theta=1 快转失锁与关断共转 (h=0.075);
+  半径 10 圆盘 m=2 的通道谱 b=2.8-6.2 (C_3 加热高 b 窗口的 Hamilton-Hopf 检验); E5d 双涡旋的低频 Bogoliubov 谱 vs Theta。
+
 用法 (在 nonlocal_modes/experiments 目录下):
   python hpc/make_jobs.py                       # 默认 --profile hq (论文数据)
   python hpc/make_jobs.py --phase 2             # 第二轮: 生成 p2_main.txt / p2_final.txt
   python hpc/make_jobs.py --phase 3             # 第三轮: 生成 p3_main.txt / p3_final.txt
+  python hpc/make_jobs.py --phase 4             # 第四轮: 生成 p4_main.txt / p4_final.txt
   python hpc/make_jobs.py --profile main        # 普通精度
   python hpc/make_jobs.py --python /path/to/envs/nl/bin/python   # 指定 Python 解释器
   python hpc/make_jobs.py --no_convergence      # 不做粗网格对照
@@ -62,6 +68,11 @@ E4B_CASES = ["poly3:2:15", "poly3:2:15:1e-7", "poly3:2:15:1e-5", "poly3:2:15:1e-
              "poly4:3:20:1e-14", "poly4:3:20:1e-11", "poly4:3:20:1e-8", "poly4:3:20:1e-5",
              "poly3:2:25", "poly3:2:30", "poly3:2:25:1e-2", "disk:3:20", "heat3:2:15", "heat3:2:15:1e-2"]
 E4B_GRID = [("disk:3:20", 1.5, "coarse"), ("poly3:2:25", 0.5, "h005")]   # 网格对照 (圆盘破裂距离; 亚网格 r_s)
+# ---- 第四轮 (--phase 4): 双涡旋的 Omega 扫描. 正 = 与涡旋自身的自由共转同向 (预言在 omega_rot/2 附近失锁, 受迫振子共振),
+# 负 = 反向 (预言跟随范围大得多); 第三轮: Omega=0.05 时 Theta=0.5 跟随、Theta=1 失锁; 关断后自由共转 0.128
+P4_THETAS = [0.25, 0.5, 0.75, 1.0]
+# 一阶共振 omega_{-2}/2 ≈ 0.126-0.14 (E5d 云端预算); 二阶 (∝ Theta^2) omega_{-4}/4 ≈ 0.026-0.030; 第三轮 Theta=1 在 0.05 失锁 -> 低段加密
+P4_OMEGAS = [0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.08, 0.10, 0.12, 0.14, -0.05, -0.10, -0.20]
 
 
 def main():
@@ -71,9 +82,9 @@ def main():
     p.add_argument("--python", default="python", help="Python 解释器 (默认 python)")
     p.add_argument("--no_convergence", action="store_true", help="不生成粗网格对照任务")
     p.add_argument("--coarse_factor", type=float, default=1.5, help="对照网格 = 本档网格 x 此因子 (默认 1.5)")
-    p.add_argument("--phase", type=int, choices=[1, 2, 3], default=1,
+    p.add_argument("--phase", type=int, choices=[1, 2, 3, 4], default=1,
                    help="1: 第一轮全部实验 (stage1/stage2/indep/final); 2: 第二轮 (p2_main/p2_final); "
-                        "3: 第三轮 (p3_main/p3_final)")
+                        "3: 第三轮 (p3_main/p3_final); 4: 第四轮 (p4_main/p4_final)")
     a = p.parse_args()
     tag = a.tag or a.profile
     coarse = f"{tag}_coarse"
@@ -84,8 +95,9 @@ def main():
         parts = [py, script] + ([flag] if flag else []) + ["--tag", t] + [str(x) for x in extra]
         return " ".join(parts)
 
-    if a.phase in (2, 3):
-        lists = phase2_lists(cmd, tag, py) if a.phase == 2 else phase3_lists(cmd, tag)
+    if a.phase in (2, 3, 4):
+        lists = {2: lambda: phase2_lists(cmd, tag, py), 3: lambda: phase3_lists(cmd, tag),
+                 4: lambda: phase4_lists(cmd, tag)}[a.phase]()
         write_lists(lists, tuple(lists))
         print(f"\nphase {a.phase}, profile={a.profile}, tag={tag}")
         print(f"next: bash hpc/submit_slurm.sh p{a.phase}   (SLURM)   or   "
@@ -233,6 +245,36 @@ def phase3_lists(cmd, tag):
         fin.append(cmd(e5c, "--table_only", "--job", "assemble", t=t))
     fin.append(cmd(e4b, "--table_only", "--job", "assemble"))
     return {"p3_main": main, "p3_final": fin}
+
+
+def phase4_lists(cmd, tag):
+    """第四轮: p4_main (全部独立, 慢的在前) 与 p4_final (汇总)。"""
+    main, fin = [], []
+    e5c, e5b = "E5_thermal_reconfiguration/e5c_heated_stability.py", "E5_thermal_reconfiguration/e5b_dynamic_control.py"
+    om, fine = f"{tag}_omega", f"{tag}_h0075"
+    # E3b: 半径 10 圆盘 (与 E5 同一网格) m=2 的通道谱 b=2.8-6.2, Im 0.55-1.3: C_3 加热高 b 窗口 (κ=0 的 L=-3/L=0 对) 的
+    # Hamilton-Hopf 检验需要这一段的圆盘频差 delta(b) (云端 scratch 已初步计算, 这里给论文用的正式数据)
+    main.append(cmd("E3_stability/e3b_instability_windows.py", "--cases", "disk:2", "--channels", "--rho", 10,
+                    "--b_range", 2.8, 6.2, "--omega", 0.55, 1.3, "--spec_step", 0.2, "--job", "disk_m2_channels_R10",
+                    t=f"{tag}_disk10"))
+    # E5d: 双涡旋 (U=15) 的低频 Bogoliubov 谱 vs Theta -> omega_{-2}(Theta) (分裂/转动模) 与 omega_{-4}, 给 Omega 扫描的理论对照
+    main.append(cmd("E5_thermal_reconfiguration/e5d_twin_modes.py", "--job", "e5d_n2"))
+    # E5c (2:2): U=15 处双涡旋稳定的上限 Theta_c (第三轮: 失稳区上端 0.58/1.17/1.81 @ Theta=0.5/0.75/1, 外推 1.2)
+    for T in (1.1, 1.2, 1.3, 1.5):
+        main.append(cmd(e5c, "--cases", "2:2", "--thetas", T, "--job", f"e5c_n2_m2_T{T:g}"))
+    # 网格对照: Theta=1 的快转失锁 (Omega=0.05 突然启动, h=0.1 时 xi≈164) 与关断后的自由共转, h=0.075
+    main.append(cmd(e5b, "--n", 2, "--Theta", 1.0, "--cases", "switch_off", "rotate_fast", "--h_scale", 0.75,
+                    "--job", "e5b_n2_T1_h0075", t=fine))
+    # E5b Omega 扫描: 每个 (Theta, Omega) 一个任务 (约 25 min); 角速度在 xi in [0, 100] 内线性升到 Omega, 传播到 xi=400
+    for T in P4_THETAS:
+        for Om in P4_OMEGAS:
+            main.append(cmd(e5b, "--n", 2, "--Theta", T, "--cases", "none", "--omegas", Om, "--ramp", 100,
+                            "--zmax", 400, "--job", f"n2_T{T:g}_Om{Om:+g}", t=om))
+    # 汇总
+    fin.append(cmd(e5c, "--table_only", "--job", "assemble"))
+    for t in (om, fine):
+        fin.append(cmd(e5b, "--table_only", "--job", "assemble", t=t))
+    return {"p4_main": main, "p4_final": fin}
 
 
 if __name__ == "__main__":

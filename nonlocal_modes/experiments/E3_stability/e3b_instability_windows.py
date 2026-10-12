@@ -17,7 +17,7 @@ E3b —— 低功率失稳窗口: 阈值、失稳模式的结构、按角向通�
   3) 稳定/不稳定交界处二分加密 (main 3 次, hq 4 次 -> b_c 精度约 0.006);
   4) 每个失稳窗口: 最不稳定点与最靠近阈值的点画模式图 (|u|、arg u、|v|、扰动后的光强);
   5) 最不稳定点沿本征模加小扰动后传播 (非线性结局: 分裂? 振荡? 破坏?)。
-另有 --channels 模式 (只用于圆盘): 每个 b 求 Im(lambda) <= 1 范围内的全部本征值并按角向通道 L 分类、给出 Krein 符号,
+另有 --channels 模式 (只用于圆盘, --omega w1 w2 改变 shift 的频率区间): 每个 b 求 Im(lambda) <= 1 范围内的全部本征值并按角向通道 L 分类、给出 Krein 符号,
 得到“圆盘的通道分解 Bogoliubov 谱”, 用来预言 C_n 样品中哪些通道 (L 与 L+n) 会相遇。
 
 输出 (results/E3_stability/<tag>/):
@@ -121,8 +121,9 @@ def evolve_unstable(M, s, mode, row, nsym, args, out, name):
 
 
 def channels(M, sols, m, args, out, name, stride):
-    """圆盘: Im(lambda) <= 1.0 内的全部本征值, 按角向通道 L 分类并给出 Krein 符号。"""
-    sigmas = [0.0 + 1j * w for w in np.arange(0.05, 1.01, pick(args, quick=0.25, main=0.15, hq=0.1))]
+    """圆盘: Im(lambda) <= 1.0 (或 --omega 给出的区间) 内的全部本征值, 按角向通道 L 分类并给出 Krein 符号。"""
+    w1, w2 = args.omega or (0.05, 1.0)
+    sigmas = [0.0 + 1j * w for w in np.arange(w1, w2 + 0.01, pick(args, quick=0.25, main=0.15, hq=0.1))]
     kk = pick(args, quick=8, main=12, hq=16)
     rows = []
     for s in sols[::stride]:
@@ -180,6 +181,8 @@ def main():
     p.add_argument("--theta0", type=float, default=0.0,
                    help="多边形相对网格的旋转角 (度); 用于检验阈值是否受网格 C_4 各向异性影响 (旋转检验)")
     p.add_argument("--channels", action="store_true", help="只做圆盘的通道分解谱 (cases 必须是 disk:m)")
+    p.add_argument("--omega", nargs=2, type=float, default=None,
+                   help="--channels 模式: 只在 Im(lambda) 的这个区间内放 shift (默认 0.05-1.0; 高 b 或大半径时频率更高/更低)")
     p.add_argument("--no_evolution", action="store_true", help="不做非线性结局的传播")
     p.add_argument("--spec_step", type=float, default=None,
                    help="每隔多少 b 算一次谱 (默认 quick 0.2 / main 0.1 / hq 0.1; 细网格加密任务用 0.2 省时, 阈值靠二分)")

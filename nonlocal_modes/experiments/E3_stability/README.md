@@ -119,5 +119,14 @@ tag `hq_coarse`/`hq`/`hq_h0075`/`hq_h005`），逐点按 h² 外推增长率，�
 另把圆盘 m=2 的通道谱延伸到 b=1.4–3.4（tag `hq_hib`，检验三角形宽窗口的 L=−3/0 机理）：
 `python e3b_instability_windows.py --hq --tag hq_hib --cases disk:2 --channels --b_range 1.4 3.4 --job disk_m2_channels`。
 
-**上传**：`results/E3_stability/hq/` 中新增的 `e3b_*` 文件与 `log_*.txt`，以及 `hq_coarse/`、`hq_h0075/`、`hq_h005/`、`hq_hib/` 中的 `e3b_*` 与日志。
+**第三轮结果（2026-10-13，Progress.md C8、C12）**：rect m=2 阈值 0.4937–0.5000（按保角半径 12.638 换算，是等效圆盘的 2.5 倍）；
+圆盘通道谱到 b=3.4 证实三角形宽窗口是 κ=0 的 L=−3（K+）/L=0（K−）近简并对（失稳模频率 = 两支平均，偏差 ≤ 0.14%；
+Hamilton-Hopf 端点预言 2.93 对四档外推 2.95–2.99；`analysis/a4_window_mechanism.py`、`a5_grid_convergence.py`）。
+**κ 的符号**：λ 与 λ* 是同一个物理模（L → −L、κ → −κ），2026-10-13 起 `spectrum_point` 取 Im λ ≥ 0 的那个；旧表中相邻 b 点的 L、κ 符号可能翻转。
+
+**第四轮**：`--channels` 新增 `--omega w1 w2`（shift 的频率区间，默认 0.05–1.0）；半径 10 圆盘（与 E5 同一网格）的通道谱
+`python e3b_instability_windows.py --hq --tag hq_disk10 --cases disk:2 --channels --rho 10 --b_range 2.8 6.2 --omega 0.55 1.3 --spec_step 0.2 --job disk_m2_channels_R10`
+（C_3 加热高 b 窗口的检验，Progress.md C13；quick 版本已跑通）。
+
+**上传**：`results/E3_stability/hq/` 中新增的 `e3b_*` 文件与 `log_*.txt`，以及 `hq_coarse/`、`hq_h0075/`、`hq_h005/`、`hq_hib/`、`hq_disk10/` 中的 `e3b_*` 与日志。
 Progress.md 中记录：每个情形的阈值区间与窗口内的 L/κ；三档网格 + 旋转检验的三角形阈值；通道谱中 L 与 L±3 两支是否在窗口处相交。

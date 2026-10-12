@@ -12,7 +12,8 @@ status.py —— 汇总超算任务的完成情况: 哪些成功、哪些失败�
 import os
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-LISTS = ("stage1", "indep", "stage2", "final", "p2_main", "p2_final", "p3_main", "p3_final")  # 不存在的自动跳过
+LISTS = ("stage1", "indep", "stage2", "final", "p2_main", "p2_final", "p3_main", "p3_final",
+         "p4_main", "p4_final")  # 不存在的自动跳过
 
 
 def main():

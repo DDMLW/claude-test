@@ -35,7 +35,7 @@ def spectrum_point(M, s, m, nsym, shifts, k):
     """一个解的稳定性: 增长率、最不稳定本征值及其模式的角向结构。"""
     st = stability.stability_arnoldi(M, s, shifts=shifts, k=k, return_mode=True)
     lam = st["eigenvalues"]
-    j = int(np.nanargmax(lam.real))
+    j = stability.most_unstable_index(lam)            # λ 与 λ* 中取 Im λ >= 0 (L 的符号唯一)
     row = dict(b=s["b"], U=s["power"], growth=st["max_growth"], lam_re=float(lam[j].real),
                lam_im=float(abs(lam[j].imag)), unstable=st["max_growth"] > TOL,
                n_failed_shifts=st.get("n_failed_shifts", 0), time=round(st["time"], 1))

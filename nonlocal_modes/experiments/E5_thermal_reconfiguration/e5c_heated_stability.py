@@ -64,6 +64,7 @@ ALL_CASES = ["3:2", "3:1", "4:2", "2:2"]
 B_RANGE = {1: (0.05, 3.0), 2: (0.05, 3.0)}
 B_START = 2.5                                   # 沿 Theta 延拓所在的 b (取较高的 b: 光束窄、离边界远, 与边缘热点模式杂化所需的 Theta 最大)
 THETA_STEP = 0.5                                # 沿 Theta 延拓的最大步长
+LETTERS = "abcdefghijklmnopqrstuvwxyz"          # 子图编号 (情形数可变; 原来写死 'abc', 第三轮 4 个情形时越界)
 # 图中情形的固定配色/标记 (与 analysis/style.py 的调色板同一顺序, 已做色盲校验)
 CASE_STYLE = {"3:2": ("#2a78d6", "o"), "3:1": ("#eb6834", "s"), "4:2": ("#1baf7a", "^"), "2:2": ("#eda100", "D")}
 
@@ -213,29 +214,31 @@ def plot_map(out, summ, spectra, edges):
         ax = fig.add_subplot(gs[0, i])
         map_axes.append(ax)
         Ts = sorted(T for (nn, mm, T) in spectra if (nn, mm) == (n, m))
+        ypos = {T: k for k, T in enumerate(Ts)}         # 每个 Theta 一行, 等距排列 (小 Theta 很密时标签不重叠)
         for T in Ts:
             rows = spectra[(n, m, T)]
             st = [r for r in rows if not r["unstable"]]
             un = [r for r in rows if r["unstable"]]
-            ax.plot([r["b"] for r in st], [T] * len(st), "o", ms=2.5, color="#c9c8c3", mec="none")
-            sc = ax.scatter([r["b"] for r in un], [T] * len(un), c=[r["growth"] for r in un], cmap=cmap, norm=norm,
-                            s=22, marker="s", edgecolors="none")
+            ax.plot([r["b"] for r in st], [ypos[T]] * len(st), "o", ms=2.5, color="#c9c8c3", mec="none")
+            sc = ax.scatter([r["b"] for r in un], [ypos[T]] * len(un), c=[r["growth"] for r in un], cmap=cmap,
+                            norm=norm, s=22, marker="s", edgecolors="none")
         mark = sorted((r["Theta"], r["b_at_U_mark"]) for r in summ if (r["n"], r["m"]) == (n, m)
-                      and r.get("b_at_U_mark", "") not in ("", None))
+                      and r.get("b_at_U_mark", "") not in ("", None) and r["Theta"] in ypos)
         if mark:
-            ax.plot([b for _, b in mark], [T for T, _ in mark], "--", color="#52514e", lw=1.0)
+            ax.plot([b for _, b in mark], [ypos[T] for T, _ in mark], "--", color="#52514e", lw=1.0)
             T3 = [x for x in mark if abs(x[0] - 3.0) < 1e-9]
             if (n, m) == (3, 2) and T3:
-                ax.plot(T3[0][1], 3.0, "*", ms=12, color="#eb6834", mec="#0b0b0b", mew=0.6, zorder=5)
-                ax.annotate("E5b start (U=15)", (T3[0][1], 3.0), xytext=(6, -14), textcoords="offset points",
-                            fontsize=7, color="#0b0b0b")
-            ax.annotate(f"U={summ[0].get('U_mark', 15):g}", (mark[0][1], mark[0][0]), xytext=(4, 4),
+                ax.plot(T3[0][1], ypos[T3[0][0]], "*", ms=12, color="#eb6834", mec="#0b0b0b", mew=0.6, zorder=5)
+                ax.annotate("E5b start (U=15)", (T3[0][1], ypos[T3[0][0]]), xytext=(6, -14),
+                            textcoords="offset points", fontsize=7, color="#0b0b0b")
+            ax.annotate(f"U={summ[0].get('U_mark', 15):g}", (mark[0][1], ypos[mark[0][0]]), xytext=(4, 4),
                         textcoords="offset points", fontsize=7, color="#52514e")
         ax.set_xlabel("propagation constant b")
         ax.set_ylabel("boundary heating Theta")
-        ax.set_title(f"({'abc'[i]}) C{n} heating, m={m}", loc="left", fontsize=9)
-        ax.set_yticks(Ts)
-        ax.set_ylim(min(Ts) - 0.2, max(Ts) + 0.3)
+        ax.set_title(f"({LETTERS[i]}) C{n} heating, m={m}", loc="left", fontsize=9)
+        ax.set_yticks(range(len(Ts)))
+        ax.set_yticklabels([f"{T:g}" for T in Ts])
+        ax.set_ylim(-0.6, len(Ts) - 0.4)
     if sc is not None:
         cb = fig.colorbar(sc, ax=map_axes, shrink=0.9, pad=0.01)
         cb.set_label("growth rate max Re(lambda)\n(squares: unstable, grey: stable)")
@@ -252,9 +255,17 @@ def plot_map(out, summ, spectra, edges):
                 ax.plot(e["Theta"], e["b_up"], mk, ms=6, color=col, mfc="none" if e["b_up_is_bound"] else col)
     ax.set_xlabel("boundary heating Theta")
     ax.set_ylabel("upper edge of the unstable region  b_up")
-    ax.set_title("(d) instability region vs heating (open: beyond scan range)", loc="left", fontsize=9)
+    ax.set_title(f"({LETTERS[len(cases)]}) instability region vs heating (open: beyond scan range)", loc="left",
+                 fontsize=9)
     ax.legend(loc="upper left", fontsize=7)
     ax = fig.add_subplot(gs[1, 1])
+    if not any(r.get("growth_at_U_mark", "") not in ("", None) for r in summ):
+        ax.text(0.5, 0.5, "no fixed-power (U_mark) state in this b range", ha="center", va="center",
+                transform=ax.transAxes, fontsize=8, color="#52514e")
+        ax.set_axis_off()
+        fig.savefig(os.path.join(out, "e5c_stability_map.png"), dpi=150)
+        plt.close(fig)
+        return
     for c in cases:
         n, m = map(int, c.split(":"))
         col, mk = CASE_STYLE.get(c, ("#6250d6", "X"))
@@ -267,7 +278,7 @@ def plot_map(out, summ, spectra, edges):
     ax.axhline(TOL, color="#52514e", lw=0.8)
     ax.set_xlabel("boundary heating Theta")
     ax.set_ylabel(f"growth rate at U = {summ[0].get('U_mark', 15):g}")
-    ax.set_title("(e) stability of the state used in E5b (fixed power)", loc="left", fontsize=9)
+    ax.set_title(f"({LETTERS[len(cases) + 1]}) stability at fixed power (E5b start states)", loc="left", fontsize=9)
     ax.legend(loc="upper left", fontsize=7)
     fig.savefig(os.path.join(out, "e5c_stability_map.png"), dpi=150)
     plt.close(fig)

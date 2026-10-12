@@ -168,6 +168,18 @@ def krein_sign(mode):
     return int(np.sign(d))
 
 
+def most_unstable_index(lam, rtol=1e-6):
+    """
+    增长率最大的本征值的下标; λ 与 λ* 增长率相同时取 Im λ >= 0 的那个。
+    原因: λ* 对应的 Bogoliubov 模是 (u, v) -> (v*, u*), 角向指数 L -> -L、kappa -> -kappa;
+    固定取正频率, L 与 kappa 才有唯一的符号, 并与通道谱 (只取 Im λ > 0) 的标记一致 (2026-10-12 前的结果 L、kappa 只定义到正负号)。
+    """
+    lam = np.asarray(lam)
+    g = np.nanmax(lam.real)
+    cand = np.where(lam.real >= g - rtol * max(1.0, abs(g)))[0]
+    return int(cand[np.argmax(lam[cand].imag)])
+
+
 def stability_arnoldi(model, sol, shifts=(0.05,), k=20, tol=1e-10, return_mode=False):
     """
     稀疏 shift-invert Arnoldi: 对每个 shift sigma 求离 sigma 最近的 k 个本征值。
@@ -213,7 +225,7 @@ def stability_arnoldi(model, sol, shifts=(0.05,), k=20, tol=1e-10, return_mode=F
     out = dict(eigenvalues=lam, max_growth=float(np.nanmax(lam.real)) if found else float("nan"),
                n_failed_shifts=n_failed, time=time.time() - t0)
     if return_mode and found:
-        out["mode"] = _eigenmode(A, Bdiag, No, Nt, lam[int(np.nanargmax(lam.real))], tol)
+        out["mode"] = _eigenmode(A, Bdiag, No, Nt, lam[most_unstable_index(lam)], tol)
     return out
 
 
@@ -249,7 +261,9 @@ def mode_angular_content(model, mode, m, center=(0.0, 0.0), r=None, nsym=None, l
     在中心最大, 而 v ~ r^{|L-m|} 在中心几乎为 0, 在小半径处会读错 v 的谐波)。返回 dict:
         l_u, l_v      u、v 的主导角向指数;  w_u, w_v  其权重 (占该圆周上总功率的比例)
         L             由 u 得到的微扰角向指数 l_u - m;  L_from_v = l_v + m (两者相等说明结构自洽)
-        kappa         L 对 n 取模 (落在 (-n/2, n/2]); kappa = 0 表示微扰保持 C_n 对称 (只改变同一不可约表示内的结构)
+        kappa         L 对 n 取模 (落在 (-n/2, n/2]); kappa = 0 表示微扰保持 C_n 对称 (只改变同一不可约表示内的结构)。
+                      注意 λ 与 λ* 是同一个物理模 (L -> -L, kappa -> -kappa), 所以物理上只区分 kappa=0 与 |kappa|;
+                      stability_arnoldi 现在固定取 Im λ >= 0 的那个 (most_unstable_index), L 的符号与通道谱一致
         norm_ratio    ||v|| / ||u||;  top_u, top_v  前三个谐波 [(l, 权重), ...]
     例: 圆盘中 m=2 的低功率失稳为 L = -2 (u ~ e^{0 i theta}, v ~ e^{-4 i theta}) —— 双荷涡旋分裂为两个单位涡旋的四极模。
     """
