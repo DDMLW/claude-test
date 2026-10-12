@@ -1,0 +1,14 @@
+
+===== E5_thermal_reconfiguration  tag=hq  profile=hq  h=0.1 (large samples 0.15)  newton tol=1e-12  dz=0.01  2026-10-12 09:53:53 =====
+results -> /public/home/liuxiuye/nonlocal_modes/results/E5_thermal_reconfiguration/hq
+raw data -> /public/home/liuxiuye/nonlocal_modes/data/E5_thermal_reconfiguration/hq
+
+e5c_n3_m1_T2.5: disk R=10, T_b = 2.5 cos(3 theta), m=1, b in [0.05, 1.5], db=0.05
+   disk_R10: grid 206x206, h=0.1, stencil=9, optical unknowns=31428, thermal unknowns=31428
+   family: 12 solutions, b in [1.276, 1.500]; up: reached end of range; down: continuation stopped near b=1.27559: stagnation (residual not reduced 100x after 15 iterations) (possible existence threshold/bifurcation)
+   b=1.300 U=8.085 growth=8.929e-02 Im=0.144 L=-2 kappa=1 P_outer=2.8e-02 [485s]
+   b=1.400 U=8.370 growth=7.305e-02 Im=0.154 L=-2 kappa=1 P_outer=1.2e-02 [489s]
+   b=1.500 U=8.734 growth=6.478e-02 Im=0.163 L=-1 kappa=-1 P_outer=7.0e-03 [485s]
+   thresholds: none; windows: 1.300-1.500
+
+E5c done.

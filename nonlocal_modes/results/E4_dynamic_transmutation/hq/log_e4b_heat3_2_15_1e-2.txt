@@ -1,0 +1,11 @@
+
+===== E4_dynamic_transmutation  tag=hq  profile=hq  h=0.1 (large samples 0.15)  newton tol=1e-12  dz=0.01  2026-10-12 09:53:54 =====
+results -> /public/home/liuxiuye/nonlocal_modes/results/E4_dynamic_transmutation/hq
+raw data -> /public/home/liuxiuye/nonlocal_modes/data/E4_dynamic_transmutation/hq
+
+e4b_heat3_m2_U15_noise0.01: disk_R10: grid 206x206, h=0.1, stencil=9, optical unknowns=31428, thermal unknowns=31428
+   predicted central charge -1
+   stationary state: b=2.2674 ring=2.239 r_s*=0.4448 W(0.5h)=-1.00
+   [1922s] xi_t50=0.5 r_s plateau=0.3820 (stationary 0.4448) xi_b=nan xi_10x=53.5 gamma_fit=nan nonmu 5.5e-03->9.0e-01 power drift 1.3e-12
+
+E4b done.

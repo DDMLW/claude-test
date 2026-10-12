@@ -1,0 +1,42 @@
+
+===== E5_thermal_reconfiguration  tag=hq  profile=hq  h=0.1 (large samples 0.15)  newton tol=1e-12  dz=0.01  2026-10-12 09:53:55 =====
+results -> /public/home/liuxiuye/nonlocal_modes/results/E5_thermal_reconfiguration/hq
+raw data -> /public/home/liuxiuye/nonlocal_modes/data/E5_thermal_reconfiguration/hq
+
+e5c_n4_m2_T2.5: disk R=10, T_b = 2.5 cos(4 theta), m=2, b in [0.05, 3.0], db=0.05
+   disk_R10: grid 206x206, h=0.1, stencil=9, optical unknowns=31428, thermal unknowns=31428
+   family: 58 solutions, b in [0.432, 3.000]; up: reached end of range; down: continuation stopped near b=0.43164: stagnation (residual not reduced 100x after 15 iterations) (possible existence threshold/bifurcation)
+   b=0.500 U=6.075 growth=7.061e-02 Im=0.000 L=1 kappa=1 P_outer=1.6e-01 [775s]
+   b=0.600 U=6.575 growth=5.578e-02 Im=0.000 L=-5 kappa=-1 P_outer=1.1e-01 [776s]
+   b=0.700 U=7.122 growth=4.308e-02 Im=0.000 L=-2 kappa=2 P_outer=8.5e-02 [766s]
+   b=0.800 U=7.666 growth=6.166e-02 Im=0.000 L=-2 kappa=2 P_outer=6.7e-02 [690s]
+   b=0.900 U=8.200 growth=7.078e-02 Im=0.000 L=-2 kappa=2 P_outer=5.3e-02 [431s]
+   b=1.000 U=8.745 growth=6.760e-02 Im=0.000 L=-2 kappa=2 P_outer=4.5e-02 [394s]
+   b=1.100 U=9.401 growth=3.082e-02 Im=0.531 L=-2 kappa=2 P_outer=4.8e-02 [389s]
+   b=1.200 U=9.927 growth=2.846e-02 Im=0.550 L=-2 kappa=2 P_outer=3.8e-02 [386s]
+   b=1.300 U=10.438 growth=2.596e-02 Im=0.570 L=-2 kappa=2 P_outer=3.1e-02 [385s]
+   b=1.400 U=10.937 growth=2.775e-02 Im=0.395 L=-1 kappa=-1 P_outer=2.5e-02 [380s]
+   b=1.500 U=11.424 growth=3.251e-02 Im=0.442 L=-1 kappa=-1 P_outer=2.0e-02 [383s]
+   b=1.600 U=11.902 growth=1.575e-02 Im=0.629 L=-2 kappa=2 P_outer=1.6e-02 [388s]
+   b=1.700 U=12.372 growth=2.273e-02 Im=0.648 L=-2 kappa=2 P_outer=1.3e-02 [380s]
+   b=1.800 U=12.834 growth=1.931e-02 Im=0.674 L=-2 kappa=2 P_outer=1.1e-02 [380s]
+   b=1.900 U=13.290 growth=1.548e-02 Im=0.696 L=-2 kappa=2 P_outer=8.6e-03 [382s]
+   b=2.000 U=13.739 growth=1.200e-02 Im=0.717 L=-2 kappa=2 P_outer=7.0e-03 [376s]
+   b=2.100 U=14.182 growth=7.925e-03 Im=0.738 L=-2 kappa=2 P_outer=5.7e-03 [380s]
+   b=2.200 U=14.621 growth=1.833e-07 Im=0.000 L= kappa= P_outer=4.7e-03 [378s]
+   b=2.300 U=15.055 growth=2.573e-07 Im=0.000 L= kappa= P_outer=3.8e-03 [377s]
+   b=2.400 U=15.484 growth=2.709e-07 Im=0.000 L= kappa= P_outer=3.1e-03 [398s]
+   b=2.500 U=15.909 growth=1.795e-07 Im=0.000 L= kappa= P_outer=2.6e-03 [446s]
+   b=2.600 U=16.330 growth=1.732e-07 Im=0.000 L= kappa= P_outer=2.1e-03 [436s]
+   b=2.700 U=16.748 growth=2.094e-07 Im=0.000 L= kappa= P_outer=1.7e-03 [440s]
+   b=2.800 U=17.161 growth=2.286e-07 Im=0.000 L= kappa= P_outer=1.4e-03 [442s]
+   b=2.900 U=17.572 growth=3.362e-07 Im=0.000 L= kappa= P_outer=1.2e-03 [432s]
+   b=3.000 U=17.979 growth=2.698e-07 Im=0.000 L= kappa= P_outer=9.8e-04 [433s]
+   bisect b=2.1500 growth=5.013e-03 L=-2
+   bisect b=2.1750 growth=2.612e-03 L=-2
+   bisect b=2.1875 growth=5.974e-07 L=
+   bisect b=2.1813 growth=1.514e-03 L=-2
+   U=15: b=2.2873 growth=3.409e-07 Im=0.000 L= P_outer=3.9e-03
+   thresholds: 2.1813-2.1875(unstable->stable); windows: 0.500-2.181
+
+E5c done.

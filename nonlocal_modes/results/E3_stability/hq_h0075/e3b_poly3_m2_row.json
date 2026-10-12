@@ -1,0 +1,17 @@
+{
+ "sample": "poly3",
+ "m": 2,
+ "n": 3,
+ "h": 0.075,
+ "theta0_deg": 0.0,
+ "b_min": 2.2,
+ "b_max": 5.0,
+ "n_points": 12,
+ "thresholds": "2.8000-2.8250(unstable->stable)",
+ "windows": "2.200-2.800",
+ "window0_max_growth": 0.010742043792836591,
+ "window0_b_at_max": 2.2,
+ "window0_L_at_max": -3,
+ "window0_kappa_at_max": 0,
+ "window0_L_at_edge": -3
+}

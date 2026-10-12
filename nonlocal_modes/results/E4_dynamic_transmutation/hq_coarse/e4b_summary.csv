@@ -1,0 +1,2 @@
+run,sample,n,m,U,noise,h,dz,Theta,central_pred,b_stationary,r_s_stationary,ring_stationary,W_small_stationary,w0,zmax,gamma_fit,xi_b,xi_scan,xi_10x,nonmu_initial,nonmu_max,mu_weight_drift,power_drift,time,W_small_final,linear_growth_E3_or_E5c
+e4b_disk_m3_U20,disk,0,3,20.0,0.0,0.15,0.01,0.0,3,1.8959946274422397,0.0,2.762035499800151,3.0,2.2551925419878263,600.0,0.10415293204179707,295.5,306.5,0.25,3.5029632074629226e-31,0.3409100944669764,0.3409100944669764,3.428191064358544e-12,424.7,0.0,0.10499537511085676

@@ -1,0 +1,9 @@
+{
+ "n": 3,
+ "m": 1,
+ "Theta": 3.0,
+ "R": 10.0,
+ "h": 0.1,
+ "n_points": 0,
+ "stop": "Theta continuation stopped at 2.5 (b=1.5)"
+}

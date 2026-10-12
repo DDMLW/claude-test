@@ -3,3 +3,8 @@
 results -> /public/home/liuxiuye/nonlocal_modes/results/E3_stability/hq
 raw data -> /public/home/liuxiuye/nonlocal_modes/data/E3_stability/hq
 stability_table.csv: 36 families
+
+===== E3_stability  tag=hq  profile=hq  h=0.1 (large samples 0.15)  newton tol=1e-12  dz=0.01  2026-10-12 17:32:54 =====
+results -> /public/home/liuxiuye/nonlocal_modes/results/E3_stability/hq
+raw data -> /public/home/liuxiuye/nonlocal_modes/data/E3_stability/hq
+e3b_summary.csv: 8 cases

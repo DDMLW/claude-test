@@ -1,0 +1,25 @@
+
+===== E5_thermal_reconfiguration  tag=hq  profile=hq  h=0.1 (large samples 0.15)  newton tol=1e-12  dz=0.01  2026-10-12 09:53:53 =====
+results -> /public/home/liuxiuye/nonlocal_modes/results/E5_thermal_reconfiguration/hq
+raw data -> /public/home/liuxiuye/nonlocal_modes/data/E5_thermal_reconfiguration/hq
+
+e5c_n3_m1_T1: disk R=10, T_b = 1 cos(3 theta), m=1, b in [0.05, 1.5], db=0.05
+   disk_R10: grid 206x206, h=0.1, stencil=9, optical unknowns=31428, thermal unknowns=31428
+   family: 29 solutions, b in [0.588, 1.500]; up: reached end of range; down: continuation stopped near b=0.58792: stagnation (residual not reduced 100x after 15 iterations) (possible existence threshold/bifurcation)
+   b=0.600 U=5.161 growth=7.450e-02 Im=0.197 L=1 kappa=1 P_outer=1.8e-01 [418s]
+   b=0.700 U=5.383 growth=6.308e-02 Im=0.252 L=-1 kappa=-1 P_outer=7.2e-02 [421s]
+   b=0.800 U=5.786 growth=5.702e-02 Im=0.296 L=-1 kappa=-1 P_outer=4.2e-02 [619s]
+   b=0.900 U=6.208 growth=5.039e-02 Im=0.335 L=1 kappa=1 P_outer=2.7e-02 [760s]
+   b=1.000 U=6.630 growth=4.211e-02 Im=0.371 L=-1 kappa=-1 P_outer=1.8e-02 [765s]
+   b=1.100 U=7.049 growth=3.170e-02 Im=0.404 L=-2 kappa=1 P_outer=1.3e-02 [773s]
+   b=1.200 U=7.462 growth=1.666e-02 Im=0.435 L=-1 kappa=-1 P_outer=9.1e-03 [775s]
+   b=1.300 U=7.869 growth=9.106e-08 Im=0.000 L= kappa= P_outer=6.6e-03 [764s]
+   b=1.400 U=8.271 growth=1.497e-07 Im=0.000 L= kappa= P_outer=4.8e-03 [760s]
+   b=1.500 U=8.667 growth=7.227e-08 Im=0.000 L= kappa= P_outer=3.6e-03 [760s]
+   bisect b=1.2500 growth=7.869e-08 L=
+   bisect b=1.2250 growth=1.022e-02 L=-2
+   bisect b=1.2375 growth=4.407e-03 L=-1
+   bisect b=1.2437 growth=2.387e-07 L=
+   thresholds: 1.2375-1.2437(unstable->stable); windows: 0.600-1.238
+
+E5c done.

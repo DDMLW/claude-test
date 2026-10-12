@@ -45,3 +45,32 @@ disk_m1: 69 stored solutions; spectra every 2
 split job (--job given): run --table_only after all jobs finish to build stability_table.csv
 
 E3 done.
+
+===== E3_stability  tag=hq  profile=hq  h=0.1 (large samples 0.15)  newton tol=1e-12  dz=0.01  2026-10-12 09:53:54 =====
+results -> /public/home/liuxiuye/nonlocal_modes/results/E3_stability/hq
+raw data -> /public/home/liuxiuye/nonlocal_modes/data/E3_stability/hq
+
+disk_R8: grid 166x166, h=0.1, stencil=9, optical unknowns=20108, thermal unknowns=20108
+e3b_disk_m1: b in [0.05, 1.4], db=0.05, spectra every 0.1
+   family: 28 solutions, b in [0.050000000000000044, 1.4000000000000001]
+   b=0.050 growth=2.088e-02 Im=0.107 L=-1 kappa= [293s]
+   b=0.150 growth=2.577e-09 Im=0.000 L= kappa= [285s]
+   b=0.250 growth=2.966e-08 Im=0.000 L= kappa= [289s]
+   b=0.350 growth=4.002e-08 Im=0.000 L= kappa= [306s]
+   b=0.450 growth=3.958e-08 Im=0.000 L= kappa= [278s]
+   b=0.550 growth=6.678e-08 Im=0.000 L= kappa= [272s]
+   b=0.650 growth=6.382e-08 Im=0.000 L= kappa= [276s]
+   b=0.750 growth=7.302e-08 Im=0.000 L= kappa= [273s]
+   b=0.850 growth=7.275e-08 Im=0.000 L= kappa= [270s]
+   b=0.950 growth=9.654e-08 Im=0.000 L= kappa= [273s]
+   b=1.050 growth=1.361e-07 Im=0.000 L= kappa= [278s]
+   b=1.150 growth=1.061e-07 Im=0.000 L= kappa= [280s]
+   b=1.250 growth=1.645e-07 Im=0.000 L= kappa= [279s]
+   b=1.350 growth=1.531e-07 Im=0.000 L= kappa= [275s]
+   bisect b=0.1000 growth=1.394e-02 L=-1
+   bisect b=0.1250 growth=2.279e-03 L=-1
+   bisect b=0.1375 growth=4.896e-10 L=
+   bisect b=0.1313 growth=4.291e-09 L=
+   thresholds: 0.1250-0.1313(unstable->stable); windows: 0.050-0.125
+
+E3b done.

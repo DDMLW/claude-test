@@ -1,12 +1,12 @@
 {
-  "time": "2026-10-11T18:24:52",
-  "command": "E3_stability/e3_stability.py --hq --tag hq --samples disk --ms 1 --job disk_m1",
+  "time": "2026-10-12T09:53:54",
+  "command": "E3_stability/e3b_instability_windows.py --hq --tag hq --cases disk:1 --job disk_m1",
   "git_commit": "unknown",
   "python": "3.12.6",
   "numpy": "2.0.2",
   "scipy": "1.15.1",
   "platform": "Linux-4.18.0-348.el8.x86_64-x86_64-with-glibc2.28",
-  "machine": "comput5",
+  "machine": "comput2",
   "args": {
     "tag": "hq",
     "quick": false,
@@ -14,18 +14,15 @@
     "job": "disk_m1",
     "h": 0.1,
     "h_scale": 1.0,
-    "samples": [
-      "disk"
-    ],
-    "ms": [
-      1
+    "cases": [
+      "disk:1"
     ],
     "rho": 8.0,
-    "stride": null,
-    "bs": null,
-    "omega_max": null,
-    "zmax": null,
-    "no_prop": false,
+    "b_range": null,
+    "theta0": 0.0,
+    "channels": false,
+    "no_evolution": false,
+    "spec_step": null,
     "table_only": false,
     "profile": "hq",
     "h_large": 0.15,

@@ -1,0 +1,21 @@
+{
+ "sample": "poly4",
+ "m": 2,
+ "n": 4,
+ "h": 0.1,
+ "theta0_deg": 0.0,
+ "b_min": 0.050000000000000044,
+ "b_max": 1.6,
+ "n_points": 20,
+ "thresholds": "0.9250-0.9313(unstable->stable)",
+ "windows": "0.050-0.925",
+ "window0_max_growth": 0.030375205435148545,
+ "window0_b_at_max": 0.1499999999999999,
+ "window0_L_at_max": -2,
+ "window0_kappa_at_max": 2,
+ "window0_L_at_edge": -2,
+ "window0_evolution_zmax": 600.0,
+ "window0_evolution_max_dev": 0.6100294511453723,
+ "window0_evolution_final_central": 0.0,
+ "window0_evolution_saturated": true
+}

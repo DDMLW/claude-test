@@ -1,6 +1,6 @@
 {
-  "time": "2026-10-11T14:13:51",
-  "command": "E3_stability/e3_stability.py --hq --tag hq --samples poly3 --ms 2 --job poly3_m2",
+  "time": "2026-10-12T09:53:54",
+  "command": "E3_stability/e3b_instability_windows.py --hq --tag hq --cases poly3:2 --job poly3_m2",
   "git_commit": "unknown",
   "python": "3.12.6",
   "numpy": "2.0.2",
@@ -14,18 +14,15 @@
     "job": "poly3_m2",
     "h": 0.1,
     "h_scale": 1.0,
-    "samples": [
-      "poly3"
-    ],
-    "ms": [
-      2
+    "cases": [
+      "poly3:2"
     ],
     "rho": 8.0,
-    "stride": null,
-    "bs": null,
-    "omega_max": null,
-    "zmax": null,
-    "no_prop": false,
+    "b_range": null,
+    "theta0": 0.0,
+    "channels": false,
+    "no_evolution": false,
+    "spec_step": null,
     "table_only": false,
     "profile": "hq",
     "h_large": 0.15,

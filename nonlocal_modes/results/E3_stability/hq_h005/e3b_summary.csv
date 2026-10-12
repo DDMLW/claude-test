@@ -1,0 +1,3 @@
+sample,m,n,h,theta0_deg,b_min,b_max,n_points,thresholds,windows,window0_max_growth,window0_b_at_max,window0_L_at_max,window0_kappa_at_max,window0_L_at_edge
+disk,2,0,0.05,0.0,0.30000000000000004,0.8,10,0.5000-0.5062(unstable->stable),0.300-0.500,0.039033387953820706,0.30000000000000004,-2,,-2
+poly3,2,3,0.05,0.0,2.2,5.0,12,2.9000-2.9250(unstable->stable),2.200-2.900,0.011148437423069093,2.2,3,0,3

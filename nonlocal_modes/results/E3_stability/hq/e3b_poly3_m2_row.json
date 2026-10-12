@@ -1,0 +1,21 @@
+{
+ "sample": "poly3",
+ "m": 2,
+ "n": 3,
+ "h": 0.1,
+ "theta0_deg": 0.0,
+ "b_min": 0.05,
+ "b_max": 5.0,
+ "n_points": 54,
+ "thresholds": "2.7188-2.7250(unstable->stable)",
+ "windows": "0.050-2.719",
+ "window0_max_growth": 0.042173063379320516,
+ "window0_b_at_max": 0.75,
+ "window0_L_at_max": -2,
+ "window0_kappa_at_max": 1,
+ "window0_L_at_edge": -3,
+ "window0_evolution_zmax": 474.2363584099267,
+ "window0_evolution_max_dev": 0.8866271034572931,
+ "window0_evolution_final_central": 0.0,
+ "window0_evolution_saturated": true
+}

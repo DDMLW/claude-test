@@ -1,0 +1,21 @@
+{
+ "sample": "disk",
+ "m": 2,
+ "n": 0,
+ "h": 0.1,
+ "theta0_deg": 0.0,
+ "b_min": 0.050000000000000044,
+ "b_max": 1.4000000000000001,
+ "n_points": 18,
+ "thresholds": "0.4938-0.5000(unstable->stable)",
+ "windows": "0.050-0.494",
+ "window0_max_growth": 0.04552583293895958,
+ "window0_b_at_max": 0.15000000000000013,
+ "window0_L_at_max": -2,
+ "window0_kappa_at_max": "",
+ "window0_L_at_edge": -2,
+ "window0_evolution_zmax": 439.3110176988026,
+ "window0_evolution_max_dev": 0.755839214033719,
+ "window0_evolution_final_central": -4.240739575284689e-16,
+ "window0_evolution_saturated": true
+}
