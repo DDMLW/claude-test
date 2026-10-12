@@ -1,0 +1,38 @@
+{
+  "time": "2026-10-12T19:03:55",
+  "command": "E5_thermal_reconfiguration/e5c_heated_stability.py --hq --tag hq --cases 2:2 --thetas 0.0 --job e5c_n2_m2_T0",
+  "git_commit": "unknown",
+  "python": "3.12.6",
+  "numpy": "2.0.2",
+  "scipy": "1.15.1",
+  "platform": "Linux-4.18.0-348.el8.x86_64-x86_64-with-glibc2.28",
+  "machine": "comput1",
+  "args": {
+    "tag": "hq",
+    "quick": false,
+    "hq": true,
+    "job": "e5c_n2_m2_T0",
+    "h": 0.1,
+    "h_scale": 1.0,
+    "cases": [
+      "2:2"
+    ],
+    "thetas": [
+      0.0
+    ],
+    "R": 10.0,
+    "b_range": null,
+    "U_mark": 15.0,
+    "spec_step": null,
+    "omega": null,
+    "table_only": false,
+    "profile": "hq",
+    "h_large": 0.15,
+    "tol": 1e-12,
+    "dz": 0.01,
+    "db_factor": 0.5,
+    "exp": "E5_thermal_reconfiguration",
+    "res_dir": "/public/home/liuxiuye/nonlocal_modes/results/E5_thermal_reconfiguration/hq",
+    "data_dir": "/public/home/liuxiuye/nonlocal_modes/data/E5_thermal_reconfiguration/hq"
+  }
+}

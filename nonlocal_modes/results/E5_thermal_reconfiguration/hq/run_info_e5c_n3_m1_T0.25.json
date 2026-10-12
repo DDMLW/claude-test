@@ -1,5 +1,5 @@
 {
-  "time": "2026-10-12T09:53:54",
+  "time": "2026-10-12T19:03:55",
   "command": "E5_thermal_reconfiguration/e5c_heated_stability.py --hq --tag hq --cases 3:1 --thetas 0.25 --job e5c_n3_m1_T0.25",
   "git_commit": "unknown",
   "python": "3.12.6",
@@ -23,6 +23,8 @@
     "R": 10.0,
     "b_range": null,
     "U_mark": 15.0,
+    "spec_step": null,
+    "omega": null,
     "table_only": false,
     "profile": "hq",
     "h_large": 0.15,

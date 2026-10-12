@@ -2,7 +2,7 @@
 
 > 本文件是项目的**唯一事实来源**：每完成一步、每次运行、每个决定都记在这里。
 > Claude 每次开始工作先读本文件；师弟每次上传结果后在“运行记录”表追加一行。
-> 最后更新：2026-10-12（第二轮结果分析完成：C8–C13 更新/新增；修复 rect:2 与 (3:1) 两个缺口；第三轮清单 `make_jobs.py --phase 3` 已就绪，见 §8）
+> 最后更新：2026-10-13（第三轮 phase 3 在 cdut 超算完成：34+5 任务结束、结果上传；六项自查与 p3_final #2 的代码 bug 记录见 §6、§6.1 第三轮）
 
 ## 0. 导航
 * 项目代码与说明：[`nonlocal_modes/README.md`](nonlocal_modes/README.md)
@@ -140,6 +140,10 @@
 | 2026-10-12 | 第二轮 E4b 动态嬗变（稳定区发射、种子扫描、圆盘对照、加热样品 + 网格对照，`--hq`） | hq / hq_coarse / hq_h005 | 同上 | 单任务 ≤2.4 h | 14/14 run OK | 种子扫描近似线性但最大种子偏离；三个增长率 0.0589/0.0449/0.0781（两两差 25–43%）；A 组 nonmu 从舍入种子缓慢指数增长（γ≈0.003，见 §6.1） |
 | 2026-10-12 | 第二轮 final 汇总（8 个任务） | hq 等 | 同上 | <1 min×8 | OK | status.py 输出与总耗时见 §6.1 |
 | 2026-10-12 | 第二轮复核与第三轮准备（云端）：四极加热 (2:2) Θ=0.25、1，b=2.0–2.6 + U=15（h=0.2，main 档）；E3b rect:2 解族起步修正（quick；hq 网格 h=0.15 族构造）；E5b `--n 2`、E5c `--omega/--spec_step`、E4b `:stat` 的 quick；用新汇总代码重建 E5c hq 汇总表与总图 | cloudtest_e5c22 / quick* | 云端 4 核 | 约 2 h | OK | 双涡旋 Θ=0.25、1 全部稳定（≤2.5e-7）；rect:2 修正后从 b=3.5 起步（hq 网格 h=0.15：28 个解覆盖 b=0.05–1.4，35 min；quick 阈值 0.4–0.5）；定态发射 ξ=20 内非 μ 权重不增长（LG 发射 ×60）；cloudtest/quick 不上传 |
+| 2026-10-12/13 | 第三轮补漏：E3b rect:2 重跑（新三步回退初值） | hq | cdut 超算（单核任务，8G） | 单任务 ~3.3 h | OK | rect m=2 阈值 0.4937–0.5000、窗口 0.050–0.494、max growth 0.0223（与 E3 低功率窗口一致，落在预期 ≈0.4–0.6 ✓） |
+| 2026-10-12/13 | 第三轮 E5c：(2:2) 四极加热双涡旋 8 Θ、(3:1) 八 Θ 重跑（b 上限 3.0）、C₃ 加热高 b 段（hq_hib）、小 Θ 线性律（hq_smallT）、关断/旋转动力学 | hq / hq_hib / hq_smallT | 同上 | 单任务 1–6.7 h（e5c 400 min 最慢） | 计算任务 34/34 OK | (2:2) 8 个 Θ 在 U=15 全部稳定（growth≈2e-7）；小 Θ 窗口增长率 ∝ Θ（逐次翻倍比值 2.01/2.02/1.97）；(3:1) Θ=3 完成（b_up=2.39、b_min=1.6）；六项自查见 §6.1 |
+| 2026-10-12/13 | 第三轮 E4b：定态自身发射对照（_stat）与补充发射 | hq | 同上 | 单任务 ≤0.5 h | OK | 两个 _stat 对照 nonmu 不增长（max/initial=1.17、1.09）；heat3 m2 U15 的 γ_fit=0.082 与 E5c growth 0.1049 同量级 |
+| 2026-10-13 | 第三轮 final 汇总（5 个任务） | hq 等 | 同上 | <1 min×5 | 4/5 OK；**#2（E5c hq assemble）IndexError** | e5c_summary/windows/upper_edges 三个 CSV 已写出，只缺稳定性图 PNG；代码 bug 详情见 §6.1（未改代码） |
 |  |  |  |  |  |  |  |
 
 ### 6.1 核验记录（2026-10-12 cdut 超算 hq 正式运行，115/115 成功）
@@ -244,6 +248,37 @@ p2_final:   8 jobs | OK 8  | FAILED 0 | not finished 0
    是物理——LG 光束的呼吸态中卫星半径在 0–0.12 之间长周期振荡（C9）；外围伪奇点是低振幅相位噪声，不影响中心诊断。
    另：种子扫描三个增长率的差异来自正方形 m=3 的 LG 光束本身在演化（C9），干净的比较是圆盘 m=3（0.1047 对 0.1048）与三角形 U=15（0.027–0.030 对 0.029）。
 
+#### 第三轮（phase 3，2026-10-12/13 cdut 超算，34+5 任务）
+
+status.py 输出：
+```
+p3_main :  34 jobs | OK 34 | FAILED 0 | not finished 0
+p3_final:   5 jobs | OK 4  | FAILED 1 | not finished 0
+```
+总墙钟 **6.8 h**（10-12 19:03 提交 → 10-13 01:53 结束；e5c 单任务最长 400 min）。运行代码 = 提交 85debc8。
+
+六项自查（§8 第 6 步）：
+1. **rect m=2 阈值**：0.4937–0.5000（窗口 0.050–0.494，max growth 0.0223）—— 落在预期 ≈0.4–0.6，与 E3 的矩形低功率窗口一致 ✓
+2. **(2:2) growth_at_U_mark**：8 个 Θ（0–1）全部 ≈1.7e-7–3.8e-7（舍入地板级），unstable_at_U_mark 全为 False —— **全部稳定** ✓；
+   e5c_upper_edges.csv 的 (2:2)、(3:1) 行全部填齐（(3:1) b_up 随 Θ 从 0.59 升到 2.39；Θ=0 无窗口 ✓）
+3. **hq_hib 失稳区上端**：(3:2) 的 b_up：Θ=1→3.36、1.5→4.21、2→4.92、2.5→5.55、3→**6.0（bound=True，到扫描上限仍未闭合）**
+   —— Θ=1–2.5 高 b 端有稳定区 ✓；Θ=3 未闭合（可能 b_up>6 或不存在稳定区）
+4. **hq_smallT 小 Θ 线性律**：(3:1) 窗口增长率 0.00299/0.00602/0.01214/0.02390（Θ=0.02/0.04/0.08/0.16），
+   逐次翻倍比值 **2.01/2.02/1.97 —— ∝ Θ 成立（斜率≈1）✓**；宽度 0.0756/0.1494/0.2747/0.3866
+   （前两个翻倍 ×1.98/×1.84，之后被 b=0.1 扫描下界截断）
+5. **control_n2**（T0.5/T1，case=switch_off）：central_final=0.0、0.0（预期 0 ✓）；nonmu_max ~1e-24（舍入级，不增长 ✓）
+6. **e4b_summary 两个 _stat 行**（launch=stat）：U25 对照 nonmu_initial=6.31e-12 → nonmu_max=7.41e-12（**×1.17**）；
+   U25+1e-6 噪声对照 5.55e-7 → 6.07e-7（**×1.09**）—— 同量级、不增长 ✓
+
+失败与缺口（如实记录；未改代码）：
+1. **p3_final #2（E5c hq assemble）IndexError**：`plot_map` 里 `ax.set_title(f"({'abc'[i]) ...")` —— 主 hq 现含 4 组情形
+   （新增 (2:2)）而字母表写死 3 个，画第 4 张子图越界（e5c_heated_stability.py:236）。崩溃前
+   `e5c_summary.csv`（32 runs）、`e5c_windows.csv`、`e5c_upper_edges.csv` 均已写出，**只缺稳定性图 PNG**。
+   hq_hib / hq_smallT 的 assemble 正常（≤3 组情形）。修复后只需重跑
+   `python hpc/run_local.py --list p3_final --only 2`
+   （或本地 `python E5_thermal_reconfiguration/e5c_heated_stability.py --hq --tag hq --table_only --job assemble`）。
+2. 其余 4 个汇总任务与 34 个计算任务全部正常。
+
 ## 7. 决策日志
 | 日期 | 决定 | 理由 |
 |---|---|---|
@@ -292,6 +327,8 @@ p2_final:   8 jobs | OK 8  | FAILED 0 | not finished 0
    * `E5_thermal_reconfiguration/hq_smallT/e5c_windows.csv`：b≈0.2–0.35 处窗口的宽度与最大增长率随 Θ=0.02/0.04/0.08/0.16 的变化（预期 ∝ Θ）；
    * `control_n2_T0.5_summary.csv`、`control_n2_T1_summary.csv`：末态中心荷（预期 0）与 `nonmu_max`；
    * `E4_dynamic_transmutation/hq/e4b_summary.csv` 中两个 `_stat` 行：`nonmu_max` 与 `nonmu_initial` 是否同量级（预期不增长）。
+   ✅ 已完成（2026-10-12/13，Claude 代师弟执行，墙钟 6.8 h，见 §6 运行记录与 §6.1 第三轮；
+   **p3_final #2（E5c hq assemble）代码 bug 致稳定性图 PNG 缺失，见 §6.1**）。
 
 **Claude（收到第三轮结果后）**：
 * C12：用延伸的圆盘通道谱定量检验三角形 m=2 的 L=−3/0 机理；小 Θ 线性律（C13）；

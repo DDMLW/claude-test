@@ -1,0 +1,5 @@
+
+===== E5_thermal_reconfiguration  tag=hq_hib  profile=hq  h=0.1 (large samples 0.15)  newton tol=1e-12  dz=0.01  2026-10-13 01:44:55 =====
+results -> /public/home/liuxiuye/nonlocal_modes/results/E5_thermal_reconfiguration/hq_hib
+raw data -> /public/home/liuxiuye/nonlocal_modes/data/E5_thermal_reconfiguration/hq_hib
+e5c_summary.csv: 5 runs; e5c_windows.csv: 5 windows; e5c_upper_edges.csv

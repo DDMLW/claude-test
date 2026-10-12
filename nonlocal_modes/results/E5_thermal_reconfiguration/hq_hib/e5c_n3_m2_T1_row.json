@@ -1,0 +1,21 @@
+{
+ "n": 3,
+ "m": 2,
+ "Theta": 1.0,
+ "R": 10.0,
+ "h": 0.1,
+ "b_min": 2.9000000000000004,
+ "b_max": 6.0,
+ "n_points": 36,
+ "stop_up": "reached end of range",
+ "stop_down": "reached end of range",
+ "thresholds": "3.3563-3.3625(unstable->stable)",
+ "windows": "2.900-3.356",
+ "max_P_outer": 0.0012120123489484647,
+ "window0_max_growth": 0.011749488910379226,
+ "window0_b_at_max": 2.9000000000000004,
+ "window0_lam_im_at_max": 0.6701185574256123,
+ "window0_L_at_max": -3,
+ "window0_kappa_at_max": 0,
+ "U_mark": 15.0
+}

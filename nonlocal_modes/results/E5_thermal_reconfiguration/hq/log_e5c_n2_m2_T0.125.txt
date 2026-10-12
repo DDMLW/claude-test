@@ -1,0 +1,46 @@
+
+===== E5_thermal_reconfiguration  tag=hq  profile=hq  h=0.1 (large samples 0.15)  newton tol=1e-12  dz=0.01  2026-10-12 19:03:55 =====
+results -> /public/home/liuxiuye/nonlocal_modes/results/E5_thermal_reconfiguration/hq
+raw data -> /public/home/liuxiuye/nonlocal_modes/data/E5_thermal_reconfiguration/hq
+
+e5c_n2_m2_T0.125: disk R=10, T_b = 0.125 cos(2 theta), m=2, b in [0.05, 3.0], db=0.05
+   disk_R10: grid 206x206, h=0.1, stencil=9, optical unknowns=31428, thermal unknowns=31428
+   family: 60 solutions, b in [0.050, 3.000]; up: reached end of range; down: reached end of range
+   b=0.100 U=3.036 growth=2.437e-02 Im=0.212 L=-2 kappa=0 P_outer=5.4e-01 [566s]
+   b=0.200 U=3.952 growth=1.355e-02 Im=0.232 L=-2 kappa=0 P_outer=4.5e-01 [611s]
+   b=0.300 U=4.755 growth=4.498e-03 Im=0.262 L=-2 kappa=0 P_outer=3.6e-01 [609s]
+   b=0.400 U=5.468 growth=1.497e-03 Im=0.293 L=-2 kappa=0 P_outer=2.8e-01 [626s]
+   b=0.500 U=6.123 growth=3.369e-08 Im=0.000 L= kappa= P_outer=2.2e-01 [610s]
+   b=0.600 U=6.739 growth=4.553e-09 Im=0.000 L= kappa= P_outer=1.7e-01 [605s]
+   b=0.700 U=7.327 growth=7.511e-08 Im=0.000 L= kappa= P_outer=1.3e-01 [606s]
+   b=0.800 U=7.892 growth=8.485e-08 Im=0.000 L= kappa= P_outer=1.0e-01 [621s]
+   b=0.900 U=8.438 growth=7.349e-08 Im=0.000 L= kappa= P_outer=8.1e-02 [614s]
+   b=1.000 U=8.970 growth=1.250e-07 Im=0.000 L= kappa= P_outer=6.4e-02 [618s]
+   b=1.100 U=9.488 growth=9.521e-08 Im=0.000 L= kappa= P_outer=5.1e-02 [608s]
+   b=1.200 U=9.995 growth=1.470e-07 Im=0.000 L= kappa= P_outer=4.0e-02 [602s]
+   b=1.300 U=10.491 growth=7.064e-08 Im=0.000 L= kappa= P_outer=3.2e-02 [596s]
+   b=1.400 U=10.978 growth=1.399e-07 Im=0.000 L= kappa= P_outer=2.5e-02 [611s]
+   b=1.500 U=11.458 growth=1.477e-07 Im=0.000 L= kappa= P_outer=2.0e-02 [602s]
+   b=1.600 U=11.929 growth=2.388e-07 Im=0.000 L= kappa= P_outer=1.6e-02 [598s]
+   b=1.700 U=12.394 growth=1.978e-07 Im=0.000 L= kappa= P_outer=1.3e-02 [600s]
+   b=1.800 U=12.852 growth=2.241e-07 Im=0.000 L= kappa= P_outer=1.1e-02 [594s]
+   b=1.900 U=13.304 growth=2.692e-07 Im=0.000 L= kappa= P_outer=8.6e-03 [566s]
+   b=2.000 U=13.751 growth=1.477e-07 Im=0.000 L= kappa= P_outer=6.9e-03 [562s]
+   b=2.100 U=14.193 growth=3.142e-07 Im=0.000 L= kappa= P_outer=5.6e-03 [573s]
+   b=2.200 U=14.630 growth=1.767e-07 Im=0.000 L= kappa= P_outer=4.6e-03 [569s]
+   b=2.300 U=15.062 growth=1.859e-07 Im=0.000 L= kappa= P_outer=3.8e-03 [563s]
+   b=2.400 U=15.490 growth=2.756e-07 Im=0.000 L= kappa= P_outer=3.1e-03 [566s]
+   b=2.500 U=15.914 growth=2.044e-07 Im=0.000 L= kappa= P_outer=2.5e-03 [563s]
+   b=2.600 U=16.335 growth=2.781e-07 Im=0.000 L= kappa= P_outer=2.1e-03 [571s]
+   b=2.700 U=16.752 growth=3.999e-07 Im=0.000 L= kappa= P_outer=1.7e-03 [586s]
+   b=2.800 U=17.165 growth=4.004e-07 Im=0.000 L= kappa= P_outer=1.4e-03 [582s]
+   b=2.900 U=17.575 growth=2.684e-07 Im=0.000 L= kappa= P_outer=1.2e-03 [563s]
+   b=3.000 U=17.982 growth=4.580e-07 Im=0.000 L= kappa= P_outer=9.6e-04 [578s]
+   bisect b=0.4500 growth=1.081e-08 L=
+   bisect b=0.4250 growth=4.523e-08 L=
+   bisect b=0.4125 growth=2.515e-08 L=
+   bisect b=0.4062 growth=8.234e-04 L=-2
+   U=15: b=2.2856 growth=1.687e-07 Im=0.000 L= P_outer=3.9e-03
+   thresholds: 0.4062-0.4125(unstable->stable); windows: 0.100-0.406
+
+E5c done.

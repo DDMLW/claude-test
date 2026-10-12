@@ -1,0 +1,6 @@
+n,m,Theta,R,h,b_min,b_max,n_points,stop_up,stop_down,thresholds,windows,max_P_outer,window0_max_growth,window0_b_at_max,window0_lam_im_at_max,window0_L_at_max,window0_kappa_at_max
+3,1,0.0,10.0,0.1,0.1,0.5,41,reached end of range,reached end of range,,,0.37209164087305047,,,,,
+3,1,0.02,10.0,0.1,0.1,0.5,49,reached end of range,reached end of range,0.1969-0.1975(stable->unstable);0.2725-0.2731(unstable->stable),0.198-0.273,0.3728825683197854,0.00299251748780378,0.22999999999999998,0.0697932861368289,-1,-1
+3,1,0.04,10.0,0.1,0.1,0.5,49,reached end of range,reached end of range,0.1594-0.1600(stable->unstable);0.3087-0.3094(unstable->stable),0.160-0.309,0.3752653006319322,0.006017570324097492,0.22999999999999998,0.06959839730527548,-1,-1
+3,1,0.08,10.0,0.1,0.1,0.5,45,reached end of range,reached end of range,0.3744-0.3750(unstable->stable),0.100-0.374,0.384944962515203,0.012135824961714023,0.2,0.0651987809861692,-1,-1
+3,1,0.16,10.0,0.1,0.1,0.5,45,reached end of range,reached end of range,0.4862-0.4869(unstable->stable),0.100-0.486,0.42597242404426217,0.023896301794688744,0.18,0.05942399305614421,-1,-1

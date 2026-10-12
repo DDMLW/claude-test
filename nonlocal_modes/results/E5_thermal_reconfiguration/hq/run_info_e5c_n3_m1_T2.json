@@ -1,12 +1,12 @@
 {
-  "time": "2026-10-12T09:53:54",
+  "time": "2026-10-12T19:03:55",
   "command": "E5_thermal_reconfiguration/e5c_heated_stability.py --hq --tag hq --cases 3:1 --thetas 2.0 --job e5c_n3_m1_T2",
   "git_commit": "unknown",
   "python": "3.12.6",
   "numpy": "2.0.2",
   "scipy": "1.15.1",
   "platform": "Linux-4.18.0-348.el8.x86_64-x86_64-with-glibc2.28",
-  "machine": "comput1",
+  "machine": "comput2",
   "args": {
     "tag": "hq",
     "quick": false,
@@ -23,6 +23,8 @@
     "R": 10.0,
     "b_range": null,
     "U_mark": 15.0,
+    "spec_step": null,
+    "omega": null,
     "table_only": false,
     "profile": "hq",
     "h_large": 0.15,

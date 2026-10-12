@@ -1,0 +1,31 @@
+
+===== E3_stability  tag=hq_hib  profile=hq  h=0.1 (large samples 0.15)  newton tol=1e-12  dz=0.01  2026-10-12 19:03:55 =====
+results -> /public/home/liuxiuye/nonlocal_modes/results/E3_stability/hq_hib
+raw data -> /public/home/liuxiuye/nonlocal_modes/data/E3_stability/hq_hib
+
+disk_R8: grid 166x166, h=0.1, stencil=9, optical unknowns=20108, thermal unknowns=20108
+e3b_disk_m2: b in [1.4, 3.4], db=0.05, spectra every 0.1
+   family: 41 solutions, b in [1.4000000000000004, 3.4000000000000004] 
+   channels b=1.40: 25 eigenvalues
+   channels b=1.50: 25 eigenvalues
+   channels b=1.60: 24 eigenvalues
+   channels b=1.70: 22 eigenvalues
+   channels b=1.80: 21 eigenvalues
+   channels b=1.90: 21 eigenvalues
+   channels b=2.00: 21 eigenvalues
+   channels b=2.10: 21 eigenvalues
+   channels b=2.20: 20 eigenvalues
+   channels b=2.30: 19 eigenvalues
+   channels b=2.40: 19 eigenvalues
+   channels b=2.50: 19 eigenvalues
+   channels b=2.60: 19 eigenvalues
+   channels b=2.70: 19 eigenvalues
+   channels b=2.80: 19 eigenvalues
+   channels b=2.90: 19 eigenvalues
+   channels b=3.00: 18 eigenvalues
+   channels b=3.10: 18 eigenvalues
+   channels b=3.20: 18 eigenvalues
+   channels b=3.30: 18 eigenvalues
+   channels b=3.40: 18 eigenvalues
+
+E3b done.

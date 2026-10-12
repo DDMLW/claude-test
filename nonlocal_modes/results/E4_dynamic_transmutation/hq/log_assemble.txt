@@ -9,3 +9,9 @@ results -> /public/home/liuxiuye/nonlocal_modes/results/E4_dynamic_transmutation
 raw data -> /public/home/liuxiuye/nonlocal_modes/data/E4_dynamic_transmutation/hq
 e4b_summary.csv: 14 runs
 seed scan poly4 m=3 U=20: gamma_seed=0.0589 gamma_fit=0.0449 linear=0.0781
+
+===== E4_dynamic_transmutation  tag=hq  profile=hq  h=0.1 (large samples 0.15)  newton tol=1e-12  dz=0.01  2026-10-13 01:44:55 =====
+results -> /public/home/liuxiuye/nonlocal_modes/results/E4_dynamic_transmutation/hq
+raw data -> /public/home/liuxiuye/nonlocal_modes/data/E4_dynamic_transmutation/hq
+e4b_summary.csv: 18 runs
+seed scan poly4 m=3 U=20: gamma_seed=0.0589 gamma_fit=0.0449 linear=0.0781

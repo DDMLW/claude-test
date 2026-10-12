@@ -5,11 +5,11 @@
  "R": 10.0,
  "h": 0.1,
  "b_min": 0.05,
- "b_max": 1.5,
- "n_points": 15,
+ "b_max": 3.0,
+ "n_points": 30,
  "stop_up": "reached end of range",
  "stop_down": "reached end of range",
  "thresholds": "",
  "windows": "",
- "max_P_outer": 0.37209164087305113
+ "max_P_outer": 0.3720916408730507
 }

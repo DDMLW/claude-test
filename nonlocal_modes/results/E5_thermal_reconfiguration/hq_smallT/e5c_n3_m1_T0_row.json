@@ -1,0 +1,15 @@
+{
+ "n": 3,
+ "m": 1,
+ "Theta": 0.0,
+ "R": 10.0,
+ "h": 0.1,
+ "b_min": 0.1,
+ "b_max": 0.5,
+ "n_points": 41,
+ "stop_up": "reached end of range",
+ "stop_down": "reached end of range",
+ "thresholds": "",
+ "windows": "",
+ "max_P_outer": 0.37209164087305047
+}

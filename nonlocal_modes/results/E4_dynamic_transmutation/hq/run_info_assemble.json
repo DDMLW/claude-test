@@ -1,12 +1,12 @@
 {
-  "time": "2026-10-12T17:32:55",
+  "time": "2026-10-13T01:44:55",
   "command": "E4_dynamic_transmutation/e4b_stable_launch.py --hq --tag hq --table_only --job assemble",
   "git_commit": "unknown",
   "python": "3.12.6",
   "numpy": "2.0.2",
   "scipy": "1.15.1",
   "platform": "Linux-4.18.0-348.el8.x86_64-x86_64-with-glibc2.28",
-  "machine": "comput2",
+  "machine": "comput4",
   "args": {
     "tag": "hq",
     "quick": false,
