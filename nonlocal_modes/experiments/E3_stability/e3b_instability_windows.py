@@ -42,12 +42,13 @@ import sys
 import numpy as np
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from common import build_sample, finalize_args, pick, robust_family, sample_h, standard_args  # noqa: E402
+from common import (build_sample, finalize_args, pick, rect_state_via_square, robust_family,  # noqa: E402
+                    sample_h, standard_args, transfer_solution)
 from stability_tools import (TOL, bisect_thresholds, low_power_shifts, plot_mode, spectrum_point,  # noqa: E402
                              windows_and_thresholds)
 
 from nlmodes import diagnostics as dg  # noqa: E402
-from nlmodes import guesses, io_utils, plotting, propagate, stability  # noqa: E402
+from nlmodes import guesses, io_utils, newton, plotting, propagate, stability  # noqa: E402
 from nlmodes.geometry import polygon_sample  # noqa: E402
 from nlmodes.model import NonlocalModel  # noqa: E402
 
@@ -62,6 +63,37 @@ B_HI = {("poly3", 2): 5.0, ("poly4", 2): 1.6}          # 其余情形默认 1.4 
 def parse_case(c):
     kind, m = c.split(":")
     return kind, int(m)
+
+
+def build_family(M, kind, m, b_lo, b_hi, db, h):
+    """
+    扫描区间 [b_lo, b_hi] 内的解族。依次尝试:
+      1) 在区间内起步 (b_start = min(3 + m/4, b_hi), 与 E2a 相同);
+      2) 区间上端太低时 LG 初值常不收敛 (例如 20x40 矩形 m=2 在 b=1.4): 改在 b = 3 + m/4 起步再向下延拓, 只保留 b <= b_hi;
+      3) 矩形: 与 E2a 相同, 先在正方形中求 b=5 的态, 沿宽度收缩到 20x40, 再沿 b 向下延拓。
+    返回 (按 b 升序的解列表, info)。
+    """
+    shape = lambda W: guesses.lg_vortex(M, m, W)              # noqa: E731
+    b_ref = 3.0 + 0.25 * m
+    sols, info = robust_family(M, shape, b_lo, b_hi, db=db, b_start=min(b_ref, b_hi), verbose=False, align_db=True)
+    if sols:
+        return sols, info
+    if b_ref > b_hi:
+        sols, info = robust_family(M, shape, b_lo, b_ref, db=db, b_start=b_ref, verbose=False, align_db=True)
+        sols = [s for s in sols if s["b"] <= b_hi + 1e-9]
+        if sols:
+            info.update(note=f"family started at b={b_ref:g} above the scan range")
+            return sols, info
+    if kind == "rect":
+        Mr, s5 = rect_state_via_square(h, m, 5.0, verbose=False)
+        if s5 is not None:
+            w5 = transfer_solution(Mr, s5["w"], M)
+            dn, info_dn = newton.continuation(M, w5, 5.0, b_lo, -db, verbose=False)
+            sols = sorted([s for s in dn if s["b"] <= b_hi + 1e-9], key=lambda x: x["b"])
+            if sols:
+                return sols, dict(stop_up="", stop_down=info_dn["stop_reason"], b_min=sols[0]["b"],
+                                  b_max=sols[-1]["b"], note="aspect-ratio continuation from the square at b=5")
+    return [], info
 
 
 def evolve_unstable(M, s, mode, row, nsym, args, out, name):
@@ -175,9 +207,9 @@ def main():
         M = NonlocalModel(sample)
         b_lo, b_hi = args.b_range or (0.05 if not args.quick else 0.2, B_HI.get((kind, m), 1.4))
         print(f"\n{M.describe()}\n{name}: b in [{b_lo}, {b_hi}], db={db}, spectra every {spec_step}", flush=True)
-        sols, info = robust_family(M, lambda W: guesses.lg_vortex(M, m, W), b_lo, b_hi, db=db,
-                                   b_start=min(3.0 + 0.25 * m, b_hi), verbose=False, align_db=True)
-        print(f"   family: {len(sols)} solutions, b in [{info.get('b_min')}, {info.get('b_max')}]", flush=True)
+        sols, info = build_family(M, kind, m, b_lo, b_hi, db, sample_h(args, kind))
+        print(f"   family: {len(sols)} solutions, b in [{sols[0]['b'] if sols else None}, "
+              f"{sols[-1]['b'] if sols else None}] {info.get('note', '')}", flush=True)
         if not sols:
             continue
         if args.channels:

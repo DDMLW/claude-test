@@ -14,8 +14,9 @@
 #     SBATCH=yhbatch                       天河等使用 yhbatch 的系统
 # 例:  SBATCH_EXTRA="-p normal" MAXPAR=50 bash hpc/submit_slurm.sh
 #
-# 第二轮 (python hpc/make_jobs.py --phase 2 之后):
+# 第二轮 / 第三轮 (python hpc/make_jobs.py --phase 2 或 3 之后):
 #     bash hpc/submit_slurm.sh p2          p2_main (全部独立) ──> p2_final (汇总表)
+#     bash hpc/submit_slurm.sh p3          p3_main ──> p3_final
 # ============================================================================
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -36,14 +37,15 @@ submit () {   # submit <list-file> [dependency-spec, 例如 afterany:123:456]
     echo "${jid%%;*}"
 }
 
-if [ "${1:-}" = "p2" ]; then
-    for k in p2_main p2_final; do
-        [ -f "hpc/jobs/$k.txt" ] || { echo "hpc/jobs/$k.txt missing: run python hpc/make_jobs.py --phase 2 first"; exit 1; }
+if [ "${1:-}" = "p2" ] || [ "${1:-}" = "p3" ]; then
+    P=$1; N=${P#p}
+    for k in ${P}_main ${P}_final; do
+        [ -f "hpc/jobs/$k.txt" ] || { echo "hpc/jobs/$k.txt missing: run python hpc/make_jobs.py --phase $N first"; exit 1; }
     done
-    JM=$(submit hpc/jobs/p2_main.txt)
-    JF=$(submit hpc/jobs/p2_final.txt "afterany:$JM")
-    echo "submitted: p2_main=$JM  p2_final=$JF (after p2_main)"
-    echo "$(date '+%F %T') p2_main=$JM p2_final=$JF" >> hpc/logs/submitted.txt
+    JM=$(submit hpc/jobs/${P}_main.txt)
+    JF=$(submit hpc/jobs/${P}_final.txt "afterany:$JM")
+    echo "submitted: ${P}_main=$JM  ${P}_final=$JF (after ${P}_main)"
+    echo "$(date '+%F %T') ${P}_main=$JM ${P}_final=$JF" >> hpc/logs/submitted.txt
     echo "monitor:  squeue -u \$USER      progress:  python hpc/status.py"
     exit 0
 fi

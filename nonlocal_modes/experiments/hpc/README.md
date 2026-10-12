@@ -168,3 +168,25 @@ results/E5_thermal_reconfiguration/hq/   新增 e5c_*
 results/E4_dynamic_transmutation/hq/     新增 e4b_*            results/E4_dynamic_transmutation/hq_coarse/, hq_h005/
 ```
 并把 `python hpc/status.py` 的输出与总耗时贴进 Progress.md 第 6 节的运行记录。
+
+## 8. 第三轮（phase 3，2026-10-12）：补漏 + 新实验
+第二轮的分析与第三轮的理由见 `Progress.md` §6.1“Claude 分析（第二轮）”与 §8。共 **34 个计算任务 + 5 个汇总任务**，全部互相独立：
+```bash
+cd nonlocal_modes/experiments
+git pull && python -m pytest -q ../tests        # 应为 29 passed
+python hpc/make_jobs.py --phase 3                # 生成 hpc/jobs/p3_main.txt (34) 与 p3_final.txt (5)
+bash hpc/submit_slurm.sh p3                      # PBS: qsub -J 1-34 -v LIST=hpc/jobs/p3_main.txt hpc/pbs_array.sh, 结束后 1-5 的 p3_final
+python hpc/status.py
+```
+| 任务 | 数量 | 内容 | 单核耗时（估） |
+|---|---|---|---|
+| E5c C_3 加热高 b 端（`hq_hib`） | 5 | (3:2)，Θ=1–3，b=2.9–6.0 | 4–6 h |
+| E5c 四极加热（`hq`） | 8 | (2:2)，Θ=0–1 | 3–7 h |
+| E5c (3:1) 重跑（`hq`） | 8 | b 范围扩到 3.0（第二轮 Θ=3 无数据） | 3–7 h |
+| E3b | 2 | rect:2 重跑（解族起步修正）；圆盘 m=2 通道谱 b=1.4–3.4（`hq_hib`） | 2–5 h |
+| E5c 小 Θ 线性律（`hq_smallT`） | 5 | (3:1)，Θ=0–0.16，b=0.1–0.5、间隔 0.01 | 2–3 h |
+| E5b 四极加热双涡旋 | 2 | Θ=0.5、1，关断/慢转/快转，ξ 到 600 | 1–2 h |
+| E4b | 4 | 定态发射对照 2 个；四极加热中的 LG 发射 2 个 | 1–2 h |
+
+**上传**：`results/E3_stability/{hq,hq_hib}`、`results/E5_thermal_reconfiguration/{hq,hq_hib,hq_smallT}`、`results/E4_dynamic_transmutation/hq`
+中新增或更新的文件（(3:1) 的 `e5c_n3_m1_*` 会被重跑覆盖，这是预期的），并在 Progress.md §6 记录运行情况。

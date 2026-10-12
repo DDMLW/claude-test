@@ -16,10 +16,15 @@ make_jobs.py —— 生成超算批量任务清单 (每行一条独立命令, �
                 E4b 稳定区/种子扫描/加热样品发射 (14 个 run + 2 个网格对照)
   p2_final.txt  依赖 p2_main: 各 tag 的汇总表 (--table_only)
   第二轮不重算第一轮的任何东西, 也不覆盖第一轮的清单与状态文件 (status_stage1.tsv 等)。
+第三轮 (--phase 3, 第二轮结果分析后的补漏与新实验, 见 Progress.md §8) 写 p3_main.txt / p3_final.txt:
+  补漏: E3b rect:2 (解族起步修正后重跑)、E5c (3:1) 全部 Theta (b 范围扩到 3.0);
+  新实验: 圆盘 m=2 通道谱延伸到 b=3.4 (检验三角形宽窗口的 Krein 机理)、E5c 四极加热 (2:2) 与 C_3 加热高 b 端、
+         小 Theta 线性律检验 (3:1, Theta=0.02-0.16)、E5b 四极加热双涡旋的关断/旋转、E4b 定态发射对照与四极加热发射。
 
 用法 (在 nonlocal_modes/experiments 目录下):
   python hpc/make_jobs.py                       # 默认 --profile hq (论文数据)
   python hpc/make_jobs.py --phase 2             # 第二轮: 生成 p2_main.txt / p2_final.txt
+  python hpc/make_jobs.py --phase 3             # 第三轮: 生成 p3_main.txt / p3_final.txt
   python hpc/make_jobs.py --profile main        # 普通精度
   python hpc/make_jobs.py --python /path/to/envs/nl/bin/python   # 指定 Python 解释器
   python hpc/make_jobs.py --no_convergence      # 不做粗网格对照
@@ -66,8 +71,9 @@ def main():
     p.add_argument("--python", default="python", help="Python 解释器 (默认 python)")
     p.add_argument("--no_convergence", action="store_true", help="不生成粗网格对照任务")
     p.add_argument("--coarse_factor", type=float, default=1.5, help="对照网格 = 本档网格 x 此因子 (默认 1.5)")
-    p.add_argument("--phase", type=int, choices=[1, 2], default=1,
-                   help="1: 第一轮全部实验 (stage1/stage2/indep/final); 2: 第二轮补充实验 (p2_main/p2_final)")
+    p.add_argument("--phase", type=int, choices=[1, 2, 3], default=1,
+                   help="1: 第一轮全部实验 (stage1/stage2/indep/final); 2: 第二轮 (p2_main/p2_final); "
+                        "3: 第三轮 (p3_main/p3_final)")
     a = p.parse_args()
     tag = a.tag or a.profile
     coarse = f"{tag}_coarse"
@@ -78,10 +84,12 @@ def main():
         parts = [py, script] + ([flag] if flag else []) + ["--tag", t] + [str(x) for x in extra]
         return " ".join(parts)
 
-    if a.phase == 2:
-        write_lists(phase2_lists(cmd, tag, py), ("p2_main", "p2_final"))
-        print(f"\nphase 2, profile={a.profile}, tag={tag}")
-        print("next: bash hpc/submit_slurm.sh p2   (SLURM)   or   python hpc/run_local.py -n <cores> --phase 2")
+    if a.phase in (2, 3):
+        lists = phase2_lists(cmd, tag, py) if a.phase == 2 else phase3_lists(cmd, tag)
+        write_lists(lists, tuple(lists))
+        print(f"\nphase {a.phase}, profile={a.profile}, tag={tag}")
+        print(f"next: bash hpc/submit_slurm.sh p{a.phase}   (SLURM)   or   "
+              f"python hpc/run_local.py -n <cores> --phase {a.phase}")
         return
     cf = ["--h_scale", a.coarse_factor]
     lists = {"stage1": [], "stage2": [], "indep": [], "final": []}
@@ -184,6 +192,47 @@ def phase2_lists(cmd, tag, py):
     for t in sorted(e4b_tags):
         fin.append(cmd(e4b, "--table_only", "--job", "assemble", t=t))
     return {"p2_main": main, "p2_final": fin}
+
+
+def phase3_lists(cmd, tag):
+    """第三轮: p3_main (全部独立, 慢的在前) 与 p3_final (汇总)。"""
+    main, fin = [], []
+    e3b, e5c, e5b, e4b = ("E3_stability/e3b_instability_windows.py", "E5_thermal_reconfiguration/e5c_heated_stability.py",
+                          "E5_thermal_reconfiguration/e5b_dynamic_control.py",
+                          "E4_dynamic_transmutation/e4b_stable_launch.py")
+    hib, small = f"{tag}_hib", f"{tag}_smallT"
+    # E5c C_3 加热 m=2 的高 b 端: 第二轮 Theta>=1 时失稳区一直延伸到扫描上端 b=3.0, 找上端 b_up(Theta) 与稳定的加热态
+    for T in (1.0, 1.5, 2.0, 2.5, 3.0):
+        main.append(cmd(e5c, "--cases", "3:2", "--thetas", T, "--b_range", 2.9, 6.0, "--job", f"e5c_n3_m2_T{T:g}_hib",
+                        t=hib))
+    # E5c 四极加热 (双涡旋, 云端 h=0.2 检查: Theta=0.25、1 在 U=15 附近稳定) 与 (3:1) 重跑 (b 范围扩到 3.0)
+    for case, thetas in (("2:2", (0.0, 0.03, 0.06, 0.125, 0.25, 0.5, 0.75, 1.0)),
+                         ("3:1", (0.0, 0.25, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0))):
+        n, m = case.split(":")
+        for T in thetas:
+            main.append(cmd(e5c, "--cases", case, "--thetas", T, "--job", f"e5c_n{n}_m{m}_T{T:g}"))
+    # E3b: rect:2 重跑 (解族起步修正); 圆盘 m=2 通道谱延伸到 b=3.4 (另一个 tag, 不覆盖 b<=1.35 的结果)
+    main.append(cmd(e3b, "--cases", "rect:2", "--job", "rect_m2"))
+    main.append(cmd(e3b, "--cases", "disk:2", "--channels", "--b_range", 1.4, 3.4, "--job", "disk_m2_channels",
+                    t=hib))
+    # 小 Theta 线性律: C_3 加热 m=1, 圆盘通道 L=-2 与 +1 的交叉点 b≈0.26 (R=10) 附近, 细 b 网格 + 只扫失稳模的频段
+    for T in (0.0, 0.02, 0.04, 0.08, 0.16):
+        main.append(cmd(e5c, "--cases", "3:1", "--thetas", T, "--b_range", 0.1, 0.5, "--spec_step", 0.01,
+                        "--omega", 0.02, 0.2, "--job", f"e5c_n3_m1_T{T:g}_small", t=small))
+    # E5b: 四极加热双涡旋的关断/旋转 (U=15)
+    for T in (0.5, 1.0):
+        main.append(cmd(e5b, "--n", 2, "--Theta", T, "--job", f"e5b_n2_T{T:g}"))
+    # E4b: 定态发射对照 (第二轮 A 组慢增长的来源) 与四极加热中的 LG 发射 (动态形成双涡旋)
+    for case in ("poly3:2:25:0:stat", "poly3:2:25:1e-6:stat"):
+        main.append(cmd(e4b, "--cases", case, "--job", "e4b_" + case.replace(":", "_")))
+    for case in ("heat2:2:15", "heat2:2:15:1e-2"):
+        main.append(cmd(e4b, "--cases", case, "--Theta", 0.5, "--job", "e4b_" + case.replace(":", "_")))
+    # 汇总
+    fin.append(cmd(e3b, "--table_only", "--job", "assemble"))
+    for t in (tag, hib, small):
+        fin.append(cmd(e5c, "--table_only", "--job", "assemble", t=t))
+    fin.append(cmd(e4b, "--table_only", "--job", "assemble"))
+    return {"p3_main": main, "p3_final": fin}
 
 
 if __name__ == "__main__":

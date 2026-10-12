@@ -58,12 +58,14 @@ import matplotlib.pyplot as plt  # noqa: E402
 import matplotlib.ticker  # noqa: E402
 from matplotlib.colors import LogNorm  # noqa: E402
 
-ALL_CASES = ["3:2", "3:1", "4:2"]
-B_RANGE = {1: (0.05, 1.5), 2: (0.05, 3.0)}      # R=10 时的 b 范围 (约为 E3 rho=8 范围乘 0.64)
-B_START = {1: 1.5, 2: 2.5}                      # 沿 Theta 延拓所在的 b (取范围上端: 光束窄、离边界远, 与边缘热点模式杂化所需的 Theta 最大)
+ALL_CASES = ["3:2", "3:1", "4:2", "2:2"]
+# R=10 时的 b 范围。m=1 原为 0.05-1.5: 加热解族只在 b > b_min(Theta) 存在 (Theta=2.5 时 1.28),
+# Theta=3 时 b_min > 1.5, 延拓无处可落 (第二轮 (3:1, Theta=3) 无数据) -> 2026-10-12 改为 0.05-3.0
+B_RANGE = {1: (0.05, 3.0), 2: (0.05, 3.0)}
+B_START = 2.5                                   # 沿 Theta 延拓所在的 b (取较高的 b: 光束窄、离边界远, 与边缘热点模式杂化所需的 Theta 最大)
 THETA_STEP = 0.5                                # 沿 Theta 延拓的最大步长
 # 图中情形的固定配色/标记 (与 analysis/style.py 的调色板同一顺序, 已做色盲校验)
-CASE_STYLE = {"3:2": ("#2a78d6", "o"), "3:1": ("#eb6834", "s"), "4:2": ("#1baf7a", "^")}
+CASE_STYLE = {"3:2": ("#2a78d6", "o"), "3:1": ("#eb6834", "s"), "4:2": ("#1baf7a", "^"), "2:2": ("#eda100", "D")}
 
 
 def theta_list(args):
@@ -77,7 +79,7 @@ def run_name(n, m, T):
 
 def family_at_theta(args, n, m, T, b_lo, b_hi, db, R):
     """Theta 下的解族: b_start 处求圆盘解 -> 固定 b 沿 Theta 延拓 -> 沿 b 上下延拓。返回 (模型, 解列表, 信息)。"""
-    b0 = round(float(np.clip(B_START[m], b_lo, b_hi)) / db) * db
+    b0 = round(float(np.clip(B_START, b_lo, b_hi)) / db) * db
     M0 = heated_disk(R, args.h, n, 0.0)
     s0 = initial_solution(M0, lambda W: guesses.lg_vortex(M0, m, W), [b0], verbose=False)
     if s0 is None:
@@ -181,11 +183,21 @@ def assemble(out):
                               max_growth=top["growth"], b_at_max=top["b"], lam_im_at_max=top["lam_im"],
                               L_at_max=top["L"], kappa_at_max=top["kappa"], induced=induced, hybrid=hyb))
     io_utils.write_csv(os.path.join(out, "e5c_windows.csv"), wrows)
-    print(f"e5c_summary.csv: {len(summ)} runs; e5c_windows.csv: {len(wrows)} windows")
-    plot_map(out, summ, spectra, wrows)
+    # 每个 (n, m, Theta): 最高的失稳窗口上端 b_up (碰到扫描上端时 b_up_is_bound=True, 真实上端更高)
+    edges = []
+    for (n, m, T), rows in sorted(spectra.items()):
+        wins = windows_and_thresholds(rows)[0]
+        if not wins:
+            edges.append(dict(n=n, m=m, Theta=T, b_up="", b_up_is_bound=False, b_min=rows[0]["b"]))
+            continue
+        lo, hi, _, at_hi = window_edges(rows, wins[-1])
+        edges.append(dict(n=n, m=m, Theta=T, b_up=hi, b_up_is_bound=at_hi, b_min=rows[0]["b"]))
+    io_utils.write_csv(os.path.join(out, "e5c_upper_edges.csv"), edges)
+    print(f"e5c_summary.csv: {len(summ)} runs; e5c_windows.csv: {len(wrows)} windows; e5c_upper_edges.csv")
+    plot_map(out, summ, spectra, edges)
 
 
-def plot_map(out, summ, spectra, wrows):
+def plot_map(out, summ, spectra, edges):
     cases = [c for c in ALL_CASES if any((n, m) == tuple(map(int, c.split(":"))) for n, m, _ in spectra)]
     if not cases:
         return
@@ -227,28 +239,36 @@ def plot_map(out, summ, spectra, wrows):
     if sc is not None:
         cb = fig.colorbar(sc, ax=map_axes, shrink=0.9, pad=0.01)
         cb.set_label("growth rate max Re(lambda)\n(squares: unstable, grey: stable)")
-    ind = [w for w in wrows if w["induced"] is True and w["Theta"] > 0]
-    for j, (key, lab) in enumerate((("max_growth", "max growth rate in the window"), ("width", "window width in b"))):
-        ax = fig.add_subplot(gs[1, j])
-        for c in cases:
-            n, m = map(int, c.split(":"))
-            col, mk = CASE_STYLE.get(c, ("#6250d6", "D"))
-            sel = sorted((w for w in ind if (w["n"], w["m"]) == (n, m)), key=lambda w: w["Theta"])
-            if sel:
-                ax.loglog([w["Theta"] for w in sel], [w[key] for w in sel], mk, ls="none", color=col, ms=6,
-                          label=f"C{n} heating, m={m}")
-        if ind:
-            T_ = np.array([0.2, 3.5])
-            y0 = np.median([w[key] / w["Theta"] for w in ind])
-            ax.loglog(T_, y0 * T_, "-", color="#52514e", lw=1.0, label="slope 1 (Hamilton-Hopf)")
-            ax.legend(loc="upper left", fontsize=7)
-        ax.set_xlim(0.2, 3.5)
-        ax.set_xticks([0.25, 0.5, 1, 2, 3])
-        ax.set_xticklabels(["0.25", "0.5", "1", "2", "3"])
-        ax.xaxis.set_minor_formatter(matplotlib.ticker.NullFormatter())
-        ax.set_xlabel("boundary heating Theta")
-        ax.set_ylabel(lab)
-        ax.set_title(f"({'de'[j]}) heating-induced windows", loc="left", fontsize=9)
+    # 下排: (d) 失稳区上端 b_up vs Theta (空心 = 碰到扫描上端, 真实值更高); (e) U_mark 处的增长率 vs Theta
+    ax = fig.add_subplot(gs[1, 0])
+    for c in cases:
+        n, m = map(int, c.split(":"))
+        col, mk = CASE_STYLE.get(c, ("#6250d6", "X"))
+        sel = sorted((e for e in edges if (e["n"], e["m"]) == (n, m) and e["b_up"] != ""), key=lambda e: e["Theta"])
+        if sel:
+            ax.plot([e["Theta"] for e in sel], [e["b_up"] for e in sel], "-", color=col, lw=1.2,
+                    label=f"C{n} heating, m={m}")
+            for e in sel:
+                ax.plot(e["Theta"], e["b_up"], mk, ms=6, color=col, mfc="none" if e["b_up_is_bound"] else col)
+    ax.set_xlabel("boundary heating Theta")
+    ax.set_ylabel("upper edge of the unstable region  b_up")
+    ax.set_title("(d) instability region vs heating (open: beyond scan range)", loc="left", fontsize=9)
+    ax.legend(loc="upper left", fontsize=7)
+    ax = fig.add_subplot(gs[1, 1])
+    for c in cases:
+        n, m = map(int, c.split(":"))
+        col, mk = CASE_STYLE.get(c, ("#6250d6", "X"))
+        sel = sorted((r for r in summ if (r["n"], r["m"]) == (n, m) and r.get("growth_at_U_mark", "") not in ("", None)),
+                     key=lambda r: r["Theta"])
+        if sel:
+            ax.plot([r["Theta"] for r in sel], [max(float(r["growth_at_U_mark"]), 1e-7) for r in sel], "-", color=col,
+                    marker=mk, ms=6, lw=1.2, label=f"C{n} heating, m={m}")
+    ax.set_yscale("log")
+    ax.axhline(TOL, color="#52514e", lw=0.8)
+    ax.set_xlabel("boundary heating Theta")
+    ax.set_ylabel(f"growth rate at U = {summ[0].get('U_mark', 15):g}")
+    ax.set_title("(e) stability of the state used in E5b (fixed power)", loc="left", fontsize=9)
+    ax.legend(loc="upper left", fontsize=7)
     fig.savefig(os.path.join(out, "e5c_stability_map.png"), dpi=150)
     plt.close(fig)
 
@@ -261,6 +281,9 @@ def main():
     p.add_argument("--R", type=float, default=10.0, help="圆盘半径 (与 E5a/E5b 相同)")
     p.add_argument("--b_range", nargs=2, type=float, default=None, help="只算这个 b 区间 (阈值附近加密复核用)")
     p.add_argument("--U_mark", type=float, default=15.0, help="m=2 时另在此固定能流处算谱 (E5b 起点; <=0 关闭)")
+    p.add_argument("--spec_step", type=float, default=None, help="每隔多少 b 算一次谱 (默认 quick 0.2 / main 0.1 / hq 0.1)")
+    p.add_argument("--omega", nargs=2, type=float, default=None,
+                   help="只在 Im(lambda) 的这个区间内扫 shift (间隔 0.025), 用于已知失稳模频率的加密扫描 (小 Theta 线性律检验)")
     p.add_argument("--table_only", action="store_true", help="不计算, 只由分文件重建 e5c_summary/windows 与总图")
     args = finalize_args(p, "E5_thermal_reconfiguration")
     out = args.res_dir
@@ -271,8 +294,11 @@ def main():
     cases = [tuple(map(int, c.split(":"))) for c in (args.cases or (["3:2"] if args.quick else ALL_CASES))]
     thetas = args.thetas if args.thetas is not None else theta_list(args)
     db = pick(args, quick=0.2, main=0.1, hq=0.05)
-    spec_step = pick(args, quick=0.2, main=0.1, hq=0.1)
-    shifts = low_power_shifts(args)
+    if args.spec_step is not None:
+        db = min(db, args.spec_step)            # 谱点必须落在解族的 b 网格上
+    spec_step = args.spec_step or pick(args, quick=0.2, main=0.1, hq=0.1)
+    shifts = (low_power_shifts(args) if args.omega is None else
+              [0.02 + 1j * w for w in np.arange(args.omega[0], args.omega[1] + 1e-9, 0.025)])
     kk = pick(args, quick=10, main=14, hq=18)
     n_bisect = pick(args, quick=1, main=3, hq=4)
     for n, m in cases:

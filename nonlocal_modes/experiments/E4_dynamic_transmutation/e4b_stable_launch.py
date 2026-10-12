@@ -38,8 +38,10 @@ E4b —— 动态嬗变 (二): 稳定区发射、种子扫描、加热样品发�
   python e4b_stable_launch.py --cases poly3:2:25 --job p3m2U25          (一个 run; 超算按此拆分, hq 约 1-3 h)
   python e4b_stable_launch.py --cases poly4:3:20:1e-6 --job p4m3U20n6
   python e4b_stable_launch.py --table_only
-情形写法: 样品:m:U[:噪声方差], 样品为 poly<n> (保角半径 --rho)、disk (半径 --rho)、heat<n> (C_n 加热圆盘, 半径 --R,
-幅度 --Theta)。
+情形写法: 样品:m:U[:噪声方差[:stat]], 样品为 poly<n> (保角半径 --rho)、disk (半径 --rho)、heat<n> (C_n 加热圆盘, 半径 --R,
+幅度 --Theta)。末尾加 :stat 表示不发射 LG 光束, 而是发射同功率的定态本身 (加噪声) —— 对照组: 定态线性稳定时非 mu 权重
+应保持有界; 若 LG 发射出现慢增长而定态发射没有, 说明慢增长来自 LG 光束的呼吸 (参数共振), 而不是定态的不稳定性
+(第二轮 A 组 U=25/30 的 gamma≈0.003, 两套网格一致, 而该处定态线性稳定, 见 Progress.md §6.1)。
 """
 
 import glob
@@ -77,11 +79,15 @@ def parse_case(c):
     parts = c.split(":")
     kind, m, U = parts[0], int(parts[1]), float(parts[2])
     noise = float(parts[3]) if len(parts) > 3 else 0.0
-    return kind, m, U, noise
+    launch = parts[4] if len(parts) > 4 else "lg"
+    if launch not in ("lg", "stat"):
+        raise ValueError(f"launch must be lg or stat: {c}")
+    return kind, m, U, noise, launch
 
 
-def run_name(kind, m, U, noise):
-    return f"e4b_{kind}_m{m}_U{U:g}" + (f"_noise{noise:g}" if noise > 0 else "")
+def run_name(kind, m, U, noise, launch="lg"):
+    return (f"e4b_{kind}_m{m}_U{U:g}" + (f"_noise{noise:g}" if noise > 0 else "")
+            + ("_stat" if launch == "stat" else ""))
 
 
 def build_model(args, kind, h):
@@ -225,15 +231,15 @@ def timeseries_plot(ts, row, fname, title):
     plt.close(fig)
 
 
-def one_run(args, kind, m, U, noise, out):
-    name = run_name(kind, m, U, noise)
+def one_run(args, kind, m, U, noise, launch, out):
+    name = run_name(kind, m, U, noise, launch)
     h = args.h
     M, nsym, theta_builder = build_model(args, kind, h)
     n_irr = nsym or 4
     v = theory.selection_rule(m, nsym)["central"] if nsym else m
     print(f"\n{name}: {M.describe()}\n   predicted central charge {v}", flush=True)
     s = stationary_state(args, kind, M, m, U, theta_builder)
-    row = dict(run=name, sample=kind, n=nsym or 0, m=m, U=U, noise=noise, h=M.h, dz=args.dz,
+    row = dict(run=name, sample=kind, n=nsym or 0, m=m, U=U, noise=noise, launch=launch, h=M.h, dz=args.dz,
                Theta=args.Theta if theta_builder else 0.0, central_pred=v)
     if s is not None:
         st = dg.mode_summary(M, s, nsym=nsym, m=m)
@@ -247,7 +253,12 @@ def one_run(args, kind, m, U, noise, out):
         row.update(b_stationary=np.nan, r_s_stationary=np.nan, ring_stationary=np.nan)
         print("   WARNING: no stationary reference; LG width 2.0", flush=True)
     w0 = ring * np.sqrt(2.0 / abs(m))
-    q0 = guesses.lg_vortex(M, m, w0)
+    if launch == "stat":
+        if s is None:
+            raise SystemExit("stationary launch requested but the stationary state was not found")
+        q0 = s["w"].copy()
+    else:
+        q0 = guesses.lg_vortex(M, m, w0)
     q0 *= np.sqrt(U / M.power(q0))
     if noise > 0:
         q0 = propagate.add_noise(q0, noise, seed=11)
@@ -293,7 +304,8 @@ def one_run(args, kind, m, U, noise, out):
           f"r_s plateau={row.get('r_s_plateau', float('nan')):.4f} (stationary {row['r_s_stationary']:.4f}) "
           f"xi_b={zb:.1f} xi_10x={z10:.1f} gamma_fit={gam:.4f} nonmu {wn[0]:.1e}->{wn.max():.1e} "
           f"power drift {row['power_drift']:.1e}", flush=True)
-    title = f"{name}: LG m={m} (w0={w0:.2f}) into {kind}, U={U:g}" + (f", noise {noise:g}" if noise else "")
+    title = (f"{name}: " + (f"stationary state m={m}" if launch == "stat" else f"LG m={m} (w0={w0:.2f})")
+             + f" into {kind}, U={U:g}" + (f", noise {noise:g}" if noise else ""))
     timeseries_plot(ts, row, os.path.join(out, name + "_timeseries.png"), title)
     plotting.plot_snapshots(M, res["snapshots"], os.path.join(out, name + "_snapshots.png"), zoom=2 * ring + 1.5,
                             title=title, show_phase=True)
@@ -344,12 +356,12 @@ def assemble(out):
     # 种子扫描: 同一 (样品, m, U, h) 的 xi_scan (非 mu 权重首次 > 1e-2) vs ln(噪声)
     groups = {}
     for r in rows:
-        groups.setdefault((r["sample"], r["m"], r["U"], r["h"]), []).append(r)
+        groups.setdefault((r["sample"], r["m"], r["U"], r["h"], r.get("launch", "lg")), []).append(r)
     scan_rows = []
     fig, ax = plt.subplots(figsize=(5.2, 3.8))
     styles = [("#2a78d6", "o"), ("#eb6834", "s"), ("#1baf7a", "^"), ("#eda100", "D")]
     k = 0
-    for (kind, m, U, h), rs in sorted(groups.items()):
+    for (kind, m, U, h, launch), rs in sorted(groups.items()):
         base = [r for r in rs if r["noise"] == 0]
         xb0 = base[0].get("xi_scan", float("nan")) if base else float("nan")
         pts = sorted([(r["noise"], r["xi_scan"]) for r in rs
