@@ -11,7 +11,8 @@ E5e —— 旋转坐标系中的双涡旋: 与旋转加热图样同步转动的�
     (一阶 / 二阶共振), 谱图上可以直接看到哪一支模的碰撞造成失稳 (包括反向旋转时的失稳)。
 做法: 半径 R 的圆盘, 边界温度 Theta cos(n theta) (与 E5b/E5d 相同), 固定能流 U; 先沿 Theta 延拓 (Omega=0), 再沿 Omega
 正、反两个方向延拓 (割线预测, 失败时步长减半, 连续失败即判为折返); 每隔 --spec_every 个 Omega 点求 Im(lambda) ∈ [0, --wmax]
-的低频本征值 (3 个 shift x 16 个, 与 E5d 的 11 x 10 结果相同、快 3 倍), 并在稳定性改变的相邻两点之间补算全部中间点
+的低频本征值 (原点附近 1 个 + 等距 3 个 shift, 每个 16 个本征值; 与 E5d 的 11 x 10 结果相同、快约 2.5 倍),
+并在稳定性改变的相邻两点之间补算全部中间点
 (边界分辨率 = Omega 步长)。
 共振与双稳: 某个被加热驱动的模 (kappa=0) 的旋转系频率 omega_L - L Omega 过零时受迫响应发散; 非线性使响应曲线弯成 S 形
 (Duffing 型), 同相支在共振前折返 (hq: Theta=0.5 在 Omega≈0.021, 线性预言的二阶共振 omega_{-4}/4 = 0.028)。延拓失败时在
@@ -91,11 +92,12 @@ def harmonic_ratios(M, w, r, m, n):
 
 
 def low_spectrum(M, st, shifts, kk, m, n):
-    """Im(lambda) >= 0 的低频本征值 (去掉 |lambda| < 1e-5 的相位零模), 按角向通道 L、kappa、Krein 符号标记。"""
+    """Im(lambda) >= 0、Re(lambda) >= 0 的低频本征值 (去掉 |lambda| < 1e-5 的相位零模), 按角向通道 L、kappa、Krein 符号标记。"""
     rows, seen = [], []
     for sg in shifts:
         for lam, md in stability.eigenpairs_near(M, st, sg, k=kk):
-            if lam.imag < -1e-9 or abs(lam) < 1e-5 or any(abs(lam - x) < 1e-6 for x in seen):
+            # 只留 Im >= 0、Re >= 0 的代表 (哈密顿谱 λ、λ*、-λ、-λ* 成组; 实本征值对的负半边 -γ 若留下会被当成“稳定的零频模”)
+            if lam.imag < -1e-9 or lam.real < -1e-7 or abs(lam) < 1e-5 or any(abs(lam - x) < 1e-6 for x in seen):
                 continue
             seen.append(lam)
             ac = stability.mode_angular_content(M, md, m, w=st["w"])
@@ -218,7 +220,7 @@ def theory_r2(Om, w_rot):
 def split_mode_frequency(modes0):
     """Omega=0 处转动/分裂模 omega_rot: L=-2、Krein + 的最低稳定支 (与 E5d 的连续追踪起点相同; 强加热时标签可能变成 -4,
     此时退回 kappa=0、Krein + 的最低支)。"""
-    st = [r for r in modes0 if r["krein"] == 1 and r["lam_re"] < 1e-5]
+    st = [r for r in modes0 if r["krein"] == 1 and abs(r["lam_re"]) < 1e-5 and r["lam_im"] > 1e-3]
     c = sorted(r["lam_im"] for r in st if r["L"] == -2)
     if not c:
         c = sorted(r["lam_im"] for r in st if r["kappa"] == 0)
@@ -228,10 +230,12 @@ def split_mode_frequency(modes0):
 def run_theta(args, T, Mt, st, name, out):
     n, m, U = args.n, args.m, args.U
     dom = args.dom
-    # shift: [0, wmax] 内等距的 ns 个, 每个求最近的 kk 个本征值。云端 h=0.2 检验 (Theta=0.5, Omega=0 与 -0.14):
-    # 3 个 shift x 16 与 E5d 式的 11 x 10 找到完全相同的模 (含失稳模 3.08e-2), 快 3 倍 (每个 shift 要一次大 LU)
+    # shift: 原点附近一个 (0.02i, 与 E5d 相同; 实本征值 —— 叉式分岔、鞍点 —— 都在虚轴附近的 Im=0 处, 必须覆盖) +
+    # [0, wmax] 内等距的 ns 个, 每个求最近的 kk 个本征值。云端 h=0.2 检验 (Theta=0.5, Omega=0 与 -0.14): 等距 3 个 x 16 与
+    # E5d 式的 11 x 10 找到完全相同的模 (含失稳模 3.08e-2), 快 3 倍; quick (h=0.4) 中只用等距的 2 个时漏掉了 Omega=-0.14 处
+    # 的实本征值 (2.85e-2), 所以加上 0.02i
     ns = pick(args, quick=2, main=3, hq=3)
-    shifts = [1j * args.wmax * (2 * j + 1) / (2 * ns) for j in range(ns)]
+    shifts = [0.02j] + [1j * args.wmax * (2 * j + 1) / (2 * ns) for j in range(ns)]
     kk = pick(args, quick=10, main=16, hq=16)
     every = args.spec_every
     tag = f"{name}_T{T:g}"
@@ -301,7 +305,11 @@ def run_theta(args, T, Mt, st, name, out):
     return rows
 
 
+SEG_STYLE = {0: ("#2a78d6", "o"), 1: ("#1baf7a", "s"), -1: ("#eb6834", "^"), 2: ("#6250d6", "D"), -2: ("#e87ba4", "v")}
+
+
 def plot_theta(rows, modes, T, w_rot, fn, tol):
+    """单个 Theta 的诊断图: (a) 旋转系低频谱  (b) 各段同步定态的增长率  (c) r_s^2 比值与 omega_rot/(omega_rot - 2 Omega)。"""
     fig, axs = plt.subplots(1, 3, figsize=(15, 4.3))
     ax = axs[0]
     for L in sorted({r["L"] for r in modes}):
@@ -315,36 +323,77 @@ def plot_theta(rows, modes, T, w_rot, fn, tol):
     ax.plot([r["Omega"] for r in uns], [r["lam_im"] for r in uns], "s", ms=8, mfc="none", mec="#e34948", ls="none",
             label="unstable")
     oo = np.array([r["Omega"] for r in rows])
-    if np.isfinite(w_rot):
+    if np.isfinite(w_rot) and w_rot > 0:
         ax.plot(oo, np.abs(w_rot - 2 * oo), "--", color="0.35", lw=0.9, label="|omega_rot - 2 Omega|")
     ax.set_ylim(0, None)
     ax.set_xlabel("pattern angular velocity Omega")
     ax.set_ylabel("Im(lambda) in the rotating frame")
     ax.set_title(f"(a) Theta={T:g}: low-lying modes (o Krein +, ^ Krein -)", fontsize=8.5)
     ax.legend(fontsize=6, ncol=3)
+    segs = sorted({r["segment"] for r in rows})
     ax = axs[1]
-    sp = [r for r in rows if r["spectrum"]]
-    g = np.array([max(float(r["max_growth"]), 1e-9) for r in sp])
-    ax.semilogy([r["Omega"] for r in sp], g, "o-", ms=3.5, color="#2a78d6")
+    for sg in segs:
+        col, mk = SEG_STYLE.get(sg, ("0.5", "x"))
+        sp = sorted((r for r in rows if r["segment"] == sg and r["spectrum"]), key=lambda r: r["Omega"])
+        if sp:
+            g = np.array([max(float(r["max_growth"]), 1e-9) for r in sp])
+            ax.semilogy([r["Omega"] for r in sp], g, "-", marker=mk, ms=4, lw=1.0, color=col,
+                        label=f"segment {sg:+d}" + (" (from the static twin vortex)" if sg == 0 else ""))
     ax.axhline(tol, color="0.5", lw=0.8, ls=":")
     ax.set_xlabel("pattern angular velocity Omega")
-    ax.set_ylabel("max Re(lambda)")
-    ax.set_title("(b) growth rate of the co-rotating state (dotted: threshold)", fontsize=8.5)
+    ax.set_ylabel("max Re(lambda)  (1e-9 = stable)")
+    ax.set_title("(b) growth rate of the co-rotating states (dotted: threshold)", fontsize=8.5)
+    ax.legend(fontsize=7)
     ax = axs[2]
-    ok = [r for r in rows if np.isfinite(r["r2_ratio"])]
-    ax.semilogy([r["Omega"] for r in ok], [r["r2_ratio"] for r in ok], "o", ms=3.5, color="#2a78d6",
-                label="co-rotating stationary state")
-    if np.isfinite(w_rot):
+    for sg in segs:
+        col, mk = SEG_STYLE.get(sg, ("0.5", "x"))
+        ok = sorted((r for r in rows if r["segment"] == sg and np.isfinite(r["r2_ratio"])), key=lambda r: r["Omega"])
+        if ok:
+            ax.plot([r["Omega"] for r in ok], [r["r2_ratio"] for r in ok], ls="none", marker=mk, ms=3.5, color=col,
+                    label=f"segment {sg:+d}")
+    if np.isfinite(w_rot) and w_rot > 0:
         o2 = np.linspace(min(oo), min(max(oo), 0.95 * w_rot / 2), 200)
-        ax.semilogy(o2, w_rot / (w_rot - 2 * o2), "-", color="0.35", lw=1.0,
-                    label=f"omega_rot/(omega_rot - 2 Omega), omega_rot={w_rot:.4f}")
+        ax.plot(o2, w_rot / (w_rot - 2 * o2), "-", color="0.35", lw=1.0,
+                label=f"omega_rot/(omega_rot - 2 Omega), omega_rot={w_rot:.4f}")
+    ax.set_yscale("log")
     ax.set_xlabel("pattern angular velocity Omega")
-    ax.set_ylabel("r_s^2(Omega) / r_s^2(0)")
+    ax.set_ylabel("r_s^2(Omega) / r_s^2(0)  (static twin vortex)")
     ax.set_title("(c) separation of the two +1 vortices", fontsize=8.5)
     ax.legend(fontsize=7)
     fig.tight_layout()
     fig.savefig(fn, dpi=130)
     plt.close(fig)
+
+
+def replot(out, name, tol):
+    """由已有的 _branch.csv / _modes.csv 重算 omega_rot 与 r2_theory、重写 _branch.csv 并重画各 Theta 的诊断图 (不重算)。
+    2026-10-13 之前写的 _modes.csv 没有 segment 列, 此时把 Omega=0 的模全部当作第 0 段 (可能混入另一支的模)。"""
+    for f in sorted(glob.glob(os.path.join(out, f"{name}_T*_branch.csv"))):
+        stem = f[:-len("_branch.csv")]
+        rows = io_utils.read_csv(f)
+        num = ("Omega", "b", "r_s", "r2_ratio", "c1_re", "c1_im", "c2_re", "c2_im", "axis_lag", "Theta")
+        for r in rows:
+            for k in num:
+                r[k] = float(r[k]) if r.get(k, "") not in ("", None) else float("nan")
+            r["segment"] = int(float(r.get("segment", 0) or 0))
+            r["spectrum"] = r.get("spectrum") == "True"
+            r["max_growth"] = float(r["max_growth"]) if r["spectrum"] else ""
+        modes = []
+        if os.path.exists(stem + "_modes.csv"):
+            for r in io_utils.read_csv(stem + "_modes.csv"):
+                d = {k: float(r[k]) for k in ("lam_re", "lam_im", "Omega", "Theta", "w_u")}
+                d.update({k: int(float(r[k])) for k in ("L", "kappa", "krein")})
+                d["segment"] = int(float(r.get("segment", 0) or 0))
+                if d["lam_re"] >= -1e-7:
+                    modes.append(d)
+        w_rot = split_mode_frequency([r for r in modes if r["Omega"] == 0.0 and r["segment"] == 0])
+        for r in rows:
+            r["r2_theory"] = theory_r2(r["Omega"], w_rot)
+            r["omega_rot0"] = w_rot
+        io_utils.write_csv(f, rows)
+        T = rows[0]["Theta"]
+        plot_theta(rows, modes, T, w_rot, stem + ".png", tol)
+        print(f"Theta={T:g}: replotted ({len(rows)} points, {len(modes)} modes, omega_rot={w_rot:.4f})")
 
 
 def runs_of(sp, tol):
@@ -462,12 +511,14 @@ def main():
     p.add_argument("--wmax", type=float, default=0.62, help="shift 的最高频率 (Im)")
     p.add_argument("--growth_tol", type=float, default=1e-5, help="判为不稳定的增长率 (hq 的数值地板约 1e-7)")
     p.add_argument("--max_jump", type=float, default=0.03, help="延拓失败时最多跳过的 Omega 间隙 (共振间隙)")
-    p.add_argument("--table_only", action="store_true", help="不计算, 由各 Theta 的 _branch.csv 重建 _summary.csv")
+    p.add_argument("--table_only", action="store_true",
+                   help="不计算, 由各 Theta 的 _branch.csv / _modes.csv 重画诊断图并重建 _summary.csv")
     args = finalize_args(p, "E5_thermal_reconfiguration")
     out = args.res_dir
     R, h, n, m, U = args.R, args.h, args.n, args.m, args.U
     name = f"e5e_n{n}_m{m}_U{U:g}"
     if args.table_only:
+        replot(out, name, args.growth_tol)
         summ = summarize(out, name, args.growth_tol, (args.om_min, args.om_max))
         print_summary(summ)
         print(f"{name}_summary.csv rebuilt ({len(summ)} Theta)")
