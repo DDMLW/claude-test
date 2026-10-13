@@ -11,7 +11,7 @@ a8_heated_window.py —— C_3 加热 m=2 高 b 失稳窗口 = 圆盘 κ=0 通�
 三幅子图:
   (a) 圆盘两支频率 vs b 与各 Theta 的失稳模频率
   (b) 推出的 c = sqrt(gamma^2 + delta^2/4)/Theta vs b (各 Theta 是否塌缩)
-  (c) 预言的上端 b_up(Theta) (delta(b) = 2 c Theta) 对 E5c 实测
+  (c) 预言的上端 b_up(Theta) (delta(b) = 2 c Theta) 对 E5c 实测; 另画 h=0.075 网格的上端 (hq_hib_h0075) 与 h^2 外推
 输出: results/analysis/<tag>/heated_window.png、heated_window.csv
 运行:  python a8_heated_window.py [--channels <通道谱 csv>]
 """
@@ -152,6 +152,7 @@ def main():
     ax.legend(loc="lower left", fontsize=7)
 
     ax = axs[2]
+    summary_rows = []
     tt = np.linspace(0.6, max(Ts) + 0.2, 120)
     be = np.array([edge(t) for t in tt])
     ax.plot(tt, be, "-", color=style.INK_SECONDARY, lw=1.2, label="Hamilton-Hopf: delta_disk(b) = 2 c(b) Theta")
@@ -162,6 +163,24 @@ def main():
     if Tb:
         ax.plot(Tb, [edges[T][0] for T in Tb], "^", ms=7, color=style.PALETTE[0], mfc="none", mec=style.PALETTE[0],
                 label="lower bound (window open at the scan end)")
+    # 网格对照 (第四轮 hq_hib_h0075): h=0.075 的上端与按 h^2 外推的连续极限
+    fine = os.path.join(ROOT, "E5_thermal_reconfiguration", "hq_hib_h0075", "e5c_upper_edges.csv")
+    if os.path.exists(fine):
+        e2 = {fnum(r["Theta"]): fnum(r["b_up"]) for r in io_utils.read_csv(fine) if r["b_up_is_bound"] != "True"}
+        Tf = [T for T in sorted(e2) if T in edges and not edges[T][1]]
+        if Tf:
+            ax.plot(Tf, [e2[T] for T in Tf], "s", ms=6, color=style.PALETTE[1], mfc="none", mec=style.PALETTE[1],
+                    label="E5c upper edge, finer grid h=0.075")
+            ext = [edges[T][0] + (e2[T] - edges[T][0]) / (1 - 0.075 ** 2 / 0.1 ** 2) for T in Tf]
+            ax.plot(Tf, ext, "*", ms=10, color=style.PALETTE[1], mec=style.PALETTE[1],
+                    label="h^2 extrapolation to h -> 0")
+            for T, e in zip(Tf, ext):
+                summary_rows.append(dict(Theta=T, b_up_h01=edges[T][0], b_up_h0075=e2[T], b_up_extrapolated=e))
+    if summary_rows:
+        io_utils.write_csv(os.path.join(out, "heated_window_grid.csv"), summary_rows)
+        for r in summary_rows:
+            print(f"  grid check Theta={r['Theta']:g}: b_up h=0.1 {r['b_up_h01']:.3f}, h=0.075 {r['b_up_h0075']:.3f}, "
+                  f"h->0 {r['b_up_extrapolated']:.3f}")
     ax.set_xlabel("heating amplitude Theta")
     ax.set_ylabel("upper edge of the window b_up")
     ax.set_title("(c) window edge set by the disk detuning", loc="left")

@@ -14,6 +14,12 @@ NonlocalModel(sample) 预先组装并分解好所有与解无关的矩阵:
 光所感受的总势:             V = n_lin + P n_t
 
 stencil: 差分模板, 9 = 各向同性九点格式 (默认, 推荐), 5 = 五点格式 (仅用于对比/检验)。
+
+rotation (Omega, 默认 0): 旋转坐标系。边界温度图样以角速度 Omega 转动时 (theta -> theta - Omega xi),
+随图样一起转动的定态 q = w(r, theta - Omega xi) e^{i b xi} 满足
+    1/2 D w + (V - b) w - i Omega d_theta w = 0          (d_theta = x d/dy - y d/dx, operators.angular_derivative)
+牛顿迭代 (newton.py) 与线性稳定性 (stability.py) 都读取 model.rotation; 圆盘中的纯涡旋 f(r) e^{i m theta}
+是 b -> b + m Omega 的同一个解, 角向通道 L 的本征值 lambda -> lambda + i L Omega (单元测试)。
 """
 
 import numpy as np
@@ -21,7 +27,7 @@ import scipy.sparse as sp
 from scipy.sparse.linalg import splu
 
 from .geometry import MEDIUM
-from .operators import DEFAULT_STENCIL, index_map, laplacian, thermal_operator
+from .operators import DEFAULT_STENCIL, angular_derivative, index_map, laplacian, thermal_operator
 
 
 class NonlocalModel:
@@ -60,6 +66,25 @@ class NonlocalModel:
         # 边界温度产生的(与光无关的)折射率
         self.n_bc = self.Klu.solve(-self.rbc) if np.any(self.rbc) else np.zeros(self.Nt)
 
+        # 旋转坐标系 (见文件头部); 角向导数算子在第一次用到时组装
+        self.rotation = 0.0
+        self._Dtheta = None
+
+    def angular_operator(self):
+        """d/dtheta (光学点上, 反对称稀疏矩阵), 关于原点 (样品中心)。"""
+        if self._Dtheta is None:
+            g = self.grid
+            self._Dtheta = angular_derivative(self.opt_mask, g.X, g.Y, self.h)
+        return self._Dtheta
+
+    def rotating_copy(self, omega):
+        """共享全部矩阵、只改旋转角速度的浅拷贝 (沿 Omega 延拓时用, 不重新组装/分解)。"""
+        import copy
+        M = copy.copy(self)
+        M.rotation = float(omega)
+        M.angular_operator()
+        return M
+
     # ------------------------------------------------------------------
     # 折射率与势
     # ------------------------------------------------------------------
@@ -97,9 +122,12 @@ class NonlocalModel:
         return self.to_grid(n_t, where="th", fill=fill)
 
     def residual(self, w, b):
-        """定态方程残差 1/2 D w + (V - b) w (光学点上, 复数)。"""
+        """定态方程残差 1/2 D w + (V - b) w - i Omega d_theta w (光学点上, 复数; Omega = self.rotation)。"""
         V = self.potential_of_field(w)
-        return 0.5 * (self.D @ w) + (V - b) * w
+        R = 0.5 * (self.D @ w) + (V - b) * w
+        if self.rotation:
+            R = R - 1j * self.rotation * (self.angular_operator() @ w)
+        return R
 
     def describe(self):
         s = self.sample

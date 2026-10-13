@@ -38,3 +38,28 @@
 22. F. Gibou, R. P. Fedkiw, L.-T. Cheng, M. Kang, "A second-order-accurate symmetric discretization of the Poisson equation on irregular domains," J. Comput. Phys. 176, 205 (2002). —— 热传导边界格式
 23. J. Yang, "Newton-conjugate-gradient methods for solitary wave computations," J. Comput. Phys. 228, 7007 (2009)（卷页待核对）. —— 孤子牛顿法综述，可作为方法参考
 24. 各向同性九点 Laplace 格式：M. Patra, M. Karttunen, "Stencils with isotropic discretization error for differential operators," Numer. Methods Partial Differ. Equ. 22, 936 (2006)（卷页待核对）.
+
+## F. 第四轮后补充（2026-10-13 网页初检；卷页均待核对）
+25. D. V. Skryabin, "Instabilities of vortices in a binary mixture of trapped Bose-Einstein condensates: role of collective excitations with positive and negative energies," Phys. Rev. A 63, 013602 (2001)（标题与卷页待核对）—— 正 / 负能量模混合 = Krein 碰撞的经典表述
+26. Y. Shin, M. Saba, M. Vengalattore, T. A. Pasquini, C. Sanner, A. E. Leanhardt, M. Prentiss, D. E. Pritchard, W. Ketterle, "Dynamical instability of a doubly quantized vortex in a Bose-Einstein condensate," Phys. Rev. Lett. 93, 160406 (2004). arXiv:cond-mat/0407045 —— 双量子化涡旋分裂的实验
+27. E. Lundh, H. M. Nilsen, "Dynamic stability of a doubly quantized vortex in a three-dimensional condensate," Phys. Rev. A 74, 063620 (2006)（卷页待核对）. arXiv:cond-mat/0608532 —— 稳定 / 失稳窗口交替（与我们圆盘 m=2 的 L=−2 窗口对照）
+28. 双量子化涡旋在均匀超流体中的分裂失稳（Kasamatsu / Takeuchi / Kobayashi 等，作者待核对）. arXiv:1710.10810 —— 失稳 = 正能量集体模与负能量芯模的混合
+29. T. Kapitula, P. G. Kevrekidis, D. Yan, "The Krein matrix: general theory and concrete applications in atomic Bose-Einstein condensates," SIAM J. Appl. Math. 73, 1368 (2013)（卷页待核对）. arXiv:1212.2951 —— m=2 涡旋的 Hamilton–Hopf “失稳泡”
+30. R. H. Goodman, "Hamiltonian Hopf bifurcations and chaos of NLS/GP standing-wave modes," J. Phys. A 44, 425101 (2011)（卷页待核对）. arXiv:1101.5964
+31. J. Cuevas, B. A. Malomed, P. G. Kevrekidis, "Two-dimensional discrete solitons in rotating lattices," Phys. Rev. E 76, 046608 (2007). arXiv:0709.3399 —— 旋转晶格中孤子的稳定性随转速变化
+32. H. Sakaguchi, B. A. Malomed, "Solitons in rotating optical lattices"（2007，标题与期刊待核对）—— 孤子随晶格转动只在临界角速度 ω_c 以下稳定；与本文 Fig.6 的跟随上限对照
+33. S. Skupin, M. Grech, W. Królikowski, "Rotating soliton solutions in nonlocal nonlinear media," Opt. Express 16, 9118 (2008)（卷页待核对）. arXiv:0804.4659
+34. S. Lopez-Aguayo, A. S. Desyatnikov, Y. S. Kivshar, S. Skupin, W. Królikowski, O. Bang, "Stable rotating dipole solitons in nonlocal optical media," Opt. Lett. 31, 1100 (2006)（卷页待核对）. arXiv:nlin/0512053
+35. M.-A. García-March, A. Ferrando, M. Zacarés, J. Vijande, L. D. Carr, "Angular pseudomomentum theory for the generalized nonlinear Schrödinger equation in discrete rotational symmetry media," Physica D 238, 1432 (2009)（待核对）；另见 V. M. Pérez-García 等, "Symmetry-assisted vorticity control in Bose-Einstein condensates," arXiv:nlin/0611052 —— 用离散对称控制势改变 / 反转涡旋荷
+36. 拓扑荷选择定则：“A topological charge selection rule for phase singularities”（作者、期刊待核对）. arXiv:0811.0667 —— C_3 介质中荷 5 的涡旋给出中心 −1（与我们 (3,2) 的中心反号同类）
+37. Y. V. Kartashov 等, "Light beam dynamics in materials with radially-inhomogeneous thermal conductivity," Opt. Lett. 38, 4417 (2013)（作者待核对）. arXiv:1310.1727 —— 热导率工程化的样品
+38. "Higher-charge vortex solitons and vector vortex solitons in strongly nonlocal media," Opt. Lett. 44, 3098 (2019)；"Stable propagation of cylindrical-vector vortex solitons in strongly nonlocal media," Opt. Lett. 46, 2807 (2021)（作者待核对）—— 强非局域（铅玻璃）中高阶涡旋的稳定性
+
+### 初检结论（2026-10-13；**不是系统检索**：本环境不能直连 arXiv / OpenAlex / Semantic Scholar，只用了网页检索的摘要）
+* **没有找到**：均匀热介质中由多边形（C_n）样品边界诱导的涡旋拓扑荷嬗变、边界对称性传递定律、牛顿多边形分数标度律、
+  边界加热的可重构双涡旋、旋转热图样拖动涡旋的工作。最接近的是 Ye 等 2010（矩形中的双涡旋，A2）、2025 年七边形热介质中基模孤子的轨道进动（B12）、
+  Ferrando 等的“涡旋嬗变”（晶格 / 离散对称介质，C15）、Kartashov 2023 的可调 C_N 波导阵列（C17）。
+* **必须人工核对的一处**：Kartashov–Vysloukh–Torner 2007（B9）报告圆柱样品中 m ≤ 2 稳定、“与样品半径无关”。我们的 hq 结果：圆盘 m=2 在
+  **低功率端**有窄失稳窗口（L=−2 分裂模，b_c R² = 31.8，h=0.05 收敛；ρ=8 时 b < 0.50，R=10 时 b < 0.32），之上稳定——请确认 B9 的 m=2 稳定性图
+  是否覆盖这么低的 b（若覆盖且判稳定，需要找出差别）。他们的“与半径无关”正是我们的严格标度律 b → bR²。
+* 圆盘 m=2 窗口与 BEC 双量子化涡旋的分裂失稳（26–29）是同一类 Krein 碰撞；旋转图样的锁定上限与旋转晶格中的临界角速度（31–32）可类比。

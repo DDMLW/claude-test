@@ -24,7 +24,8 @@ from concurrent.futures import ThreadPoolExecutor, wait
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 EXP = os.path.dirname(HERE)
-LISTS = ("stage1", "indep", "stage2", "final", "p2_main", "p2_final", "p3_main", "p3_final", "p4_main", "p4_final")
+LISTS = ("stage1", "indep", "stage2", "final", "p2_main", "p2_final", "p3_main", "p3_final", "p4_main", "p4_final",
+         "p5_main", "p5_final")
 
 
 def run_one(name, idx, cmd):
@@ -72,7 +73,7 @@ def main():
     p.add_argument("-n", type=int, default=max(1, (os.cpu_count() or 2) - 1), help="同时运行的任务数")
     p.add_argument("--list", choices=LISTS, default=None, help="只运行这一个清单 (配合 --only 重跑失败的行)")
     p.add_argument("--only", nargs="+", type=int, default=None, help="只运行这些行号 (从 1 开始)")
-    p.add_argument("--phase", type=int, choices=[1, 2, 3, 4], default=1,
+    p.add_argument("--phase", type=int, choices=[1, 2, 3, 4, 5], default=1,
                    help="2 / 3 / 4: 第二轮 (p2_main -> p2_final) / 第三轮 (p3_main -> p3_final) / 第四轮 (p4_main -> p4_final)")
     a = p.parse_args()
     os.makedirs(os.path.join(HERE, "logs"), exist_ok=True)
@@ -81,7 +82,7 @@ def main():
             futs = submit(ex, a.list, a.only)
             wait([f for _, _, f in futs])
             report(futs)
-        elif a.phase in (2, 3, 4):
+        elif a.phase in (2, 3, 4, 5):
             fm = submit(ex, f"p{a.phase}_main")
             wait([f for _, _, f in fm])
             report(fm)

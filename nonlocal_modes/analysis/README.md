@@ -15,8 +15,10 @@
 | `a4_window_mechanism.py`（Fig.4） | E3b 圆盘通道谱（`hq`、`hq_hib`）、各样品 m=2 谱、四档网格的三角形谱、E5c `hq_smallT` | `window_mechanism.png`、`hh_edge_check.csv` | 失稳窗口 = 圆盘 Bogoliubov 通道的 Krein 碰撞：(a) 低 b 段 L=−2（K+）与 L=+2/+4/+6（K−）的交叉 + 正方形/六边形失稳模频率；(b) 三角形 κ=0 对 L=−3/L=0 的连续追踪、失稳模频率 = 两支平均、Hamilton-Hopf 预言端点；(c) 各样品 m=2 增长率（矩形按保角半径换算到 ρ=8）；(d) 小 Θ 加热 γ/Θ 塌缩 |
 | `a5_grid_convergence.py`（SI） | E3b 四档网格 `e3b_summary.csv` + a4 的 `hh_edge_check.csv` | `triangle_convergence.png/csv` | 三角形 m=2 窗口上端 b_c 与固定 b 处增长率随 h² 的外推；Hamilton-Hopf 端点 Δω_圆盘 = 2g(h) 与实测端点的对照；推出的耦合 g vs h² |
 | `a6_dynamic_window.py`（Fig.5） | E4b 时间序列与汇总表（`hq`、`hq_h005`） | `dynamic_window.png`、`observable_window.csv` | (a) LG 发射后嬗变核 r_s(ξ)；(b) 非 μ 权重：稳定区代数增长（网格强迫）、定态发射与 1% 噪声不增长、失稳区 exp(2γξ)；(c) 可观测窗口 ξ_t50 → ξ_b |
-| `a8_heated_window.py`（SI） | E5c `hq_hib`/`hq` 的 (3:2) 谱、半径 10 圆盘通道谱（第四轮 `E3_stability/hq_disk10`；之前可用 `--channels` 指向云端同格式文件） | `heated_window.png/csv` | C_3 加热 m=2 高 b 窗口 = 圆盘 κ=0 对 L=−3（K+）/L=0（K−）的 Hamilton-Hopf 碰撞：(a) 失稳模频率落在两支之间（≈ 平均 + O(Θ²)）；(b) c = sqrt(γ² + δ²/4)/Θ 对各 Θ 塌缩；(c) 预言的上端 δ(b_up) = 2cΘ 对 E5c 实测 |
-| `a7_twin_vortex.py`（Fig.6） | E5a `heating_n2_m2.csv`、E5c (2:2)、E4b heat2、E5b `control_n2_*_tracks.csv`、E3b 圆盘通道谱 | `twin_vortex.png`、`twin_vortex_summary.csv` | 四极加热双涡旋：(a) r_s ∝ Θ^{1/2}；(b) (Θ, b) 稳定性与 U=15 的可调上限；(c) LG 发射中的形成；(d) 旋转图样下的取向滞后与失锁；(e) 关断后自由共转 = 圆盘 L=−2 模频率的一半；(f) 间距 |
+| `a8_heated_window.py`（SI） | E5c `hq_hib`/`hq` 的 (3:2) 谱、半径 10 圆盘通道谱（`E3_stability/hq_disk10`）、`hq_hib_h0075/e5c_upper_edges.csv` | `heated_window.png/csv`、`heated_window_grid.csv` | C_3 加热 m=2 高 b 窗口 = 圆盘 κ=0 对 L=−3（K+）/L=0（K−）的 Hamilton-Hopf 碰撞：(a) 失稳模频率落在两支之间（≈ 平均 + O(Θ²)）；(b) c = sqrt(γ² + δ²/4)/Θ 对各 Θ 塌缩；(c) 预言的上端 δ(b_up) = 2cΘ（连续曲线）对 E5c 实测，加 h=0.075 的上端与 h² 外推 |
+| `a7_twin_vortex.py`（Fig.6） | E5a `heating_n2_m2.csv`、E5c (2:2)、E5d `e5d_n2_m2_U15_summary.csv` 与 `fields/`、E5b `hq_omega/control_runs.csv` 与 `control_n2_*_tracks.csv`、E4b heat2 | `twin_vortex.png`、`twin_vortex_SI.png`、`twin_vortex_fields.png`、`twin_vortex_summary.csv` | 四极加热双涡旋：(a) r_s ∝ Θ^{1/2}；(b) (Θ, b) 稳定性 + U=15 工作点 + E5d 的 Θ_c；(c) 破坏 C_2 的平移模 ω_odd² 对 Θ 线性 → 叉式分岔 Θ_c=1.176；(d) 跟随相图（Ω, Θ）与一阶 / 二阶共振线；(e) r2_ratio 对零参数理论 ω_rot/(ω_rot − 2Ω)；(f) 关断后自由共转 = ω_{−2}/2。SI：LG 发射中的形成、突然启动的滞后、间距；场图：各 Θ 的相位/振幅（`--fields_only` 只画场图） |
+| `a9_atlas_fields.py`（Fig.2） | E2c 导出的 `E2_transmutation_atlas/<tag>/fields/*.npz`、E2a `atlas_table.csv` | `atlas_fields.png` | 嬗变图谱的场图：样品 × 拓扑荷，色相 = 相位、亮度 = sqrt 振幅，±1 奇点、中心荷、未分辨标记 |
+| `fieldplot.py`（公用） | — | — | 场图的读取、HSV 相位-振幅着色（不用本身明暗变化的循环色图）、奇点标记、相位色条 |
 
 运行（在 `nonlocal_modes/analysis/` 下）：
 ```bash
@@ -26,8 +28,9 @@ python a2_stability_map.py --tag hq --coarse hq_coarse
 python a3_e4_growth.py --tag hq
 python a4_window_mechanism.py && python a5_grid_convergence.py     # a5 读取 a4 写出的 hh_edge_check.csv
 python a6_dynamic_window.py
-python a7_twin_vortex.py
+python a7_twin_vortex.py          # 有 E5d 场文件时同时画 twin_vortex_fields.png; --fields_only 只画场图
 python a8_heated_window.py        # 需要第四轮的 hq_disk10 通道谱 (或 --channels 指定同格式文件)
+python a9_atlas_fields.py --b 1.0 # 需要第五轮 E2c 导出的场 (results/E2_transmutation_atlas/hq/fields/)
 ```
 第二轮实验（E3b、E4b、E5c）各自的 `--table_only` 已经生成汇总表与总图（`e3b_summary.csv`、`e4b_summary.csv`/`e4b_seed_scan.png`、
 `e5c_summary.csv`/`e5c_windows.csv`/`e5c_stability_map.png`），结果上传后再决定是否需要新的分析脚本（例如把 E3b 的阈值与 E5c 的 Θ → 0 外推放在同一张图上）。
@@ -55,3 +58,10 @@ python a8_heated_window.py        # 需要第四轮的 hq_disk10 通道谱 (或 
 * a8（云端圆盘通道谱，正式数据待第四轮 `hq_disk10`）：C_3 加热 m=2 高 b 窗口的耦合 c = sqrt(γ² + δ²/4)/Θ 对 Θ=1–3 塌缩到同一条 c(b)
   （b=2.8→5.8：0.019→0.009，∝ 亮环半径³ 精确到 1%，g ≈ 2.04 Θ (r_ring/R)³）；边界判据 δ_圆盘(b_up) = 2c(b_up)Θ 预言 3.358/4.207/4.920/5.545，实测 3.359/4.209/4.922/5.547。
 * a0：传递定律塌缩到 (r/ρ)^n（n=3–6，ρ=6–18）；系数与光束形状、能流无关（偏差 ≤ 1.6e-5）；多边形与圆盘 U(b) 差 ≤ 3.7e-4。
+
+**第四轮（2026-10-13）的分析结论**（详见 Progress.md C10、C13 与 §6.1“Claude 分析（第四轮）”）：
+* a7（Fig.6 定稿）：E5d 正式数据 Θ_c = 1.176（ω_odd² = 0.0238 − 0.0202 Θ），E5c (2:2) Θ=1.2/1.3/1.5 的增长率落在同一直线上；
+  Ω 扫描（52 个，用稳健的跟随指标重算）：锁定区间 Θ=0.25 −0.2…0.10、Θ=0.5 −0.2…0.06（0.03 失锁 = 二阶共振）、Θ=0.75 −0.1…0.01、Θ=1 −0.05…0.01；
+  锁定时 r2_ratio 与 ω_rot/(ω_rot − 2Ω) 偏差 ≤ 4%（Θ ≤ 0.5、|Ω| ≤ 0.1、离开二阶共振）；h=0.075 关断共转 0.21904 对 h=0.1 的 0.2191。
+* a8：正式 `hq_disk10` 通道谱与云端版本差 ≤ 4e-12；网格对照 Θ=1/2 的上端 3.359 → 3.431 → 外推 3.524、4.922 → 5.056 → 5.229（+5%/+6%）。
+* a9 / a7 场图：读取第五轮导出的场（E2c、E5d `--fields_only`），quick 数据检查通过（选择定则的中心荷与卫星数逐格正确）。

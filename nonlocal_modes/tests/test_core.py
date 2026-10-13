@@ -238,3 +238,45 @@ def test_surface_sample_soliton():
     assert sol["converged"]
     xc, _ = dg.center_of_mass(M, sol["w"])
     assert -4 < xc < 0                                     # 光束贴在热介质一侧的界面附近
+
+
+# ---------------------------------------------------------------------------
+# 10. 旋转坐标系 (model.rotation): 角向导数算子、涡旋的 b 平移、本征值的 i L Omega 平移
+# ---------------------------------------------------------------------------
+def test_angular_derivative_operator():
+    M = NonlocalModel(disk_sample(6, 0.1))
+    A = M.angular_operator()
+    assert abs(A + A.T).max() == 0.0                      # 严格反对称 -> 哈密顿结构、Noether 恒等式不变
+    z = M.xo + 1j * M.yo
+    inner = np.abs(z) < 4                                 # 样品边界处测试函数 (~1e-6) 被 Dirichlet 截断, 不计
+    for m in (1, 2, 3):
+        f = z ** m * np.exp(-np.abs(z) ** 2 / 2)          # = r^m e^{-r^2/2} e^{i m theta}
+        assert np.max(np.abs(A @ f - 1j * m * f)[inner]) < 1e-3 * np.max(np.abs(f))     # 四阶: h=0.1 时 <= 4.4e-4
+
+
+def test_rotating_frame_vortex_and_spectrum_shift():
+    """圆盘中 m=1 涡旋在旋转坐标系中是同一个解, b -> b + m Omega; 角向通道 L 的本征值 lambda -> lambda + i L Omega。"""
+    M = NonlocalModel(disk_sample(8, 0.25))
+    w0, _ = guesses.best_guess(M, lambda W: guesses.lg_vortex(M, 1, W), 2.0, np.linspace(1, 3, 5))
+    sol = newton.solve(M, w0, 2.0)
+    assert sol["converged"]
+    Om = 0.05
+    Mr = M.rotating_copy(Om)
+    assert M.rotation == 0.0 and Mr.rotation == Om
+    sr = newton.solve(Mr, sol["w"] * np.exp(0.3j), sol["b"], fixed_power=sol["power"])
+    assert sr["converged"] and sr["iterations"] <= 6       # 雅可比矩阵正确时二次收敛
+    assert sr["b"] - sol["b"] == pytest.approx(Om, rel=2e-3)          # 差分误差: h=0.25 时 3.6e-4
+    w2 = newton.align_phase(sr["w"], sol["w"])
+    assert np.max(np.abs(w2 - sol["w"])) < 1e-3 * np.max(np.abs(sol["w"]))
+    sr["b"] = sol["b"] + Om                                # 两个坐标系中是同一个物理态
+    lab = [(lam, stability.mode_angular_content(M, md, 1, w=sol["w"]))
+           for lam, md in stability.eigenpairs_near(M, sol, 0.25j, k=8) if abs(lam) > 1e-3]
+    checked = 0
+    for lam, ac in lab:
+        if ac["w_u"] < 0.9:
+            continue
+        rot = [l2 for l2, _ in stability.eigenpairs_near(Mr, sr, lam + 1j * ac["L"] * Om, k=2)]
+        # 差分误差 (四阶, h=0.25 时 <= 1e-4, h=0.15 时 <= 8e-6) 远小于符号错误时的偏差 2 |L| Omega >= 0.1
+        assert min(abs(l2 - (lam + 1j * ac["L"] * Om)) for l2 in rot) < 3e-4
+        checked += 1
+    assert checked >= 3

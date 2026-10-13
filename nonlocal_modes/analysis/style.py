@@ -48,7 +48,11 @@ def apply():
     })
 
 
-def save(fig, path, dpi=160):
-    fig.tight_layout()
-    fig.savefig(path, dpi=dpi)
+def save(fig, path, dpi=160, tight=True):
+    """tight=False: 版面由调用者用 gridspec/subplots_adjust 安排 (如带相位色条的场图), 保存时按内容裁边。"""
+    if tight:
+        fig.tight_layout()
+        fig.savefig(path, dpi=dpi)
+    else:
+        fig.savefig(path, dpi=dpi, bbox_inches="tight", pad_inches=0.06)
     plt.close(fig)

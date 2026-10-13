@@ -27,11 +27,17 @@ make_jobs.py —— 生成超算批量任务清单 (每行一条独立命令, �
   半径 10 圆盘 m=2 的通道谱 b=2.8-6.2 (C_3 加热高 b 窗口的 Hamilton-Hopf 检验) 与该窗口上端的网格对照 (h=0.075);
   E5d 双涡旋的低频 Bogoliubov 谱 vs Theta。
 
+第五轮 (--phase 5, 第四轮分析后, 见 Progress.md §8) 写 p5_main.txt / p5_final.txt:
+  E5e 旋转坐标系中的同步定态与稳定性 (跟随相图的理论边界, 每个 Theta 一个任务, 2-4 h, 最慢);
+  Omega 扫描跟随边界的加密 (h=0.1) 与网格对照 (h=0.075);
+  论文场图的导出 (E2c: 由 E2a 的 data/ 裁剪, 秒级; E5d --fields_only: 双涡旋定态场)。
+
 用法 (在 nonlocal_modes/experiments 目录下):
   python hpc/make_jobs.py                       # 默认 --profile hq (论文数据)
   python hpc/make_jobs.py --phase 2             # 第二轮: 生成 p2_main.txt / p2_final.txt
   python hpc/make_jobs.py --phase 3             # 第三轮: 生成 p3_main.txt / p3_final.txt
   python hpc/make_jobs.py --phase 4             # 第四轮: 生成 p4_main.txt / p4_final.txt
+  python hpc/make_jobs.py --phase 5             # 第五轮: 生成 p5_main.txt / p5_final.txt
   python hpc/make_jobs.py --profile main        # 普通精度
   python hpc/make_jobs.py --python /path/to/envs/nl/bin/python   # 指定 Python 解释器
   python hpc/make_jobs.py --no_convergence      # 不做粗网格对照
@@ -74,6 +80,12 @@ E4B_GRID = [("disk:3:20", 1.5, "coarse"), ("poly3:2:25", 0.5, "h005")]   # 网�
 P4_THETAS = [0.25, 0.5, 0.75, 1.0]
 # 一阶共振 omega_{-2}/2 ≈ 0.126-0.14 (E5d 云端预算); 二阶 (∝ Theta^2) omega_{-4}/4 ≈ 0.026-0.030; 第三轮 Theta=1 在 0.05 失锁 -> 低段加密
 P4_OMEGAS = [0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.08, 0.10, 0.12, 0.14, -0.05, -0.10, -0.20]
+# ---- 第五轮 (--phase 5): 第四轮跟随相图 (a7 Fig.6 (d)) 边界附近的加密点 (h=0.1) 与网格对照 (h=0.075)
+P5_REFINE = [(0.25, 0.11), (0.5, 0.025), (0.5, 0.035), (0.5, 0.07), (0.75, 0.015), (0.75, -0.15), (1.0, 0.015),
+             (1.0, -0.075)]
+P5_GRID = [(0.25, 0.10), (0.25, 0.12), (0.5, 0.03), (0.5, 0.06), (0.5, 0.08), (0.75, 0.01), (0.75, 0.02),
+           (1.0, -0.05), (1.0, -0.10)]
+P5_E5E_THETAS = [0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1.0, 1.1]
 
 
 def main():
@@ -83,9 +95,8 @@ def main():
     p.add_argument("--python", default="python", help="Python 解释器 (默认 python)")
     p.add_argument("--no_convergence", action="store_true", help="不生成粗网格对照任务")
     p.add_argument("--coarse_factor", type=float, default=1.5, help="对照网格 = 本档网格 x 此因子 (默认 1.5)")
-    p.add_argument("--phase", type=int, choices=[1, 2, 3, 4], default=1,
-                   help="1: 第一轮全部实验 (stage1/stage2/indep/final); 2: 第二轮 (p2_main/p2_final); "
-                        "3: 第三轮 (p3_main/p3_final); 4: 第四轮 (p4_main/p4_final)")
+    p.add_argument("--phase", type=int, choices=[1, 2, 3, 4, 5], default=1,
+                   help="1: 第一轮全部实验 (stage1/stage2/indep/final); 2-5: 第二到第五轮 (p<N>_main/p<N>_final)")
     a = p.parse_args()
     tag = a.tag or a.profile
     coarse = f"{tag}_coarse"
@@ -96,9 +107,9 @@ def main():
         parts = [py, script] + ([flag] if flag else []) + ["--tag", t] + [str(x) for x in extra]
         return " ".join(parts)
 
-    if a.phase in (2, 3, 4):
+    if a.phase in (2, 3, 4, 5):
         lists = {2: lambda: phase2_lists(cmd, tag, py), 3: lambda: phase3_lists(cmd, tag),
-                 4: lambda: phase4_lists(cmd, tag)}[a.phase]()
+                 4: lambda: phase4_lists(cmd, tag), 5: lambda: phase5_lists(cmd, tag)}[a.phase]()
         write_lists(lists, tuple(lists))
         print(f"\nphase {a.phase}, profile={a.profile}, tag={tag}")
         print(f"next: bash hpc/submit_slurm.sh p{a.phase}   (SLURM)   or   "
@@ -282,6 +293,33 @@ def phase4_lists(cmd, tag):
         fin.append(cmd(e5b, "--table_only", "--job", "assemble", t=t))
     fin.append(cmd(e5c, "--table_only", "--job", "assemble", t=f"{tag}_hib_h0075"))
     return {"p4_main": main, "p4_final": fin}
+
+
+def phase5_lists(cmd, tag):
+    """第五轮: p5_main (全部独立, 慢的在前) 与 p5_final (汇总)。"""
+    main, fin = [], []
+    e5b = "E5_thermal_reconfiguration/e5b_dynamic_control.py"
+    e5e = "E5_thermal_reconfiguration/e5e_rotating_frame.py"
+    om, omf = f"{tag}_omega", f"{tag}_omega_h0075"
+    # 旋转坐标系的同步定态与稳定性 (每个 Theta 一个任务, 最慢, 放最前)
+    for T in P5_E5E_THETAS:
+        main.append(cmd(e5e, "--thetas", T, "--job", f"e5e_T{T:g}"))
+    # Omega 扫描的网格对照: 跟随相图边界两侧的点在 h=0.075 上重算 (锁定 / 失锁的判定是否与网格无关)
+    for T, Om in P5_GRID:
+        main.append(cmd(e5b, "--n", 2, "--Theta", T, "--cases", "none", "--omegas", Om, "--ramp", 100, "--zmax", 600,
+                        "--h_scale", 0.75, "--job", f"n2_T{T:g}_Om{Om:+g}", t=omf))
+    # 跟随边界的加密点 (h=0.1, 与第四轮同一 tag)
+    for T, Om in P5_REFINE:
+        main.append(cmd(e5b, "--n", 2, "--Theta", T, "--cases", "none", "--omegas", Om, "--ramp", 100, "--zmax", 600,
+                        "--job", f"n2_T{T:g}_Om{Om:+g}", t=om))
+    # 论文场图: 双涡旋定态 (几分钟) 与 E2a 嬗变图谱 (由超算 data/ 中第一轮保存的解裁剪, 秒级)
+    main.append(cmd("E5_thermal_reconfiguration/e5d_twin_modes.py", "--fields_only", "--thetas", 0, 0.25, 0.5, 0.75,
+                    1.0, 1.2, "--job", "e5d_fields"))
+    main.append(cmd("E2_transmutation_atlas/e2c_export_fields.py", "--b", 0.5, 1.0, 2.0, "--job", "e2c_fields"))
+    for t in (om, omf):
+        fin.append(cmd(e5b, "--table_only", "--job", "assemble", t=t))
+    fin.append(cmd(e5e, "--table_only", "--job", "e5e_summary"))
+    return {"p5_main": main, "p5_final": fin}
 
 
 if __name__ == "__main__":

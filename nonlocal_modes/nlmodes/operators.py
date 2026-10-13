@@ -27,6 +27,11 @@ operators.py —— 稀疏差分算子 (sparse finite-difference operators)
 
 对称性很重要: 所有算子都按“边”组装, 每条边对两端点的贡献相同, 矩阵严格对称,
 保证线性稳定性分析中的哈密顿结构 (本征值 ±lambda 成对), 不会出现离散化引入的虚假增长率。
+
+3) angular_derivative(mask, X, Y, h)
+   角向导数 d/dtheta = x d/dy - y d/dx (旋转坐标系中的 -i Omega d/dtheta 项, 见 model.NonlocalModel.rotation),
+   四阶中心差分, 掩膜外为 0。矩阵严格反对称 (x 与 d/dy 对易、y 与 d/dx 对易, 截取子矩阵不破坏反对称),
+   所以旋转坐标系中的线性化算子仍是哈密顿的, 相位钉住所用的 Noether 恒等式也仍然成立。
 """
 
 import numpy as np
@@ -137,3 +142,25 @@ def thermal_operator(th_type, kappa, th_bc, h, X=None, Y=None, levelset=None, bc
     K = sp.csr_matrix((np.concatenate(vals), (np.concatenate(rows), np.concatenate(cols))),
                       shape=(N, N)) + sp.diags(diag)
     return K.tocsr(), rhs
+
+
+def angular_derivative(mask, X, Y, h):
+    """d/dtheta = x d/dy - y d/dx (四阶中心差分, Dirichlet: 掩膜外为 0)。返回反对称 CSR 矩阵 (N x N)。"""
+    idx = index_map(mask)
+    N = int(mask.sum())
+    iy, ix = np.nonzero(mask)
+    Ny, Nx = mask.shape
+    xo, yo = X[iy, ix], Y[iy, ix]
+    rows, cols, vals = [], [], []
+    # 四阶: f'(0) = [8 (f_1 - f_-1) - (f_2 - f_-2)] / (12 h)
+    for k, c in ((1, 8.0 / (12 * h)), (-1, -8.0 / (12 * h)), (2, -1.0 / (12 * h)), (-2, 1.0 / (12 * h))):
+        for (dy, dx), coef in (((k, 0), c * xo), ((0, k), -c * yo)):     # x d/dy 与 -y d/dx
+            jy, jx = iy + dy, ix + dx
+            ok = (jy >= 0) & (jy < Ny) & (jx >= 0) & (jx < Nx)
+            nb = np.full(N, -1, dtype=np.int64)
+            nb[ok] = idx[jy[ok], jx[ok]]
+            good = nb >= 0
+            rows.append(np.arange(N)[good])
+            cols.append(nb[good])
+            vals.append(coef[good])
+    return sp.csr_matrix((np.concatenate(vals), (np.concatenate(rows), np.concatenate(cols))), shape=(N, N))

@@ -212,3 +212,30 @@ python hpc/status.py
 **上传**：`results/E5_thermal_reconfiguration/{hq,hq_omega,hq_h0075,hq_hib_h0075}`、`results/E3_stability/hq_disk10` 中新增或更新的文件（`hq` 的 e5c 汇总表会被 p4_final 重建，属正常），
 并在 Progress.md §6 记录运行情况。自查：`hq_omega/control_runs.csv` 中每个 Θ 的正向 Ω 是否在某个值以上出现 `xi_lock_lost`
 （失锁），负向是否全部不失锁；`r2_ratio` 是否随 Ω 单调（正向 > 1、反向 < 1）。
+
+## 10. 第五轮（phase 5，2026-10-13）：跟随相图的理论边界 + 边界加密 + 论文场图
+第四轮的分析与第五轮的理由见 `Progress.md` §6.1“Claude 分析（第四轮）”与 §8、`docs/theory.md` §5.1 第 5–6 条。
+**本轮改了核心包 `nlmodes`**（新增旋转坐标系选项 `model.rotation`，默认 0 时行为不变）：先确认单元测试 **32 passed**。
+共 **28 个计算任务 + 3 个汇总任务**，全部互相独立：
+```bash
+cd nonlocal_modes/experiments
+git pull && python -m pytest -q ../tests        # 应为 32 passed
+python hpc/make_jobs.py --phase 5                # 生成 hpc/jobs/p5_main.txt (28) 与 p5_final.txt (3)
+bash hpc/submit_slurm.sh p5                      # PBS: qsub -J 1-28 -v LIST=hpc/jobs/p5_main.txt hpc/pbs_array.sh, 结束后 1-3 的 p5_final
+python hpc/status.py
+```
+| 任务 | 数量 | 内容 | 单核耗时（估） |
+|---|---|---|---|
+| E5e 旋转坐标系（`hq`） | 9 | Θ=0.125–1.1：与旋转图样同步转动的定态沿 Ω ∈ [−0.25, 0.2] 延拓（网格 0.005）+ 低频谱 → 跟随相图的理论边界、r² 律、共振间隙、反向旋转失锁的机理 | 约 2–4 h（估计，云端实测见 E5 README） |
+| E5b Ω 网格对照（`hq_omega_h0075`） | 9 | 第四轮跟随相图边界两侧的点（Θ, Ω）=(0.25, 0.10/0.12)、(0.5, 0.03/0.06/0.08)、(0.75, 0.01/0.02)、(1, −0.05/−0.10）在 h=0.075 上重算：锁定 / 失锁的判定是否与网格无关 | 1–1.5 h |
+| E5b Ω 加密（`hq_omega`） | 8 | (0.25, 0.11)、(0.5, 0.025/0.035/0.07)、(0.75, 0.015/−0.15)、(1, 0.015/−0.075)：边界位置 | 每个约 0.5 h |
+| E5d 场（`hq`） | 1 | `--fields_only`，Θ=0/0.25/0.5/0.75/1/1.2 的 U=15 定态场（Fig.6 场图） | 几分钟 |
+| E2c 场（`hq`） | 1 | 由第一轮 E2a 存在 `data/` 中的解裁剪导出 b≈0.5/1/2 的场（Fig.2 场图）；**需要 `data/E2_transmutation_atlas/hq/` 还在**（不在则见 E2 README） | 几秒 |
+
+汇总（p5_final）：`hq_omega`、`hq_omega_h0075` 的 `control_runs.csv`（`--table_only`），E5e 的 `e5e_n2_m2_U15_summary.csv`。
+**上传**：`results/E5_thermal_reconfiguration/{hq,hq_omega,hq_omega_h0075}`（`hq` 中新增 `e5e_*`、`fields/`）、`results/E2_transmutation_atlas/hq/fields/`
+中新增或更新的文件与日志，并在 Progress.md §6 记录运行情况。自查（写进 §6.1，不要求下结论）：
+* `hq/e5e_n2_m2_U15_summary.csv`：每个 Θ 的 `Omega_lock_min/max` 及原因、`resonance_gaps`、`unstable_intervals`；与第四轮 E5b 的锁定区间
+  （Θ=0.25：−0.2…0.10；0.5：−0.2…0.06 但 0.03 失锁；0.75：−0.1…0.01；1：−0.05…0.01）比较；`r2_theory_maxdev_lock`；
+* `hq_omega_h0075/control_runs.csv` 的 `locked` 与 `hq_omega` 同一 (Θ, Ω) 是否一致；`hq_omega` 加密点的 `locked`；
+* `hq/fields/` 与 `E2_transmutation_atlas/hq/fields/index.csv` 的文件数（E5d 6 个；E2c 应为 36 × 3 = 108 行，缺的 (样品, m) 记下来）。

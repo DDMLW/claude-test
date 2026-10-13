@@ -10,6 +10,8 @@ stability.py —— 线性稳定性分析 (linear stability analysis)
 
 即 lambda x = J H x (哈密顿结构): 本征值以 (lambda, -lambda, lambda*, -lambda*) 成组出现。
 存在 Re(lambda) > 0 即不稳定, 增长率 = max Re(lambda)。
+旋转坐标系 (model.rotation = Omega, 见 model.py): 两式右端各加 Omega A a_r、Omega A a_i (A = d_theta, 反对称),
+仍是哈密顿系统; 圆盘中角向通道 L 的本征值整体平移 lambda -> lambda + i L Omega。
 
 提供两种方法:
   1) stability_dense  : 在光束附近的圆形区域(半径 crop_radius)内构造稠密矩阵, 求全部本征值。
@@ -74,7 +76,8 @@ def stability_dense(model, sol, crop_radius=None, center=None, max_points=6000, 
     L = Lfull[S][:, S].toarray()
     G = green_block(model, S)
     wr, wi = w.real[S], w.imag[S]
-    real = np.max(np.abs(wi)) <= 1e-12 * np.max(np.abs(wr))
+    Om = getattr(model, "rotation", 0.0)
+    real = (not Om) and np.max(np.abs(wi)) <= 1e-12 * np.max(np.abs(wr))
     mode = None
     if real:
         Lp = L + 2.0 * wr[:, None] * G * wr[None, :]
@@ -100,6 +103,10 @@ def stability_dense(model, sol, crop_radius=None, center=None, max_points=6000, 
         A12 = -L - 2.0 * wi[:, None] * GWi
         A21 = L + 2.0 * wr[:, None] * GWr
         A22 = 2.0 * wr[:, None] * GWi
+        if Om:
+            Ath = (Om * model.angular_operator()).tocsr()[S][:, S].toarray()
+            A11 = A11 + Ath
+            A22 = A22 + Ath
         M = np.block([[A11, A12], [A21, A22]])
         if return_modes:
             import scipy.linalg as sla
@@ -124,8 +131,10 @@ def _augmented(model, sol):
     V = model.potential(model.thermal_index(np.abs(w) ** 2))
     L = 0.5 * model.D + sp.diags(V - b)
     Wr, Wi = sp.diags(w.real), sp.diags(w.imag)
-    A = sp.bmat([[None, -L, -Wi @ model.P],
-                 [L, None, Wr @ model.P],
+    Om = getattr(model, "rotation", 0.0)
+    R = Om * model.angular_operator() if Om else None
+    A = sp.bmat([[R, -L, -Wi @ model.P],
+                 [L, R, Wr @ model.P],
                  [2 * model.PT @ Wr, 2 * model.PT @ Wi, model.K]], format="csc")
     Bdiag = np.concatenate([np.ones(2 * No), np.zeros(Nt)])
     return A, Bdiag, No, Nt
@@ -184,7 +193,7 @@ def stability_arnoldi(model, sol, shifts=(0.05,), k=20, tol=1e-10, return_mode=F
     """
     稀疏 shift-invert Arnoldi: 对每个 shift sigma 求离 sigma 最近的 k 个本征值。
     增广系统 A x = lambda B x,  x = [a_r, a_i, dn],  B = diag(I, I, 0):
-        A = [[0, -L, -W_i P], [L, 0, W_r P], [2 P^T W_r, 2 P^T W_i, K]]
+        A = [[0, -L, -W_i P], [L, 0, W_r P], [2 P^T W_r, 2 P^T W_i, K]]   (旋转坐标系: 两个 0 块换成 Omega d_theta)
     算子 T u = [(A - sigma B)^{-1} [u; 0]]_{1:2N_o} 的本征值 mu = 1/(lambda - sigma)。
     返回所有找到的本征值 (去重前合并) 与 max Re(lambda)。
     return_mode=True: 另外返回增长率最大的本征模 mode = dict(lam, u, v) (Bogoliubov 形式,

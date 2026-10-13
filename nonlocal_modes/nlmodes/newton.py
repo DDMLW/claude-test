@@ -25,6 +25,10 @@ newton.py —— 定态解的牛顿迭代 (Newton iteration for stationary nonli
 
 可选“定功率”模式 (fixed_power=U0): 把 b 也当未知量, 增加约束 U(w) = U0, 用加边 (bordering)
 算法求解, 只需同一个 LU 分解做两次回代。适合按功率扫描、或比较不同尺寸的样品。
+
+旋转坐标系 (model.rotation = Omega != 0, 见 model.py): 方程多一项 -i Omega A w (A = d_theta, 实的反对称矩阵),
+即 F1 += Omega A w_i, F2 -= Omega A w_r, 雅可比矩阵的 (1,2)、(2,1) 块分别加 Omega A 与 -Omega A;
+只有复数解 (不能用 real=True)。A 反对称 -> Noether 恒等式不变, 钉住相位的做法照用。
 """
 
 import time
@@ -50,7 +54,7 @@ def _replace_row_with_unit(J, row):
 
 
 def jacobian(model, w, V, b, real):
-    """组装牛顿雅可比矩阵 (见文件头部公式)。"""
+    """组装牛顿雅可比矩阵 (见文件头部公式; model.rotation != 0 时含旋转坐标系的 Omega A 块)。"""
     L = 0.5 * model.D + sp.diags(V - b)
     wr = w.real
     WrP = sp.diags(wr) @ model.P
@@ -60,7 +64,12 @@ def jacobian(model, w, V, b, real):
     wi = w.imag
     WiP = sp.diags(wi) @ model.P
     PTWi2 = 2.0 * (model.PT @ sp.diags(wi))
-    return sp.bmat([[L, None, WrP], [None, L, WiP], [PTWr2, PTWi2, model.K]], format="coo")
+    Om = getattr(model, "rotation", 0.0)
+    R12 = R21 = None
+    if Om:
+        A = model.angular_operator()
+        R12, R21 = Om * A, -Om * A
+    return sp.bmat([[L, R12, WrP], [R21, L, WiP], [PTWr2, PTWi2, model.K]], format="coo")
 
 
 def align_phase(w, ref):
@@ -103,6 +112,9 @@ def solve(model, w0, b, real=None, fixed_power=None, tol=None, maxit=40, min_pow
     if tol is None:
         tol = DEFAULT_TOL
     w = np.asarray(w0, dtype=complex).copy()
+    Om = getattr(model, "rotation", 0.0)
+    if Om:
+        real = False                                # 旋转坐标系中只有复数解
     if real is None:
         real = _is_real(w)
     No = model.No
@@ -123,6 +135,8 @@ def solve(model, w0, b, real=None, fixed_power=None, tol=None, maxit=40, min_pow
         n_t = model.thermal_index(np.abs(w) ** 2)
         V = model.potential(n_t)
         R = 0.5 * (model.D @ w) + (V - b) * w
+        if Om:
+            R = R - 1j * Om * (model.angular_operator() @ w)
         res = float(np.max(np.abs(R)))
         # 线搜索价值函数: 去掉被“钉住”的那个方程 Im F[pin] (钉相位后的牛顿步只对其余方程是精确牛顿步;
         # 由 Noether 恒等式, 其余方程满足时 Im F[pin] 自动为 0)

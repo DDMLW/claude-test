@@ -54,6 +54,19 @@ hq 档：多边形/圆盘 h=0.1、矩形 h=0.15，b 步长 0.1，e2b 用 15 个 
   预实验（h=0.4）：(3,2) 拟合 **−3.009**；(3,3) 拟合 **−1.003**；(4,3) 拟合 −1.83（大 r_s 端偏离弱各向异性区，正式运行请看大 ρ 端的局部斜率）；
 * `scaling_n<n>_m<m>.csv`：每个 ρ 的全部诊断量。
 
+### e2c_export_fields.py（第五轮，论文 Fig.2 场图）
+E2a 把每个解族的全部解以双精度存在 `data/E2_transmutation_atlas/<tag>/<样品>_m<m>_b<b>.npz`（不上传）。论文作图脚本只读 `results/`，
+所以 E2c 对每个 (样品, m) 取 b 最接近 `--b` 的解，裁剪到光束区域（半宽 = 1.8 倍亮环半径 + 1）、降为单精度，写入
+`results/E2_transmutation_atlas/<tag>/fields/<样品>_m<m>_b<b>.npz` 与 `fields/index.csv`。不做任何求解，几秒钟完成（hq 的 36×3 个场约 10 MB）。
+```bash
+python E2_transmutation_atlas/e2c_export_fields.py --hq --b 0.5 1.0 2.0 --job e2c_fields    # 超算上 (data/ 在那里)
+python ../analysis/a9_atlas_fields.py --b 1.0                                                # 任意电脑: Fig.2 场图
+```
+quick 检查（2026-10-13，云端）：24 个场 0.2 MB，a9 画出的中心荷与卫星数逐格符合选择定则。
+**如果超算上的 `data/E2_transmutation_atlas/hq/` 已被清理**，E2c 会对每个 (样品, m) 打印 “no saved solutions”：
+此时用第一轮清单中 stage1 的 E2a 任务重跑需要的解族（每个 ≤ 1.4 h，结果与第一轮相同），再运行 E2c。
+
 ## 上传清单
 `nonlocal_modes/results/E2_transmutation_atlas/main/` 或 `hq/`（以及 `hq_coarse`、`h015` 等复核目录）。Progress.md 中记录：
 atlas_table 中 match 的个数与不一致的条目；各解族的 b 下限（阈值）；e2b 四个拟合斜率。
+第五轮：`hq/fields/`（E2c 导出的场与 `index.csv`）与 `hq/log_e2c_fields.txt`。

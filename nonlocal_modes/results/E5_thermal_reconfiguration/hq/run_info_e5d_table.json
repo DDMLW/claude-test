@@ -1,0 +1,33 @@
+{
+  "time": "2026-10-13T04:26:05",
+  "command": "E5_thermal_reconfiguration/e5d_twin_modes.py --hq --tag hq --table_only --job e5d_table",
+  "git_commit": "079c3d6",
+  "python": "3.13.16",
+  "numpy": "2.5.3",
+  "scipy": "1.18.1",
+  "platform": "Linux-6.18.44-fc-v114-x86_64-with-glibc2.39",
+  "machine": "vm",
+  "args": {
+    "tag": "hq",
+    "quick": false,
+    "hq": true,
+    "job": "e5d_table",
+    "h": 0.1,
+    "h_scale": 1.0,
+    "R": 10.0,
+    "n": 2,
+    "m": 2,
+    "U": 15.0,
+    "thetas": null,
+    "wmax": 0.62,
+    "table_only": true,
+    "profile": "hq",
+    "h_large": 0.15,
+    "tol": 1e-12,
+    "dz": 0.01,
+    "db_factor": 0.5,
+    "exp": "E5_thermal_reconfiguration",
+    "res_dir": "/home/user/claude-test/nonlocal_modes/results/E5_thermal_reconfiguration/hq",
+    "data_dir": "/home/user/claude-test/nonlocal_modes/data/E5_thermal_reconfiguration/hq"
+  }
+}
