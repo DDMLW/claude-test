@@ -1,0 +1,3 @@
+n,m,Theta,R,h,b_min,b_max,n_points,stop_up,stop_down,thresholds,windows,max_P_outer,window0_max_growth,window0_b_at_max,window0_lam_im_at_max,window0_L_at_max,window0_kappa_at_max
+3,2,1.0,10.0,0.075,3.0,4.2,11,reached end of range,reached end of range,3.4250-3.4375(unstable->stable),3.000-3.425,0.001008520674404881,0.01094666000618164,3.0,0.6860243001800719,-3,0
+3,2,2.0,10.0,0.075,4.4,5.6,11,reached end of range,reached end of range,5.0500-5.0625(unstable->stable),4.400-5.050,8.794043859640379e-05,0.01510302459399523,4.4,0.8933463645817517,-3,0

@@ -1,0 +1,3 @@
+n,m,Theta,b_lo,b_hi,width,touches_range_end,max_growth,b_at_max,lam_im_at_max,L_at_max,kappa_at_max,induced,hybrid
+3,2,1.0,3.0,3.43125,0.4312499999999999,True,0.01094666000618164,3.0,0.6860243001800719,-3,0,,
+3,2,2.0,4.4,5.05625,0.65625,True,0.01510302459399523,4.4,0.8933463645817517,-3,0,,

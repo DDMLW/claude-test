@@ -1,0 +1,17 @@
+
+===== E5_thermal_reconfiguration  tag=hq  profile=hq  h=0.1 (large samples 0.15)  newton tol=1e-12  dz=0.01  2026-10-13 04:03:56 =====
+results -> /public/home/liuxiuye/nonlocal_modes/results/E5_thermal_reconfiguration/hq
+raw data -> /public/home/liuxiuye/nonlocal_modes/data/E5_thermal_reconfiguration/hq
+  initial solve at b=3.000 (guess width 2.00): converged, its=4
+Theta=0: b=2.2854, 13 modes, omega(L=-2,K+)=0.2523246776424536, omega(L=-4,K+)=0.11976688944138922, max growth 4.72e-12
+Theta=0.125: b=2.2856, 14 modes, omega(L=-2,K+)=0.2532077984358994, omega(L=-4,K+)=0.11920001301881715, max growth 1.23e-13
+Theta=0.25: b=2.2862, 14 modes, omega(L=-2,K+)=0.2558159542944131, omega(L=-4,K+)=0.11753933838522237, max growth 5.28e-12
+Theta=0.5: b=2.2888, 15 modes, omega(L=-2,K+)=0.26571866794025784, omega(L=-4,K+)=0.1114103332131748, max growth 4.92e-13
+Theta=0.75: b=2.2928, 15 modes, omega(L=-2,K+)=0.2808152636406218, omega(L=-4,K+)=0.10256632438986522, max growth 6.45e-13
+Theta=1: b=2.2982, 15 modes, omega(L=-2,K+)=0.8252843421622724, omega(L=-4,K+)=0.09213536506969165, max growth 4.76e-13
+Theta=1.1: b=2.3006, 15 modes, omega(L=-2,K+)=0.8318375337242073, omega(L=-4,K+)=0.08772366207735145, max growth 4.69e-13
+Theta=1.2: b=2.3032, 16 modes, omega(L=-2,K+)=0.838857439911665, omega(L=-4,K+)=0.08325543875150822, max growth 2.17e-02
+Theta=1.3: b=2.3059, 16 modes, omega(L=-2,K+)=0.8463318719539528, omega(L=-4,K+)=0.07878934875817134, max growth 4.98e-02
+Theta=1.5: b=2.3116, 16 modes, omega(L=-2,K+)=0.8626355739442879, omega(L=-4,K+)=0.07016416603513971, max growth 8.07e-02
+
+E5d done.
