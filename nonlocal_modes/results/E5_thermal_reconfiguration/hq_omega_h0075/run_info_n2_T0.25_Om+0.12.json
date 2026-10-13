@@ -1,0 +1,40 @@
+{
+  "time": "2026-10-13T15:46:57",
+  "command": "E5_thermal_reconfiguration/e5b_dynamic_control.py --hq --tag hq_omega_h0075 --n 2 --Theta 0.25 --cases none --omegas 0.12 --ramp 100 --zmax 600 --h_scale 0.75 --job n2_T0.25_Om+0.12",
+  "git_commit": "unknown",
+  "python": "3.12.6",
+  "numpy": "2.0.2",
+  "scipy": "1.15.1",
+  "platform": "Linux-4.18.0-348.el8.x86_64-x86_64-with-glibc2.28",
+  "machine": "comput1",
+  "args": {
+    "tag": "hq_omega_h0075",
+    "quick": false,
+    "hq": true,
+    "job": "n2_T0.25_Om+0.12",
+    "h": 0.075,
+    "h_scale": 0.75,
+    "R": 10.0,
+    "n": 2,
+    "m": 2,
+    "Theta": 0.25,
+    "U": 15.0,
+    "zmax": 600.0,
+    "cases": [
+      "none"
+    ],
+    "omegas": [
+      0.12
+    ],
+    "ramp": 100.0,
+    "table_only": false,
+    "profile": "hq",
+    "h_large": 0.1125,
+    "tol": 1e-12,
+    "dz": 0.01,
+    "db_factor": 0.5,
+    "exp": "E5_thermal_reconfiguration",
+    "res_dir": "/public/home/liuxiuye/nonlocal_modes/results/E5_thermal_reconfiguration/hq_omega_h0075",
+    "data_dir": "/public/home/liuxiuye/nonlocal_modes/data/E5_thermal_reconfiguration/hq_omega_h0075"
+  }
+}

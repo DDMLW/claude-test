@@ -3,13 +3,3 @@
 results -> /public/home/liuxiuye/nonlocal_modes/results/E5_thermal_reconfiguration/hq_h0075
 raw data -> /public/home/liuxiuye/nonlocal_modes/data/E5_thermal_reconfiguration/hq_h0075
 control_runs.csv: 2 runs
-
-===== E5_thermal_reconfiguration  tag=hq_h0075  profile=hq  h=0.1 (large samples 0.15)  newton tol=1e-12  dz=0.01  2026-10-13 04:24:54 =====
-results -> /home/user/claude-test/nonlocal_modes/results/E5_thermal_reconfiguration/hq_h0075
-raw data -> /home/user/claude-test/nonlocal_modes/data/E5_thermal_reconfiguration/hq_h0075
-control_runs.csv: 2 runs
-
-===== E5_thermal_reconfiguration  tag=hq_h0075  profile=hq  h=0.1 (large samples 0.15)  newton tol=1e-12  dz=0.01  2026-10-13 04:25:13 =====
-results -> /home/user/claude-test/nonlocal_modes/results/E5_thermal_reconfiguration/hq_h0075
-raw data -> /home/user/claude-test/nonlocal_modes/data/E5_thermal_reconfiguration/hq_h0075
-control_runs.csv: 2 runs

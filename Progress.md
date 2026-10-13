@@ -2,7 +2,7 @@
 
 > 本文件是项目的**唯一事实来源**：每完成一步、每次运行、每个决定都记在这里。
 > Claude 每次开始工作先读本文件；师弟每次上传结果后在“运行记录”表追加一行。
-> 最后更新：2026-10-13（第四轮分析完成：跟随指标改为稳健定义、E5d 连续追踪、Fig.6 定稿、SI 重画、场图流程；新增旋转坐标系 E5e 与第五轮清单；文献初检。见 §3 C10/C13、§6.1 第四轮、§8）
+> 最后更新：2026-10-13（第五轮 phase 5 在 cdut 超算完成：28+3 任务全部成功、结果上传；三项自查见 §6、§6.1 第五轮）
 
 ## 0. 导航
 * 项目代码与说明：[`nonlocal_modes/README.md`](nonlocal_modes/README.md)
@@ -188,6 +188,8 @@
 | 2026-10-13 | 第四轮：双涡旋 Ω 扫描 52 个（4 Θ × 13 Ω 含反向旋转）+ E5c (2:2) Θ=1.1–1.5 + E5d 低频谱 + 半径 10 圆盘通道谱（hq_disk10）+ h=0.075 对照 ×2，`--hq` | hq / hq_omega / hq_h0075 / hq_hib_h0075 / hq_disk10 | cdut 超算（单核任务，8G） | 单任务 0.5–4.8 h（e5c 289 min 最慢） | 61/61 OK | 四项自查见 §6.1 第四轮；E5c (2:2) 预言与实测三位有效数字吻合 |
 | 2026-10-13 | 第四轮 final 汇总（4 个任务） | hq 等 | 同上 | <1 min×4 | 4/4 OK | status.py 输出与总耗时见 §6.1 |
 | 2026-10-13 | 第四轮复核（云端，Claude）：E5b 跟随指标按稳健定义重算（`--table_only`：hq_omega 52、hq_h0075 2）；E5d 汇总按连续追踪重建；核心判据的稳健性检验（scratch）；a7/a8/a9 定稿与场图 quick；`nlmodes` 旋转坐标系单元测试；E5e quick 与 hq 点检（Θ=0.5，Ω=−0.01…0.045） | hq（重建）/ quick / cloudtest_e5e | 云端 4 核 | 每项 <1–30 min；E5e hq 点检延拓 60 min、每个谱点 3–6 min（旧的 11 个 shift） | OK | 见 §6.1“Claude 分析（第四轮）”与 C10；pytest 32/32；hq 牛顿每次迭代约 15 s（旋转项使 LU 填充 +50%），内存 2.2 GB；cloudtest/quick 不上传 |
+| 2026-10-13 | 第五轮：E5e 双涡旋旋转坐标系共振支 9 Θ + E2c 场导出（108 个定态场）+ Ω 扫描网格对照（hq_omega_h0075）与 hq_omega 加密点，`--hq` | hq / hq_omega / hq_omega_h0075 | cdut 超算（单核任务，8G） | E5e 单 Θ 3.5 h（211 min 最慢）；E2c <1 min | 28/28 OK | 三项自查见 §6.1 第五轮 |
+| 2026-10-13 | 第五轮 final 汇总（3 个任务） | hq 等 | 同上 | <1 min×3 | 3/3 OK | status.py 输出与总耗时见 §6.1 |
 |  |  |  |  |  |  |  |
 
 ### 6.1 核验记录（2026-10-12 cdut 超算 hq 正式运行，115/115 成功）
@@ -391,6 +393,30 @@ p4_final:   4 jobs | OK 4  | FAILED 0 | not finished 0
    场图流程（E2c、E5d `--fields_only`、`a9`、`a7 --fields_only`，quick 通过）；`nlmodes` 旋转坐标系 + E5e（§8）；文献网页初检（`docs/references.md` F 节，
    未发现同类工作；需人工核对 KVT 2007 与我们圆盘 m=2 低功率窗口的关系，§4-13）。
 
+#### 第五轮（phase 5，2026-10-13 cdut 超算，28+3 任务）
+
+status.py 输出：
+```
+p5_main :  28 jobs | OK 28 | FAILED 0 | not finished 0
+p5_final:   3 jobs | OK 3  | FAILED 0 | not finished 0
+```
+总墙钟 **3.5 h**（15:46 提交 → 19:19 结束；E5e 单 Θ 最长 211 min）。运行代码 = 提交 767f6b1。
+
+三项自查（§8 第 6 步）：
+1. **E5e 锁定区间**（e5e_n2_m2_U15_summary.csv，9 个 Θ）：锁定区间随 Θ 收窄 ——
+   Omega_lock_min −0.1075→−0.0425、Omega_lock_max +0.0288→+0.0072（Θ=0.125→1.1）。
+   下限失稳原因：Θ≤0.25 为 L=−4 κ=0 模，Θ=0.375 为 L=−2 κ=0 模，Θ≥0.5 为 **L=1 κ=−1 模**（C_2 破缺平移模）；
+   上限原因：Θ=0.125/0.25/1.0 为 fold（支越过共振继续存在），其余为 L=−2 κ=0 模失稳。
+   每 Θ 的 stable/unstable_intervals 分段（段 0=同相支、±1=共振支）与模式标记 (L,κ,Im) 全部填齐；
+   branch_overlaps 非空（S 形支重叠区，如 Θ=0.5：−0.1812..−0.1512 与 −0.0091..+0.0209）。
+   r2_theory_maxdev_lock 各 Θ 0.030–0.269。
+2. **hq_omega_h0075（h=0.075）与 hq_omega（h=0.1）一致性**：9 个对照点中 7 个 locked 一致 ✓；
+   2 个不一致：(Θ=0.25, Ω=0.12) 与 (Θ=0.5, Ω=0.03) —— h=0.1 锁定而 h=0.075 未锁定（待分析：可能是新 locked
+   判据与旧 xi_lock_lost 口径差异，或近边界处的真实网格依赖）。hq_omega 加密点 locked：
+   Θ=0.25 Ω=0.11 F；Θ=0.5 Ω=0.025 F / 0.035 T / 0.07 T；Θ=0.75 Ω=−0.15 F / 0.015 F；Θ=1.0 Ω=−0.075 F / 0.015 F。
+3. **场文件**：E5 hq/fields = **6 个** ✓（T=0/0.25/0.5/0.75/1/1.2 的 npz）；
+   E2 hq/fields/index.csv = **108 行、36 个 (样品,m) 对**（6 样品 × m=1–6）**无缺失** ✓。
+
 ## 7. 决策日志
 | 日期 | 决定 | 理由 |
 |---|---|---|
@@ -449,6 +475,7 @@ p4_final:   4 jobs | OK 4  | FAILED 0 | not finished 0
    * `hq_omega_h0075/control_runs.csv` 的 `locked` 是否与 `hq_omega` 同一 (Θ, Ω) 一致；`hq_omega` 加密点（0.11、0.025、0.035、0.07、0.015、−0.15、−0.075）的 `locked`；
    * 场文件数：`E5_thermal_reconfiguration/hq/fields/` 6 个；`E2_transmutation_atlas/hq/fields/index.csv` 应为 108 行（缺的 (样品, m) 记下来；若 E2c 报
      “no saved solutions”，说明超算上 `data/E2_transmutation_atlas/hq/` 已被清理，见 E2 README）。
+   ✅ 已完成（2026-10-13，Claude 代师弟执行，墙钟 3.5 h，见 §6 运行记录与 §6.1 第五轮）。
 
 **Claude（收到第五轮结果后）**：
 * E5e 的理论锁定区间画进 Fig.6 (d)（每个 Θ 的锁定段 / 失稳段 / 共振间隙），与 E5b 的 52+17 个传播点对照；同步定态的 r2 曲线画进 (e)；反向失锁的模式（κ、Krein）写进 C10 与 theory.md §5.1；
