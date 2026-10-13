@@ -42,7 +42,7 @@ rho ≈ 1 且核心区 (r < 1.5) 奇点集合不变、无相位滑移 (展开的
 但本脚本的初态、加热图样与方形网格都精确保持 C_2, kappa=1 的种子只有舍入误差 (~1e-16 的振幅), 传播 600 也放大不起来
 (第四轮 Theta=0.75、Omega=-0.1 在 E5e 失稳区内 (增长率 0.023) 却 "锁定")。--seed_shift DX 把初态沿 x 平移 DX
 (w -> w - DX dw/dx, 正是平移模的形状; 1e-3 对应入射光束 1e-3 的对准误差), 表中另给 gamma_c2: 斜坡之后 C_2 非 mu 权重
-∝ exp(2 gamma xi) 的拟合增长率 (线性段 1e-12 < 权重 < 1e-2), 直接与 E5e 的 max_growth 比较。
+∝ exp(2 gamma xi) 的拟合增长率 (线性段 1e-12 < 权重 < 2e-3 的最后两个数量级、核心改变之前), 直接与 E5e 的 max_growth 比较。
 """
 
 import glob
@@ -96,8 +96,8 @@ def following_metrics(tr, n, angle_fn=None, z_from=None, z_avg=0.0, nonmu=None, 
       lag_mean/lag_max 展开的滞后 (到核心改变为止);  r2_ratio  斜坡之后到核心改变为止 r_sat^2 的平均 / 起点的值;
       corotation_rate z_from 之后 (关断情形) 取向的平均角速度 = 自由共转角速度;
       xi_c2           nonmu (C_n 非 mu 权重序列 (z, w)) 第一次超过 1e-3 的 xi (对称性破缺);
-      gamma_c2        斜坡之后 (xi >= z_avg + 10) 非 mu 权重在线性段 (1e-12 < w < 1e-2) 内 ∝ exp(2 gamma xi) 的拟合增长率
-                      (少于 5 个点时为空; 与 E5e 同一 (Theta, Omega) 的 max_growth 比较, 需要 --seed_shift 种子)。
+      gamma_c2        斜坡之后 (xi >= z_avg + 10)、核心改变之前, 非 mu 权重在线性段 (1e-12 < w < 2e-3) 最后两个数量级内 ∝ exp(2 gamma xi) 的拟合增长率
+                      (少于 5 个点时为空; 与 E5e 同一 (Theta, Omega) 的 max_growth 比较, 需要 --seed_shift 种子; 见 c2_growth)。
     受迫振子图像 (theory.md §5.1): 双涡旋 = 被加热静态驱动的 L=-2 分裂模; 图样以 Omega 旋转时 r2_ratio = omega_rot/(omega_rot - 2 Omega)。
     """
     by_z = {}
@@ -133,15 +133,20 @@ def following_metrics(tr, n, angle_fn=None, z_from=None, z_avg=0.0, nonmu=None, 
     if nonmu is not None:
         zc = [z for z, w in nonmu if w > 1e-3]
         out["xi_c2"] = zc[0] if zc else ""
-        out["gamma_c2"] = c2_growth(nonmu, z_avg + 10.0)
     if rsat:
         zr = np.array([z for z, _ in rsat])
         r2 = np.array([r for _, r in rsat]) ** 2
         if (zr >= z_avg).sum() > 2 and r2[0] > 0:
             out["r2_ratio"] = float(np.mean(r2[zr >= z_avg]) / r2[0])
-    if len(z_ok) < 2:
-        return out
-    z_ok = np.array(z_ok)
+    if len(z_ok) >= 2:
+        _orientation_metrics(out, np.array(z_ok), phi, n, angle_fn, z_from, z_avg, core_change)
+    if nonmu is not None:          # 核心结构改变之后已不是同步定态附近的线性阶段
+        out["gamma_c2"] = c2_growth(nonmu, z_avg + 10.0, z_end=core_change if core_change != "" else None)
+    return out
+
+
+def _orientation_metrics(out, z_ok, phi, n, angle_fn, z_from, z_avg, core_change):
+    """following_metrics 的取向部分 (滞后、相位滑移、rho、locked、共转角速度), 直接写入 out。"""
     Phi = np.unwrap(np.array(phi)) / n          # phi 已是 n 倍取向 (arg sum exp(i n phi_k)), 展开后除以 n
     if angle_fn is not None:
         th = np.array([angle_fn(z) for z in z_ok])
@@ -157,22 +162,31 @@ def following_metrics(tr, n, angle_fn=None, z_from=None, z_avg=0.0, nonmu=None, 
         sel = z_ok >= z_from
         if sel.sum() > 2:
             out["corotation_rate"] = float(np.polyfit(z_ok[sel], Phi[sel], 1)[0])
-    return out
 
 
-def c2_growth(nonmu, z0, lo=1e-12, hi=1e-2):
-    """非 mu 权重 w(xi) ∝ exp(2 gamma xi) 的增长率: 只用 xi >= z0、且第一次超过 hi 之前、w > lo 的点 (线性段)。"""
+def c2_growth(nonmu, z0, z_end=None, lo=1e-12, hi=2e-3, decades=2.0):
+    """非 mu 权重 w(xi) ∝ exp(2 gamma xi) 的渐近增长率: 只用 xi >= z0、第一次超过 hi 之前、w > lo 的点 (线性段),
+    并且只取其中最后 decades 个数量级 (w >= 线性段最大值 x 10^-decades 的最后一段连续点)。
+    种子 (--seed_shift) 同时激发不增长的 C_n 破缺模, 早期的斜率偏低 (第六轮: Theta=1.2 静态时全段拟合 0.02065,
+    最后两个量级 0.0216 = E5c 的 0.02165); hi = 2e-3 以上已开始非线性饱和 (Theta=0.5, Omega=-0.15 在 5e-3 以上局部斜率降到 0.023)。
+    只在线性段内权重增长超过 decades 个数量级时才截取最后一段 (稳定时权重只振荡, 用全段, 斜率 ≈ 0);
+    z_end (核心区奇点集合改变的位置) 之后已不是同步定态附近的线性阶段, 不用; 相位滑移不截断 —— 它可能来自同时存在的
+    C_n 对称失稳 (第六轮 Theta=0.25、Omega=-0.15: kappa=0 振荡模 0.012 在 xi=330 造成滑移, 而 C_2 破缺分量此时才 3e-6、仍按 kappa=1 的 0.016 增长)。"""
     pts = []
     for z, w in nonmu:
         if z < z0:
             continue
-        if w > hi:
+        if w > hi or (z_end is not None and z >= z_end):
             break
         if w > lo:
             pts.append((z, w))
     if len(pts) < 5:
         return ""
     z, w = np.array(pts).T
+    if w.max() > w[0] * 10.0 ** decades:
+        below = np.where(w < w.max() * 10.0 ** (-decades))[0]
+        if len(below) and len(z) - below[-1] - 1 >= 5:
+            z, w = z[below[-1] + 1:], w[below[-1] + 1:]
     return float(0.5 * np.polyfit(z, np.log(w), 1)[0])
 
 

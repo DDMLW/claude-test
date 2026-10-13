@@ -1,0 +1,11 @@
+# LaTeX 编译中间文件（main.tex、body_*.tex、refs.bib 副本与 main.pdf 入库，便于直接上传 Overleaf 或阅读）
+*.aux
+*.log
+*.blg
+*.bbl
+*.out
+*.spl
+*.toc
+*.synctex.gz
+*.fls
+*.fdb_latexmk

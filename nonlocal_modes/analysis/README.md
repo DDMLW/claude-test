@@ -70,3 +70,7 @@ python a9_atlas_fields.py --b 1.0 # 需要第五轮 E2c 导出的场 (results/E2
 * a7 (d)：E5e 9 个 Θ 的同步定态稳定区间（同相支含 Ω=0：Θ=0.125 −0.148…+0.029 → Θ=1.1 −0.043…+0.007）；反向边界与 −ω_odd 线在谱点间隔内重合
   （κ=1 平移模在旋转系中零频）；E5b 60 个点中 52 个与 E5e 一致，其余 8 个是 C_2 对称传播看不到的 κ=1、弱失稳或斜坡到不了的稳定态（第六轮加种子检验）。
 * a9：Fig.2 用 108 个 hq 场重画（b≈1 的 36 格）；a7 场图用 6 个 hq 场重画。
+
+**第六轮（2026-10-13）**：a7 新增 SI 图 `twin_vortex_seed.png`（读 `E5_thermal_reconfiguration/<tag>_seed/control_runs.csv` 与时间序列）：
+(a) 带 C_2 破缺种子的传播中 C_2 破缺权重的增长率对 E5e（旋转系同步定态）/ E5d（静态）的线性增长率——6 个可测点吻合 0.2–2.3%；
+(b) 代表点的权重随 ξ（带内指数增长、带外有界振荡）。论文 SI 的另一张图 Fig. S1 由 `experiments/E3_stability/e3c_radial_disk.py` 直接画出（`results/E3_stability/hq/e3c_radial_vs_2d.png`）。

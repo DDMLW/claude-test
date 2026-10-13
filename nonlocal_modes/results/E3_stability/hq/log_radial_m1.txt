@@ -1,0 +1,24 @@
+
+===== E3_stability  tag=hq  profile=hq  h=0.1 (large samples 0.15)  newton tol=1e-12  dz=0.01  2026-10-13 15:14:50 =====
+results -> /home/user/claude-test/nonlocal_modes/results/E3_stability/hq
+raw data -> /home/user/claude-test/nonlocal_modes/data/E3_stability/hq
+radial check: R=8.0, M=600 (dr=0.0133) and 2M, b = 0.025..7.0 (60 points), m = [1]
+  m=1: 60 states, U(b=2)=12.15189, max growth 0.0223  [317s]
+  m=1 L=-1 M=600: window edge b_c in [0.12881, 0.12891], b_c R^2 = 8.247  [330s]
+  m=1 L=-1 M=1200: window edge b_c in [0.12881, 0.12891], b_c R^2 = 8.247  [407s]
+m=1 L=-1: b_c R^2 = 8.247 (M=1200; M=600: 8.247), max growth in the window 0.0223 at b=0.025
+E3c done [407s]
+
+===== E3_stability  tag=hq  profile=hq  h=0.1 (large samples 0.15)  newton tol=1e-12  dz=0.01  2026-10-13 15:26:38 =====
+results -> /home/user/claude-test/nonlocal_modes/results/E3_stability/hq
+raw data -> /home/user/claude-test/nonlocal_modes/data/E3_stability/hq
+radial check: R=8.0, M=600 (dr=0.0133) and 2M, b = 0.025..7.0 (60 points), m = [1]
+  m=1: 60 states, U(b=2)=12.15189, max growth 0.0223  [316s]
+  m=1 L=-1 M=600: window edge b_c in [0.12881, 0.12891], b_c R^2 = 8.247  [330s]
+  m=1 L=-1 M=1200: window edge b_c in [0.12881, 0.12891], b_c R^2 = 8.247  [412s]
+m=1 L=-1: b_c R^2 = 8.247 (M=1200; M=600: 8.247), max growth in the window 0.0223 at b=0.025
+m=2 L=-1: b_c R^2 = 13.728 (M=1200; M=600: 13.728), max growth in the window 0.0339 at b=0.025
+m=2 L=-2: b_c R^2 = 32.559 (M=1200; M=600: 32.559), max growth in the window 0.0462 at b=0.125
+m=3 L=-1: b_c R^2 = 18.366 (M=1200; M=600: 18.366), max growth in the window 0.0436 at b=0.025
+m=3 L=-2: b_c R^2 = 51.591 (M=1200; M=600: 51.591), max growth in the window 0.0687 at b=0.15
+E3c done [412s]

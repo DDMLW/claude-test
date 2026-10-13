@@ -150,8 +150,9 @@ quick（h=0.4，ξ=40，约 1 min）：`--quick --n 2 --Theta 0.5 --cases switch
 ## E5b（第六轮）—— C_2 破缺种子 `--seed_shift`：检验反向旋转的 κ=1 失稳
 E5b 的初态、加热图样与方形网格都精确保持 C_2，κ=1（破坏 C_2）分量只有舍入误差，传播 600 也放大不起来（Progress.md §5-22）。
 `--seed_shift DX` 把初态沿 x 平移 DX（w → w − DX ∂w/∂x，正是平移模的形状；1e-3 相当于入射光束 1e-3 的对准误差）；
-表中新增 `seed_shift` 与 `gamma_c2`——斜坡之后（ξ ≥ ramp + 10）C_n 非 μ 权重在线性段（1e-12 < 权重 < 1e-2）内 ∝ e^{2γξ} 的拟合增长率，
-直接与 E5e 同一 (Θ, Ω) 的 `max_growth` 比较（`--table_only` 由时间序列重算）。
+表中新增 `seed_shift` 与 `gamma_c2`——斜坡之后（ξ ≥ ramp + 10）、核心改变之前，C_n 非 μ 权重在线性段（1e-12 < 权重 < 2e-3）**最后两个数量级**内
+∝ e^{2γξ} 的拟合增长率（种子同时激发不增长的 C_n 破缺模，早期斜率偏低，Progress.md §5-23），直接与 E5e 同一 (Θ, Ω) 的 `max_growth` 比较
+（`--table_only` 由时间序列重算）。
 ```bash
 python e5b_dynamic_control.py --hq --n 2 --Theta 0.75 --cases none --omegas -0.1 --ramp 100 --zmax 600 --seed_shift 1e-3 --tag hq_seed --job n2_T0.75_Om-0.1
 python e5b_dynamic_control.py --hq --tag hq_seed --table_only          # 汇总 control_runs.csv
@@ -159,6 +160,10 @@ python e5b_dynamic_control.py --hq --tag hq_seed --table_only          # 汇总 
 quick（`--quick --n 2 --Theta 1 --cases none --omegas -0.1 --ramp 10 --seed_shift 1e-3`，9 s）已跑通。**云端 h=0.2 预检**（Θ=1，斜坡 50、ξ=300）：
 Ω=−0.1 有种子 → `gamma_c2` = 0.05472（E5e h=0.1：0.05469），ξ=170 滑移；Ω=−0.05 有种子 → 锁定、`gamma_c2` = 6e-5（稳定）；Ω=−0.1 无种子 →
 C_2 权重 9.6e-27 → 1.9e-13（不增长），ξ=188 仍滑移——那是同一点 κ=0 的振荡失稳（0.012/0.017）。第六轮清单：`make_jobs.py --phase 6`（15 个点，tag `hq_seed`）。
+
+**第六轮结果（`hq_seed`，15 个点；Progress.md C10）**：κ=1 带内 5 点全部失锁（含无种子时锁定的 Θ=0.75、Ω=−0.1），`gamma_c2` = 0.01571/0.03202/0.04737/0.02281/0.03474
+对 E5e 0.01585/0.03239/0.04847/0.02289/0.0341（0.3–2.3%）；带外 8 点全部锁定（|γ| < 5e-4）；静态 Θ=1.2 为 0.02160（E5c 0.02165）、Θ=1.1 不增长
+（Ω=0 时没有图样转角，`locked` 恒为 False，不表示失锁）。SI 图：`analysis/a7_twin_vortex.py` → `twin_vortex_seed.png`。
 
 ## E5d（第四轮）—— 双涡旋的低频 Bogoliubov 谱 vs Θ（Ω 扫描的理论输入）
 `python e5d_twin_modes.py --hq --job e5d_n2`（默认四极加热、m=2、U=15、Θ=0–1.5 共 10 个；单核约 0.5–1 h；quick 约 1 min 已跑通）。

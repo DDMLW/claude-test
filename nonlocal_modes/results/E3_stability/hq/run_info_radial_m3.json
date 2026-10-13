@@ -1,0 +1,33 @@
+{
+  "time": "2026-10-13T15:26:38",
+  "command": "e3c_radial_disk.py --hq --ms 3 --job radial_m3",
+  "git_commit": "897edeb",
+  "python": "3.13.16",
+  "numpy": "2.5.3",
+  "scipy": "1.18.1",
+  "platform": "Linux-6.18.44-fc-v114-x86_64-with-glibc2.39",
+  "machine": "vm",
+  "args": {
+    "tag": "hq",
+    "quick": false,
+    "hq": true,
+    "job": "radial_m3",
+    "h": 0.1,
+    "h_scale": 1.0,
+    "R": 8.0,
+    "ms": [
+      3
+    ],
+    "M": null,
+    "tol_b": null,
+    "plot_only": false,
+    "profile": "hq",
+    "h_large": 0.15,
+    "tol": 1e-12,
+    "dz": 0.01,
+    "db_factor": 0.5,
+    "exp": "E3_stability",
+    "res_dir": "/home/user/claude-test/nonlocal_modes/results/E3_stability/hq",
+    "data_dir": "/home/user/claude-test/nonlocal_modes/data/E3_stability/hq"
+  }
+}

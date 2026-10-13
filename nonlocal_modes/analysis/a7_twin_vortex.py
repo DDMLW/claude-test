@@ -21,9 +21,11 @@ Fig.6 (twin_vortex.png):
   (e) 锁定时卫星半径平方的放大 r2_ratio 对零参数理论 omega_rot / (omega_rot - 2 Omega); 有 E5e 时加同步定态的 r2 (点线)
   (f) 关断后的自由共转: 角速度 = 圆盘 L=-2 分裂模频率的一半
 SI (twin_vortex_SI.png): LG 发射中的形成、第三轮突然启动的取向滞后、关断前后的间距
+SI (twin_vortex_seed.png, 第六轮): 带 C_2 破缺种子的 E5b (<tag>_seed) —— C_2 破缺权重的增长率对 E5e / E5d 的线性增长率、权重随 xi
 场图 (twin_vortex_fields.png, Fig.6 顶行): E5d --fields_only 导出的 U=15 定态 (results/E5_thermal_reconfiguration/<tag>/fields/),
   每个 Theta 一格: 色相 = 相位、亮度 = sqrt 振幅, 白圈 = +1 奇点, 标注中心荷、两个 +1 涡旋的半间距与稳定性 (E5d)
-输出: results/analysis/<tag>/twin_vortex.png、twin_vortex_SI.png、twin_vortex_fields.png (有场文件时)、twin_vortex_summary.csv
+输出: results/analysis/<tag>/twin_vortex.png、twin_vortex_SI.png、twin_vortex_fields.png (有场文件时)、twin_vortex_seed.png (有种子运行时)、
+      twin_vortex_summary.csv
 运行:  python a7_twin_vortex.py                 (全部)
        python a7_twin_vortex.py --fields_only   (只画场图)
 """
@@ -202,6 +204,84 @@ def twin_fields(tag, out, E, half=3.0):
                  f"white circles: +1 vortices; window |x|, |y| <= {half:g}", fontsize=8.5)
     style.save(fig, os.path.join(out, "twin_vortex_fields.png"), tight=False)
     return half_sep
+
+
+def e5e_growth_at(tag, T, Om, seg=0):
+    """E5e 同步定态 (段 seg) 在 Omega 处的最大增长率: 算过谱的相邻两点线性插值; 没有时 nan。"""
+    f = e5_file(tag, f"e5e_n2_m2_U15_T{T:g}_branch.csv")
+    if not os.path.exists(f):
+        return float("nan")
+    pts = sorted((fnum(r["Omega"]), fnum(r["max_growth"])) for r in io_utils.read_csv(f)
+                 if r.get("spectrum") == "True" and int(fnum(r["segment"])) == seg)
+    om = np.array([p[0] for p in pts])
+    if not len(om) or not om[0] - 1e-9 <= Om <= om[-1] + 1e-9:
+        return float("nan")
+    return float(np.interp(Om, om, [p[1] for p in pts]))
+
+
+def seed_check(tag, out, E, summary):
+    """SI: 带 C_2 破缺种子 (--seed_shift) 的 E5b (第六轮 <tag>_seed) —— (a) C_2 破缺权重的增长率对 E5e / E5d 的线性增长率,
+    (b) 非 mu 权重随 xi (失稳带内指数增长, 带外不增长)。没有结果时跳过。"""
+    f = e5_file(f"{tag}_seed", "control_runs.csv")
+    if not os.path.exists(f):
+        return
+    runs = sorted(io_utils.read_csv(f), key=lambda r: (fnum(r["Theta"]), fnum(r["omega"])))
+    fig, axs = style.plt.subplots(1, 2, figsize=(10.0, 3.9))
+    ax = axs[0]
+    pairs = []
+    for r in runs:
+        T, Om, g = fnum(r["Theta"]), fnum(r["omega"]), fnum(r["gamma_c2"])
+        if Om == 0.0 and E is not None and np.any(np.isclose(E["Theta"], T)):
+            ref = float(E["max_growth"][np.isclose(E["Theta"], T)][0])      # 静态: E5d 的增长率 (Theta_c 以上为 kappa=1 实失稳)
+        else:
+            ref = e5e_growth_at(tag, T, Om)
+        if not (np.isfinite(g) and np.isfinite(ref)):
+            continue
+        lost = r["locked"] != "True" and (Om != 0.0 or ref > 1e-5)
+        pairs.append((T, Om, ref, g, lost))
+    gmax = max([max(p[2], p[3]) for p in pairs] + [0.01]) * 1.12
+    ax.plot([0, gmax], [0, gmax], "-", color=style.INK_SECONDARY, lw=0.9, label="y = x")
+    for lost, col, mk, lab in ((True, style.PALETTE[1], "D", "lock lost / unstable"), (False, style.PALETTE[0], "o", "locked / stable")):
+        sel = [p for p in pairs if p[4] == lost]
+        if sel:
+            ax.plot([p[2] for p in sel], [p[3] for p in sel], mk, ms=6.5, color=col, mec="white", mew=0.6, ls="none",
+                    label=lab)
+    for T, Om, ref, g, lost in pairs:
+        if lost:
+            ax.annotate(f"({T:g}, {Om:g})", (ref, g), textcoords="offset points", fontsize=6.5, color=style.INK_SECONDARY,
+                        xytext=(-44, 4) if Om == 0.0 else (5, -10))
+            summary[f"seed_gamma_T{T:g}_Om{Om:+g}"] = g
+            summary[f"seed_gamma_ref_T{T:g}_Om{Om:+g}"] = ref
+    ax.set_xlim(-0.002, gmax)
+    ax.set_ylim(-0.002, gmax)
+    ax.set_xlabel("linear growth rate (rotating-frame state, E5e; static: E5d)")
+    ax.set_ylabel("growth of the C_2-breaking weight (propagation)")
+    ax.set_title("(a) seeded propagation vs. linear stability", loc="left")
+    ax.legend(loc="upper left", fontsize=7)
+    ax = axs[1]
+    k = 0
+    for r in runs:
+        T, Om = fnum(r["Theta"]), fnum(r["omega"])
+        if (T, Om) not in ((0.75, -0.1), (0.75, -0.05), (0.5, -0.15), (0.5, -0.2), (1.2, 0.0)):
+            continue
+        fts = e5_file(f"{tag}_seed", f"control_n2_T{T:g}_rotate_Om{Om:+g}_timeseries.csv")
+        if not os.path.exists(fts):
+            continue
+        ts = io_utils.read_csv(fts)
+        st = style.series_style(k)
+        lab = f"Theta={T:g}, Omega={Om:g}: " + ("lock lost" if r["locked"] != "True" and Om != 0 else
+                                               ("locked" if Om != 0 else "static"))
+        ax.semilogy([fnum(t["z"]) for t in ts], [max(fnum(t["nonmu_weight"]), 1e-12) for t in ts], "-", color=st["color"],
+                    lw=1.2, label=lab)
+        k += 1
+    ax.axvline(100, color=style.INK_SECONDARY, lw=0.8, ls=":")
+    ax.text(103, 2e-11, "end of ramp", fontsize=7, color=style.INK_SECONDARY)
+    ax.set_ylim(1e-11, 2)
+    ax.set_xlabel("propagation distance xi")
+    ax.set_ylabel("C_2-breaking weight")
+    ax.set_title("(b) seed 1e-3 (displaced input beam)", loc="left")
+    ax.legend(loc="lower right", fontsize=6.8)
+    style.save(fig, os.path.join(out, "twin_vortex_seed.png"))
 
 
 def main():
@@ -509,6 +589,7 @@ def main():
 
     for T, rs in twin_fields(a.tag, out, E).items():
         summary[f"rs_field_T{T:g}"] = rs
+    seed_check(a.tag, out, E, summary)
     io_utils.write_csv(os.path.join(out, "twin_vortex_summary.csv"), [summary])
     print("twin vortex summary:")
     for key, v in summary.items():

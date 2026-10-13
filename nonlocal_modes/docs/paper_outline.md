@@ -1,8 +1,8 @@
-# 论文提纲（草稿，2026-10-13，第五轮分析之后；正文草稿见 `nonlocal_modes/paper/manuscript.md`）
+# 论文提纲（2026-10-13，第六轮分析之后；正文 v0.2 见 `nonlocal_modes/paper/manuscript.md`，CSF 版 `paper/latex/main.pdf`）
 
 > 依据：`Progress.md` §3 已确认的结论 C1–C13（括号中的数字均来自 hq 结果，出处见各结论的“依据”列）。
-> 本文件只整理叙事与图，结论的唯一来源仍是 Progress.md。第五轮后 Fig.2、Fig.6 用 hq 场与 E5e 定稿；
-> 剩第六轮（带 C_2 破缺种子的 E5b）的传播检验与师弟的文献调研（`docs/literature_task.md`）。
+> 本文件只整理叙事与图，结论的唯一来源仍是 Progress.md。第六轮后：文献调研完成（`docs/literature_review.md`，无撞车），
+> 种子传播检验完成（SI Fig. S2），圆盘窗口有径向一维独立复核（SI Fig. S1，回应 KVT 2007）；目标期刊 CSF。
 
 ## 题目（候选）
 * *Boundary symmetry as a design principle for vortex topology in nonlocal nonlinear media*
@@ -22,7 +22,7 @@
 ## 结构与图
 | 节 | 内容 | 图 | 数据 / 脚本 | 状态 |
 |---|---|---|---|---|
-| 1 引言 | 非局域孤子、离散对称涡旋（光子晶格、BEC 双量子化涡旋分裂）；导师 2008/2010 的边界态与双涡旋；本文问题：只靠边界能否设计涡旋拓扑 | — | references.md | 草稿已写；引用待师弟的文献调研（第六轮）核对 |
+| 1 引言 | 非局域孤子、离散对称涡旋（光子晶格、BEC 双量子化涡旋分裂）；导师 2008/2010 的边界态与双涡旋；本文问题：只靠边界能否设计涡旋拓扑 | — | refs.bib | v0.2 按 literature_review.md 改写（含新意定位段） |
 | 2 模型与对称性传递 | 热非局域 NLS + Dirichlet 边界；保角映射格林函数；传递定律与保角半径普适性；严格标度不变性 b_c ρ² = 常数 | **Fig.1** 传递定律（数值/理论 0.99997–1.004）与保角半径普适性（U(b) 差 ≤ 3.7e-4） | E1a、E1b；`a0_symmetry_transfer.py` | 齐 |
 | 3 嬗变选择定则 | 角赝动量 μ = m mod n；谐波 l = m − jn；中心荷与卫星；牛顿多边形分数指数；n\|2m 简并与存在阈值（只在强各向异性时出现，C11） | **Fig.2** 嬗变周期表（样品 × m 的相位/振幅，±1 奇点、中心荷、未分辨标记）；**Fig.3** 标度律：E2b 尺寸 + E5a 加热的渐近局部指数（与理论差 ≤ 0.6%） | E2a、E2b、E5a、E2c；`a1_scaling_laws.py`、`a9_atlas_fields.py` | 齐（Fig.2 用 108 个 hq 场重画；圆盘 m≥4 的网格 C_4 分裂已标注） |
 | 4 稳定性与机理 | 稳定性图谱（m≥3 全部不稳定；m=2 低功率窗口）；圆盘通道谱 + Krein 符号；C_n 选择定则 κ = L mod n；Hamilton–Hopf 二模公式与边界判据 \|Δω\| = 2g；三角形宽窗口（L=−3/L=0 近简并对，预言端点 2.93 对实测 2.95–2.99）；小 Θ 线性律 g = 0.150Θ；C_3 加热高 b 窗口（同一对通道，耦合 g ≈ 2.04Θ(r_ring/R)³，四个端点预言与实测差 ≤ 0.002；网格加密上移 5–6%） | **Fig.4** 窗口机理；SI：网格收敛、加热窗口 | E3、E3b、E5c；`a2`、`a4`、`a5`、`a8` | 齐（a8 用正式 `hq_disk10` 与 h=0.075 对照重画） |
@@ -47,6 +47,7 @@
 * **SI 加热窗口**（`a8_heated_window.py`）：失稳模频率落在圆盘两支之间、c(b) 塌缩、预言 vs 实测 b_up。
 
 ## 尚缺（按优先级）
-1. ~~第五轮~~ 已完成（Progress.md §6.1 第五轮）；第六轮（超算，Progress.md §8）：15 个带 C_2 破缺种子的 E5b，直接检验反向 κ=1 失锁（云端 h=0.2 预检增长率与 E5e 差 0.05%）。
-2. 系统文献检索：**交给师弟**（任务书 `docs/literature_task.md`：N1–N6 新意对照、10 个必答问题、references.md 核对、literature_review.md、refs.bib、期刊分区）。
-3. 目标期刊：*Chaos, Solitons & Fractals* / *CNSNS*（首选）；若第 6 节动态调控足够醒目，考虑 *Photonics Research* 或 *PRA*（研究方案第 7 节）。
+1. ~~第五、六轮~~ 已完成：种子传播 15 点与 E5e 一致（增长率 0.2–2.3%），圆盘窗口径向复核 b_c R² = 32.56。
+2. ~~系统文献检索~~ 已完成（师弟，`docs/literature_review.md`、`paper/refs.bib`）。
+3. 剩：作者审阅 v0.2、作者信息与后置节、材料常数与 KVT 措辞（Progress.md §8）。
+4. 目标期刊：*Chaos, Solitons & Fractals* 首选、*CNSNS* 次选（师弟第六轮调研：CSF 数学 1 区 TOP、IF 5.6，`docs/literature_review.md` §4）；投稿格式由 `paper/build.py` 生成。
