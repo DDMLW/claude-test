@@ -103,18 +103,18 @@ def free_rotation_rate(b_disk):
 
 
 def e5e_intervals(tag):
-    """E5e 汇总表: {Theta: dict(stable=[(lo, hi)], unstable=[(lo, hi)], gaps=[(lo, hi)])}; 没有时返回 {}。"""
+    """E5e 汇总表: {Theta: dict(stable=[(lo, hi, 段)], unstable=[(lo, hi, 段)])}; 段 0 = 从静态双涡旋连续延拓的同相支,
+    其余 = 共振另一侧的反相支。没有时返回 {}。"""
     import re
     f = e5_file(tag, "e5e_n2_m2_U15_summary.csv")
     if not os.path.exists(f):
         return {}
-    num = r"([+-]?\d*\.?\d+)"
+    pat = r"([+-]?\d*\.?\d+)\.\.([+-]?\d*\.?\d+)(?:\[([+-]?\d+)\])?"
     out = {}
     for r in io_utils.read_csv(f):
-        parse = [(float(a), float(b)) for a, b in re.findall(num + r"\.\." + num, r.get("stable_intervals", "") or "")]
-        bad = [(float(a), float(b)) for a, b in re.findall(num + r"\.\." + num, r.get("unstable_intervals", "") or "")]
-        gaps = [(float(a), float(b)) for a, b in re.findall(num + r"\.\." + num, r.get("resonance_gaps", "") or "")]
-        out[fnum(r["Theta"])] = dict(stable=parse, unstable=bad, gaps=gaps)
+        iv = {k: [(float(a), float(b), int(c or 0)) for a, b, c in re.findall(pat, r.get(f"{k}_intervals", "") or "")]
+              for k in ("stable", "unstable")}
+        out[fnum(r["Theta"])] = iv
     return out
 
 
@@ -298,13 +298,20 @@ def main():
                     ls="none", label=lab)
     # E5e: 旋转坐标系中同步定态的稳定段 / 失稳段 (理论边界; 第五轮)
     EE = e5e_intervals(a.e5e_tag or a.tag)
-    first = {"stable": True, "unstable": True}
+    styles = {("stable", True): (style.PALETTE[0], 7, 0.30, "co-rotating state stable (in-phase branch, E5e)"),
+              ("stable", False): (style.PALETTE[2], 7, 0.30, "stable beyond a resonance (anti-phase branch, E5e)"),
+              ("unstable", True): (style.PALETTE[1], 3, 0.55, "co-rotating state unstable (E5e)"),
+              ("unstable", False): (style.PALETTE[1], 3, 0.55, None)}
+    used = set()
     for T, iv in sorted(EE.items()):
-        for kind, col in (("stable", style.PALETTE[0]), ("unstable", style.PALETTE[1])):
-            for lo, hi in iv[kind]:
-                ax.plot([lo, hi], [T, T], "-", color=col, lw=7, alpha=0.28, solid_capstyle="butt", zorder=1,
-                        label=(f"co-rotating state {kind} (rotating frame, E5e)" if first[kind] else None))
-                first[kind] = False
+        for kind in ("unstable", "stable"):
+            for lo, hi, sg in iv[kind]:
+                col, lw, al, lab = styles[(kind, sg == 0)]
+                dy = 0.0 if sg == 0 else (0.035 if kind == "stable" else 0.035)
+                ax.plot([lo, hi], [T + dy, T + dy], "-", color=col, lw=lw, alpha=al, solid_capstyle="butt", zorder=1,
+                        label=None if (lab is None or lab in used) else lab)
+                if lab:
+                    used.add(lab)
     if E is not None:
         ok = E["max_growth"] < 1e-5
         ax.plot(E["omega_m2"][ok] / 2, E["Theta"][ok], "-", color=style.INK, lw=1.1,
@@ -338,8 +345,14 @@ def main():
                     color=st["color"], mfc="none", mec=st["color"], ls="none")
         br = e5e_branch(a.e5e_tag or a.tag, T)
         if br is not None:
+            # 只画稳定的同步定态 (E5e 汇总表中该段的稳定区间内)
+            stab = EE.get(T, {}).get("stable", [])
             for sg in np.unique(br[2]):
-                sel = (br[2] == sg) & np.isfinite(br[1])
+                ok = np.zeros(len(br[0]), bool)
+                for lo, hi, s2 in stab:
+                    if s2 == sg:
+                        ok |= (br[0] >= lo - 1e-9) & (br[0] <= hi + 1e-9)
+                sel = (br[2] == sg) & np.isfinite(br[1]) & ok
                 ax.plot(br[0][sel], br[1][sel], ":", color=st["color"], lw=1.4)
         if E is not None:
             w = float(np.interp(T, E["Theta"], E["omega_m2"]))
@@ -353,7 +366,7 @@ def main():
     ax.set_xlabel("pattern angular velocity  Omega")
     ax.set_ylabel("<r_s^2> / r_s0^2   after the ramp")
     ax.set_title("(e) separation response: omega_rot / (omega_rot - 2 Omega)", loc="left")
-    ax.text(0.98, 0.03, "solid lines: no free parameter (omega_rot from E5d)\ndotted: co-rotating stationary state (E5e)"
+    ax.text(0.98, 0.03, "solid lines: no free parameter (omega_rot from E5d)\ndotted: stable co-rotating stationary state (E5e)"
             "\nopen symbols: lock lost", transform=ax.transAxes, ha="right", fontsize=6.8, color=style.INK_SECONDARY)
     ax.legend(loc="upper left", fontsize=6.8)
 

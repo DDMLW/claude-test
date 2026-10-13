@@ -438,7 +438,7 @@ p4_final:   4 jobs | OK 4  | FAILED 0 | not finished 0
 5. 上传：`git add nonlocal_modes/results Progress.md`（新增/更新的文件在 `E5_thermal_reconfiguration/{hq,hq_omega,hq_omega_h0075}`、`E2_transmutation_atlas/hq/fields`），
    在 §6 追加运行记录；
 6. 自查（写进 §6.1，不要求下结论）：
-   * `hq/e5e_n2_m2_U15_summary.csv`：每个 Θ 的 `Omega_lock_min/max` 与原因、`resonance_gaps`、`unstable_intervals`，与第四轮 E5b 的锁定区间比较
+   * `hq/e5e_n2_m2_U15_summary.csv`：每个 Θ 的 `Omega_lock_min/max` 与原因、`resonance_gaps`、`branch_overlaps`、`stable_intervals`/`unstable_intervals`（`lo..hi[段号]`，段 0 = 同相支），与第四轮 E5b 的锁定区间比较
      （Θ=0.25：−0.2…0.10；0.5：−0.2…0.06 但 0.03 失锁；0.75：−0.1…0.01；1：−0.05…0.01）；`r2_theory_maxdev_lock`；
    * `hq_omega_h0075/control_runs.csv` 的 `locked` 是否与 `hq_omega` 同一 (Θ, Ω) 一致；`hq_omega` 加密点（0.11、0.025、0.035、0.07、0.015、−0.15、−0.075）的 `locked`；
    * 场文件数：`E5_thermal_reconfiguration/hq/fields/` 6 个；`E2_transmutation_atlas/hq/fields/index.csv` 应为 108 行（缺的 (样品, m) 记下来；若 E2c 报

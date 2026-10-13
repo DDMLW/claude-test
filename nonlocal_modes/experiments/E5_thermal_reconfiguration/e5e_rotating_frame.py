@@ -10,22 +10,24 @@ E5e —— 旋转坐标系中的双涡旋: 与旋转加热图样同步转动的�
   * 旋转坐标系中角向通道 L 的频率平移 L Omega: 分裂模 (L=-2) 在 Omega = omega_{-2}/2、L=-4 模在 omega_{-4}/4 处过零
     (一阶 / 二阶共振), 谱图上可以直接看到哪一支模的碰撞造成失稳 (包括反向旋转时的失稳)。
 做法: 半径 R 的圆盘, 边界温度 Theta cos(n theta) (与 E5b/E5d 相同), 固定能流 U; 先沿 Theta 延拓 (Omega=0), 再沿 Omega
-正、反两个方向延拓 (割线预测, 失败时步长减半, 连续失败即判为折返); 每隔 --spec_every 个 Omega 点在 Im(lambda) = 0.02 ...
---wmax 之间放 shift 求低频本征值, 并在稳定性改变的相邻两点之间补算全部中间点 (边界分辨率 = Omega 步长)。
-共振间隙: 某个被加热驱动的模 (kappa=0) 的旋转系频率 omega_L - L Omega 过零时, 受迫响应发散, 同步定态在共振前折返
-(云端 quick: Theta=0.5 的分支停在 Omega≈0.022 = 二阶共振 omega_{-4}/4 附近)。延拓失败时从最后一个解出发, 依次尝试
-不超过 --max_jump 的后续 Omega, 收敛且仍是双涡旋 (r < 2 内找到 n 个 +1 涡旋) 就从那里继续: 共振两侧是不同的 "分段" (segment),
-间隙记在 _branch.csv 的 segment 列与汇总表中 (对应 E5b 中 Theta=0.5、Omega=0.03 失锁而 0.04-0.06 锁定)。
+正、反两个方向延拓 (割线预测, 失败时步长减半, 连续失败即判为折返); 每隔 --spec_every 个 Omega 点求 Im(lambda) ∈ [0, --wmax]
+的低频本征值 (3 个 shift x 16 个, 与 E5d 的 11 x 10 结果相同、快 3 倍), 并在稳定性改变的相邻两点之间补算全部中间点
+(边界分辨率 = Omega 步长)。
+共振与双稳: 某个被加热驱动的模 (kappa=0) 的旋转系频率 omega_L - L Omega 过零时受迫响应发散; 非线性使响应曲线弯成 S 形
+(Duffing 型), 同相支在共振前折返 (hq: Theta=0.5 在 Omega≈0.021, 线性预言的二阶共振 omega_{-4}/4 = 0.028)。延拓失败时在
+--max_jump 与其一半处由远到近直接求解 (初值取本段起点与最后一个解), 找到共振另一侧 (反相) 的解后先往回延拓定出这一段的边缘
+(若与已有的点重合则说明没有真正的折返), 再往前延拓。各段记在 _branch.csv 的 segment 列; 两段在 Omega 上重叠 = 两支同步定态并存
+(两支都稳定处为双稳), 不重叠 = 间隙 (汇总表 branch_overlaps / resonance_gaps; 对应 E5b 中 Theta=0.5、Omega=0.03 失锁而 0.04-0.06 锁定)。
 
 输出 (results/E5_thermal_reconfiguration/<tag>/):
   e5e_n<n>_m<m>_U<U>_T<Theta>_branch.csv  每个 Omega: 所属分段、b、两个 +1 涡旋的半间距 r_s 与 r2_ratio、取向滞后 (相对 Omega=0;
                                           无耗散的受迫响应只有同相 / 反相, 共振以下应为 0)、亮环处谐波比 c1 = c_{m-n}/c_m、
                                           c2 = c_{m-2n}/c_m (一阶 / 二阶受迫响应, 跨过共振时反号)、是否算谱、max growth、
                                           最不稳定模的 Im lambda / L / kappa / Krein
-  e5e_n<n>_m<m>_U<U>_T<Theta>_modes.csv   全部低频本征值 (Omega、lam_re、lam_im、L、kappa、krein、w_u)
+  e5e_n<n>_m<m>_U<U>_T<Theta>_modes.csv   全部低频本征值 (Omega、segment、lam_re、lam_im、L、kappa、krein、w_u)
   e5e_n<n>_m<m>_U<U>_T<Theta>.png         (a) 低频谱 vs Omega  (b) 增长率  (c) r2_ratio 与 omega_rot/(omega_rot - 2 Omega)
-  e5e_n<n>_m<m>_U<U>_summary.csv          每个 Theta: 锁定区间 [Omega_lock_min, Omega_lock_max] (从 0 出发, 定态存在且稳定)、
-                                          延拓到达的范围 (折返点)、全部失稳区间与其最大增长率、r2_ratio 对理论的最大偏差
+  e5e_n<n>_m<m>_U<U>_summary.csv          每个 Theta: 锁定区间 [Omega_lock_min, Omega_lock_max] (从 0 出发, 同相支存在且稳定)、
+                                          延拓到达的范围、稳定 / 失稳区间 (lo..hi[段号])、共振间隙与双稳重叠、r2_ratio 对理论的最大偏差
                                           (--table_only 由各 Theta 的 _branch.csv 重建)
 运行:
   python e5e_rotating_frame.py --quick                                  (约 3 分钟; h=0.4 只检查流程)
@@ -37,6 +39,7 @@ import glob
 import os
 import re
 import sys
+import time
 
 import numpy as np
 
@@ -53,6 +56,11 @@ import matplotlib.pyplot as plt  # noqa: E402
 from e5d_twin_modes import L_COLORS  # noqa: E402
 
 R_PAIR = 2.0     # 只在 r < 2 (亮环半径约 2.3 以内、光束区内) 找双涡旋的 +1 奇点, 外围暗区的伪奇点不计
+T_START = time.time()
+
+
+def elapsed():
+    return f"[{(time.time() - T_START) / 60:.1f} min]"
 
 
 def pair_geometry(M, w, n):
@@ -100,58 +108,69 @@ def low_spectrum(M, st, shifts, kk, m, n):
 def omega_branch(Mt, st, U, om_end, dom, n, m, max_jump, min_frac=1.0 / 16):
     """
     从 Omega=0 沿一个方向延拓到 om_end。目标总是下一个 Omega 网格点 (dom 的整数倍), 失败时步长减半 (割线预测);
-    步长小于 dom * min_frac 仍失败 = 折返或共振: 从最后一个收敛的解出发, 依次直接求解其后、距离不超过 max_jump 的
-    网格点, 第一个收敛且仍是双涡旋 (r < 2 内找到 n 个 +1 涡旋) 的点开始新的一段 (不跨段做割线预测)。
-    返回 ([(Omega, model, sol, segment)] (含步长减半时的中间点), [(间隙起点, 间隙终点)]);
-    segment = 0 为含 Omega=0 的一段, 向外依次 ±1, ±2 ...
+    步长小于 dom * min_frac 仍失败 = 折返或共振。此时跳过间隙: 在最后一个解之后 max_jump、max_jump/2 处
+    (由远到近, 远处更可能已在共振另一侧) 直接求解, 初值先取本段起点的解、再取最后一个解; 收敛且仍是双涡旋
+    (r < 2 内找到 n 个 +1 涡旋) 就开始新的一段: 先往回延拓 (步长 min(dom/2, 0.005), 最多越过近侧折返点 max_jump, 用来定出间隙另一侧的
+    边缘; 两段重叠 = 两支同步定态并存; 若与本段已有的点重合, 说明之前的失败只是数值上的, 不另起一段), 再往前延拓。
+    返回 [(Omega, model, sol, segment)] (含步长减半时的中间点);
+    segment = 0 为含 Omega=0 的一段, 正向依次 +1, +2 ...、反向 -1, -2 ...
     """
     def solve(model, w0, b0, robust=False):
         """延拓的每一步只用 Armijo 牛顿、最多 12 次迭代 (好初值时 <= 6 次收敛; 折返附近快速失败再减半步长);
-        跳过间隙时初值较差, 依次试三种全局化策略 (每种最多 15 次)。hq 网格上每次迭代约 2-3 s。"""
+        跳跃时初值较差, 依次试三种全局化策略 (每种最多 10 次)。"""
         if robust:
-            return newton.solve_robust(model, w0, b0, fixed_power=U, maxit=15)
+            return newton.solve_robust(model, w0, b0, fixed_power=U, maxit=10)
         return newton.solve(model, w0, b0, fixed_power=U, maxit=12)
 
     def b_guess(frm, v):
         """b 随 Omega 近似平移 m Omega (圆盘中的纯涡旋严格如此, 见单元测试)。"""
         return frm[2]["b"] + m * (v - frm[0])
 
-    sign = 1.0 if om_end > 0 else -1.0
-    u_end = abs(om_end)
-    out, gaps, seg = [], [], 0
-    cur, prev = (0.0, Mt, st), None
-    seg_start = cur
-    step = dom
-    while sign * cur[0] < u_end - 1e-12:
-        u = sign * cur[0]
-        u_grid = (np.floor(u / dom + 1e-9) + 1) * dom
-        ut = min(u + step, u_grid, u_end)
-        vt = round(sign * ut, 9)
-        Mv = Mt.rotating_copy(vt)
-        guess = cur[2]["w"]
-        if prev is not None and prev[0] != cur[0]:
-            w_prev = newton.align_phase(prev[2]["w"], guess)
-            guess = guess + (vt - cur[0]) / (cur[0] - prev[0]) * (guess - w_prev)
-        s = solve(Mv, guess, b_guess(cur, vt))
-        if s["converged"]:
-            prev, cur = cur, (vt, Mv, s)
-            out.append((vt, Mv, s, seg))
-            step = min(dom, 2 * step)
-            print(f"   branch Omega={vt:+.5f}: b={s['b']:.6f} ({s['iterations']} Newton its)", flush=True)
-            continue
-        step /= 2
-        if step >= dom * min_frac:
-            continue
-        # 跳过间隙: 初值依次取最后一个解与本段起点的解 (共振一侧的解含很大的共振分量, 另一侧的解更接近本段起点)
-        nxt = None
-        u0 = sign * cur[0]
-        for k in range(1, int(np.floor(max_jump / dom + 1e-9)) + 1):
-            ug = (np.floor(u0 / dom + 1e-9) + k) * dom
-            if ug > u_end + 1e-12 or ug - u0 > max_jump + 1e-12:
+    def march(start, d, stop, seg, max_step=dom, known=None):
+        """从 start 出发沿 d (= ±1) 方向走 Omega 网格点直到 stop (Omega 值) 或失败; 返回 (点列表, 最后一个收敛的状态,
+        是否与 known ({Omega: b}, 另一段已有的点) 重合)。重合说明两段是同一支解 (之前的失败只是数值上的, 不是折返)。"""
+        pts, cur, prev, step = [], start, None, max_step
+        while d * cur[0] < d * stop - 1e-12:
+            t = d * cur[0]
+            tt = min(t + step, (np.floor(t / dom + 1e-9) + 1) * dom, d * stop)
+            vt = round(d * tt, 9)
+            Mv = Mt.rotating_copy(vt)
+            guess = cur[2]["w"]
+            if prev is not None and prev[0] != cur[0]:
+                w_prev = newton.align_phase(prev[2]["w"], guess)
+                guess = guess + (vt - cur[0]) / (cur[0] - prev[0]) * (guess - w_prev)
+            s = solve(Mv, guess, b_guess(cur, vt))
+            if s["converged"]:
+                prev, cur = cur, (vt, Mv, s)
+                pts.append((vt, Mv, s, seg))
+                step = min(max_step, 2 * step)
+                print(f"   branch Omega={vt:+.5f}: b={s['b']:.6f} ({s['iterations']} Newton its, segment {seg:+d}) "
+                      f"{elapsed()}", flush=True)
+                kb = (known or {}).get(round(vt, 9))
+                if kb is not None and abs(kb - s["b"]) < 1e-7 * max(1.0, abs(kb)):
+                    return pts, cur, True
+                continue
+            step /= 2
+            if step < dom * min_frac:
                 break
+        return pts, cur, False
+
+    sign = 1.0 if om_end > 0 else -1.0
+    seg, seg_start = 0, (0.0, Mt, st)
+    out, cur, _ = march(seg_start, sign, om_end, seg)
+    out = list(out)
+    while sign * cur[0] < sign * om_end - 1e-12:
+        u0 = sign * cur[0]
+        cands = sorted({min((np.ceil((u0 + f * max_jump) / dom - 1e-9)) * dom, abs(om_end))
+                        for f in (1.0, 0.5)}, reverse=True)
+        nxt = None
+        for ug in cands:
+            if ug <= u0 + 1e-12:
+                continue
             v = round(sign * ug, 9)
             Mj = Mt.rotating_copy(v)
-            for frm in (cur, seg_start):
+            # 跳跃的初值离解较远: Armijo 线搜索常卡住而纯牛顿收敛 (quick 实测), 所以两种初值都依次试三种全局化策略
+            for frm in (seg_start, cur):
                 sj = solve(Mj, frm[2]["w"], b_guess(frm, v), robust=True)
                 if sj["converged"] and np.isfinite(pair_geometry(Mj, sj["w"], n)[0]):
                     nxt = (v, Mj, sj)
@@ -162,14 +181,28 @@ def omega_branch(Mt, st, U, om_end, dom, n, m, max_jump, min_frac=1.0 / 16):
             print(f"   co-rotating branch ends at Omega={cur[0]:+g} (fold or resonance wider than {max_jump:g})",
                   flush=True)
             break
-        gaps.append((cur[0], nxt[0]))
-        seg += int(sign)
-        print(f"   resonance gap: no co-rotating state continued beyond Omega={cur[0]:+g}; branch resumes at "
-              f"{nxt[0]:+g} (segment {seg:+d})", flush=True)
-        out.append((nxt[0], nxt[1], nxt[2], seg))
-        cur, prev, step = nxt, None, dom
+        # 往回延拓 (步长 min(dom/2, 0.005), 最多越过近侧折返点 max_jump): 定出另一侧的边缘; 若与本段已有的点重合, 说明根本没有间隙
+        known = {round(p[0], 9): p[2]["b"] for p in out + [(0.0, Mt, st, 0)] if p[3] == seg}
+        new_seg = seg + int(sign)
+        back, _, rejoined = march(nxt, -sign, cur[0] - sign * max_jump, new_seg, max_step=min(dom / 2, 0.005),
+                                  known=known)
+        if rejoined:
+            print(f"   no real gap: the branch beyond Omega={cur[0]:+g} rejoins segment {seg:+d} "
+                  f"(Newton had failed there numerically)", flush=True)
+            back = [(p[0], p[1], p[2], seg) for p in back[:-1]]
+        else:
+            seg = new_seg
+            print(f"   resonance gap after Omega={cur[0]:+g}: segment {seg:+d} found at {nxt[0]:+g}, extends back to "
+                  f"{(back[-1][0] if back else nxt[0]):+g}", flush=True)
+        out += back + [(nxt[0], nxt[1], nxt[2], seg)]
+        fwd, cur, _ = march(nxt, sign, om_end, seg)
+        out += fwd
         seg_start = nxt
-    return out, gaps
+    # 去掉重复的 (Omega, 段) 点 (往回延拓可能落在已有的网格点上)
+    uniq = {}
+    for p in out:
+        uniq.setdefault((round(p[0], 9), p[3]), p)
+    return list(uniq.values())
 
 
 def wrap(a, n):
@@ -195,20 +228,23 @@ def split_mode_frequency(modes0):
 def run_theta(args, T, Mt, st, name, out):
     n, m, U = args.n, args.m, args.U
     dom = args.dom
-    shifts = [1j * w for w in np.arange(0.02, args.wmax + 1e-9, pick(args, quick=0.15, main=0.08, hq=0.06))]
-    kk = pick(args, quick=6, main=8, hq=10)
+    # shift: [0, wmax] 内等距的 ns 个, 每个求最近的 kk 个本征值。云端 h=0.2 检验 (Theta=0.5, Omega=0 与 -0.14):
+    # 3 个 shift x 16 与 E5d 式的 11 x 10 找到完全相同的模 (含失稳模 3.08e-2), 快 3 倍 (每个 shift 要一次大 LU)
+    ns = pick(args, quick=2, main=3, hq=3)
+    shifts = [1j * args.wmax * (2 * j + 1) / (2 * ns) for j in range(ns)]
+    kk = pick(args, quick=10, main=16, hq=16)
     every = args.spec_every
     tag = f"{name}_T{T:g}"
-    branch, gaps = [(0.0, Mt.rotating_copy(0.0), st, 0)], []
+    branch = [(0.0, Mt.rotating_copy(0.0), st, 0)]
     for om_end in (args.om_max, args.om_min):
         if om_end != 0:
-            br, gp = omega_branch(Mt, st, U, om_end, dom, n, m, args.max_jump)
-            branch += br
-            gaps += gp
-    branch.sort(key=lambda t: t[0])
+            branch += omega_branch(Mt, st, U, om_end, dom, n, m, args.max_jump)
+    branch.sort(key=lambda t: (t[3], t[0]))
     oms = [t[0] for t in branch]
-    print(f"Theta={T:g}: rotating branch reached Omega = {oms[0]:+g} ... {oms[-1]:+g} "
-          f"({len(branch)} points; targets {args.om_min:+g} ... {args.om_max:+g}; gaps {gaps})", flush=True)
+    segs = sorted({t[3] for t in branch})
+    print(f"Theta={T:g}: co-rotating states found for Omega = {min(oms):+g} ... {max(oms):+g} ({len(branch)} points, "
+          f"segments " + ", ".join(f"{sg:+d}: {min(t[0] for t in branch if t[3] == sg):+.4f}..."
+                                   f"{max(t[0] for t in branch if t[3] == sg):+.4f}" for sg in segs) + ")", flush=True)
     r0, ax0 = pair_geometry(Mt, st["w"], n)
     r_ring = dg.ring_radius(Mt.to_grid(np.asarray(st["w"], complex)), Mt.grid, (0.0, 0.0))
     rows = []
@@ -222,13 +258,12 @@ def run_theta(args, T, Mt, st, name, out):
                          spectrum=False, max_growth="", unstable_im="", unstable_L="", unstable_kappa="",
                          unstable_krein="", n_modes=""))
     modes = []
-    i0 = oms.index(0.0)
 
     def spectrum_at(i):
-        Om, M, s, _ = branch[i]
+        Om, M, s, sg = branch[i]
         ms = low_spectrum(M, s, shifts, kk, m, n)
         for r in ms:
-            r.update(Theta=T, Omega=Om)
+            r.update(Theta=T, Omega=Om, segment=sg)
         modes.extend(ms)
         row = rows[i]
         g = max([r["lam_re"] for r in ms] + [0.0])
@@ -237,27 +272,29 @@ def run_theta(args, T, Mt, st, name, out):
             u = max(ms, key=lambda r: (r["lam_re"], r["lam_im"]))
             row.update(unstable_im=u["lam_im"], unstable_L=u["L"], unstable_kappa=u["kappa"], unstable_krein=u["krein"])
         print(f"   Omega={Om:+.4f}: b={s['b']:.5f}, r_s={row['r_s']:.4f} (r2 ratio {row['r2_ratio']:.3f}), "
-              f"lag={row['axis_lag']:+.4f}, {len(ms)} modes, max growth {g:.2e}", flush=True)
+              f"lag={row['axis_lag']:+.4f}, {len(ms)} modes, max growth {g:.2e} {elapsed()}", flush=True)
 
-    # 谱只在 Omega 网格点 (dom 的整数倍) 与每一段的两端 (折返点 / 共振间隙两侧) 上算:
-    # 第一遍每隔 every 个网格点; 第二遍在稳定性改变的相邻两点之间补算全部网格点 (边界分辨率 = dom)
-    grid = [i for i in range(len(branch)) if abs(oms[i] / dom - round(oms[i] / dom)) < 1e-6]
-    k0 = grid.index(i0)
-    ends = {i for i in range(len(branch)) if i == 0 or i == len(branch) - 1 or branch[i - 1][3] != branch[i][3]
-            or branch[i + 1][3] != branch[i][3]}
-    first = sorted({grid[k] for k in range(len(grid)) if (k - k0) % every == 0} | ends)
-    for i in sorted(first, key=lambda i: abs(oms[i])):
-        spectrum_at(i)
-    done = [i for i in range(len(branch)) if rows[i]["spectrum"]]
-    for a, b in zip(done[:-1], done[1:]):
-        if (rows[a]["max_growth"] > args.growth_tol) != (rows[b]["max_growth"] > args.growth_tol):
-            for i in grid:
-                if a < i < b:
-                    spectrum_at(i)
-    w_rot = split_mode_frequency([r for r in modes if r["Omega"] == 0.0])
+    # 谱只在 Omega 网格点 (dom 的整数倍) 与每一段的两端 (折返点 / 共振间隙两侧) 上算, 逐段处理 (branch 已按 (段, Omega) 排序):
+    # 第一遍每隔 every 个网格点; 第二遍在同一段内稳定性改变的相邻两点之间补算全部网格点 (边界分辨率 = dom)
+    for sg in segs:
+        idx = [i for i in range(len(branch)) if branch[i][3] == sg]
+        grid = [i for i in idx if abs(oms[i] / dom - round(oms[i] / dom)) < 1e-6]
+        anchor = min(grid, key=lambda i: abs(oms[i])) if grid else idx[0]
+        k0 = grid.index(anchor) if grid else 0
+        first = sorted({grid[k] for k in range(len(grid)) if (k - k0) % every == 0} | {idx[0], idx[-1]})
+        for i in sorted(first, key=lambda i: abs(oms[i])):
+            spectrum_at(i)
+        done = [i for i in idx if rows[i]["spectrum"]]
+        for a, b in zip(done[:-1], done[1:]):
+            if (rows[a]["max_growth"] > args.growth_tol) != (rows[b]["max_growth"] > args.growth_tol):
+                for i in grid:
+                    if a < i < b:
+                        spectrum_at(i)
+    w_rot = split_mode_frequency([r for r in modes if r["Omega"] == 0.0 and r["segment"] == 0])
     for row in rows:
         row["r2_theory"] = theory_r2(row["Omega"], w_rot)
         row["omega_rot0"] = w_rot
+    rows.sort(key=lambda r: (r["Omega"], r["segment"]))
     io_utils.write_csv(os.path.join(out, f"{tag}_branch.csv"), rows)
     io_utils.write_csv(os.path.join(out, f"{tag}_modes.csv"), sorted(modes, key=lambda r: (r["Omega"], r["lam_im"])))
     plot_theta(rows, modes, T, w_rot, os.path.join(out, f"{tag}.png"), args.growth_tol)
@@ -335,16 +372,31 @@ def summarize(out, name, tol, om_lim=(-0.25, 0.2)):
                     key=lambda f: float(re.search(r"_T([0-9.]+)_branch", f).group(1))):
         rows = sorted(io_utils.read_csv(f), key=lambda r: float(r["Omega"]))
         om = np.array([float(r["Omega"]) for r in rows])
-        segs = sorted({int(float(r.get("segment", 0) or 0)) for r in rows})
-        seg_of = {float(r["Omega"]): int(float(r.get("segment", 0) or 0)) for r in rows}
-        gaps = []
-        for a, b in zip(rows[:-1], rows[1:]):
-            if seg_of[float(a["Omega"])] != seg_of[float(b["Omega"])]:
-                gaps.append((float(a["Omega"]), float(b["Omega"])))
+        for r in rows:
+            r["seg"] = int(float(r.get("segment", 0) or 0))
+        segs = sorted({r["seg"] for r in rows})
+        rng = {sg: (min(float(r["Omega"]) for r in rows if r["seg"] == sg),
+                    max(float(r["Omega"]) for r in rows if r["seg"] == sg)) for sg in segs}
+        # 相邻两段之间: 间隙 (没有找到同步定态) 或重叠 (两支同步定态并存; 是否双稳看各自的稳定区间)
+        gaps, overlaps = [], []
+        for sg in segs:
+            nb = sg + (1 if sg >= 0 else -1)
+            if sg == 0:
+                pairs = [(0, 1), (0, -1)]
+            else:
+                pairs = [(sg, nb)]
+            for a, b in pairs:
+                if b not in rng:
+                    continue
+                if b > 0:
+                    lo, hi = rng[a][1], rng[b][0]
+                else:
+                    lo, hi = rng[b][1], rng[a][0]
+                (gaps if lo < hi else overlaps).append((min(lo, hi), max(lo, hi)))
         stable_iv, unstable_iv, lock = [], [], None
         for sg in segs:
-            mine = [r for r in rows if seg_of[float(r["Omega"])] == sg]
-            o_lo, o_hi = float(mine[0]["Omega"]), float(mine[-1]["Omega"])
+            mine = [r for r in rows if r["seg"] == sg]
+            o_lo, o_hi = rng[sg]
             sp = [(float(r["Omega"]), float(r["max_growth"]), r) for r in mine if r["spectrum"] == "True"]
             runs = runs_of(sp, tol)
             for k, (st, pts) in enumerate(runs):
@@ -357,16 +409,16 @@ def summarize(out, name, tol, om_lim=(-0.25, 0.2)):
                             if 0 <= k2 < len(runs):
                                 u = max(runs[k2][1], key=lambda t: t[1])[2]
                                 return f"instability (L={u['unstable_L']}, kappa={u['unstable_kappa']})"
-                            if any(abs(edge - g[0 if side > 0 else 1]) < 1e-9 for g in gaps):
-                                return "resonance gap"
                             lim = om_lim[1] if side > 0 else om_lim[0]
-                            return "scan limit" if abs(edge - lim) < 0.011 else "end of branch (fold)"
+                            if abs(edge - lim) < 1e-6:
+                                return "scan limit"
+                            return "fold (branch continues beyond the resonance)" if side in rng else "fold (end of branch)"
                         lock = (lo, why(lo, k - 1, -1), hi, why(hi, k + 1, 1))
                 else:
                     u = max(pts, key=lambda t: t[1])
                     unstable_iv.append((lo, hi, sg, u[1], u[2]["unstable_L"], u[2]["unstable_kappa"], u[2]["unstable_im"]))
         dev = [float(r["r2_ratio"]) / float(r["r2_theory"]) - 1 for r in rows
-               if lock and lock[0] <= float(r["Omega"]) <= lock[2] and abs(float(r["Omega"])) <= 0.1
+               if lock and r["seg"] == 0 and lock[0] <= float(r["Omega"]) <= lock[2] and abs(float(r["Omega"])) <= 0.1
                and r["r2_ratio"] not in ("", "nan") and r["r2_theory"] not in ("", "nan")
                and np.isfinite(float(r["r2_ratio"])) and np.isfinite(float(r["r2_theory"]))]
         summ.append(dict(
@@ -375,9 +427,10 @@ def summarize(out, name, tol, om_lim=(-0.25, 0.2)):
             Omega_lock_min=lock[0] if lock else "", lock_min_reason=lock[1] if lock else "",
             Omega_lock_max=lock[2] if lock else "", lock_max_reason=lock[3] if lock else "",
             resonance_gaps="; ".join(f"{a:+.4f}..{b:+.4f}" for a, b in gaps),
-            stable_intervals="; ".join(f"{a:+.4f}..{b:+.4f}" for a, b, _ in stable_iv),
-            unstable_intervals="; ".join(f"{a:+.4f}..{b:+.4f} (max {g:.2e}, L={L}, kappa={k}, Im={float(im):.3f})"
-                                         for a, b, _, g, L, k, im in unstable_iv),
+            branch_overlaps="; ".join(f"{a:+.4f}..{b:+.4f}" for a, b in overlaps),
+            stable_intervals="; ".join(f"{a:+.4f}..{b:+.4f}[{sg:+d}]" for a, b, sg in stable_iv),
+            unstable_intervals="; ".join(f"{a:+.4f}..{b:+.4f}[{sg:+d}] (max {g:.2e}, L={L}, kappa={k}, Im={float(im):.3f})"
+                                         for a, b, sg, g, L, k, im in unstable_iv),
             n_spectra=sum(1 for r in rows if r["spectrum"] == "True"),
             r2_theory_maxdev_lock=max(np.abs(dev)) if dev else ""))
     io_utils.write_csv(os.path.join(out, f"{name}_summary.csv"), summ)
@@ -390,7 +443,7 @@ def print_summary(summ):
               f"{r['Omega_lock_max']:+.4f} ({r['lock_max_reason']})" if r["Omega_lock_min"] != "" else
               f"Theta={r['Theta']:g}: static state unstable", flush=True)
         print(f"   stable: {r['stable_intervals'] or 'none'}; gaps: {r['resonance_gaps'] or 'none'}; "
-              f"unstable: {r['unstable_intervals'] or 'none'}", flush=True)
+              f"two branches: {r['branch_overlaps'] or 'none'}; unstable: {r['unstable_intervals'] or 'none'}", flush=True)
 
 
 def main():

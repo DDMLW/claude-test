@@ -235,7 +235,7 @@ python hpc/status.py
 汇总（p5_final）：`hq_omega`、`hq_omega_h0075` 的 `control_runs.csv`（`--table_only`），E5e 的 `e5e_n2_m2_U15_summary.csv`。
 **上传**：`results/E5_thermal_reconfiguration/{hq,hq_omega,hq_omega_h0075}`（`hq` 中新增 `e5e_*`、`fields/`）、`results/E2_transmutation_atlas/hq/fields/`
 中新增或更新的文件与日志，并在 Progress.md §6 记录运行情况。自查（写进 §6.1，不要求下结论）：
-* `hq/e5e_n2_m2_U15_summary.csv`：每个 Θ 的 `Omega_lock_min/max` 及原因、`resonance_gaps`、`unstable_intervals`；与第四轮 E5b 的锁定区间
+* `hq/e5e_n2_m2_U15_summary.csv`：每个 Θ 的 `Omega_lock_min/max` 及原因、`resonance_gaps`、`branch_overlaps`、`stable_intervals`/`unstable_intervals`（`lo..hi[段号]`）；与第四轮 E5b 的锁定区间
   （Θ=0.25：−0.2…0.10；0.5：−0.2…0.06 但 0.03 失锁；0.75：−0.1…0.01；1：−0.05…0.01）比较；`r2_theory_maxdev_lock`；
 * `hq_omega_h0075/control_runs.csv` 的 `locked` 与 `hq_omega` 同一 (Θ, Ω) 是否一致；`hq_omega` 加密点的 `locked`；
 * `hq/fields/` 与 `E2_transmutation_atlas/hq/fields/index.csv` 的文件数（E5d 6 个；E2c 应为 36 × 3 = 108 行，缺的 (样品, m) 记下来）。
