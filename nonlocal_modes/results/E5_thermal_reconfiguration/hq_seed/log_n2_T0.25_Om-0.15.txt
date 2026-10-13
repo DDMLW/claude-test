@@ -1,0 +1,20 @@
+
+===== E5_thermal_reconfiguration  tag=hq_seed  profile=hq  h=0.1 (large samples 0.15)  newton tol=1e-12  dz=0.01  2026-10-13 20:26:58 =====
+results -> /public/home/liuxiuye/nonlocal_modes/results/E5_thermal_reconfiguration/hq_seed
+raw data -> /public/home/liuxiuye/nonlocal_modes/data/E5_thermal_reconfiguration/hq_seed
+computing the start state (Theta=0 -> Theta by parameter continuation) ...
+  initial solve at b=3.000 (guess width 2.00): converged, its=4
+   param continuation: value 0.015625 reached (b=2.2854, 3 Newton its)
+   param continuation: value 0.03125 reached (b=2.2854, 2 Newton its)
+   param continuation: value 0.0625 reached (b=2.2854, 2 Newton its)
+   param continuation: value 0.09375 reached (b=2.2855, 3 Newton its)
+   param continuation: value 0.125 reached (b=2.2856, 3 Newton its)
+   param continuation: value 0.15625 reached (b=2.2857, 3 Newton its)
+   param continuation: value 0.1875 reached (b=2.2859, 3 Newton its)
+   param continuation: value 0.21875 reached (b=2.2860, 3 Newton its)
+   param continuation: value 0.25 reached (b=2.2862, 3 Newton its)
+start state: b=2.2862, central (small circle) +0, satellites 2 at r=0.460, power fraction at r > R/2: 3.9e-03, outer singularities 0
+C_2-breaking seed: start state shifted by dx = 0.001
+  rotate_Om-0.15: final central charge +0.00, non-mu weight 5.7e-07 -> 3.0e-02; locked=False, rho=0.0788, core change at xi=546.5, slip at xi=329.5, co-rotation , C_n-breaking growth 1.345e-02  [1939s]
+
+E5b done.
