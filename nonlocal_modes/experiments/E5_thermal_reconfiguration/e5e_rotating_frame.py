@@ -31,7 +31,7 @@ E5e —— 旋转坐标系中的双涡旋: 与旋转加热图样同步转动的�
                                           (--table_only 由各 Theta 的 _branch.csv 重建)
 运行:
   python e5e_rotating_frame.py --quick                                  (约 3 分钟; h=0.4 只检查流程)
-  python e5e_rotating_frame.py --hq --thetas 0.5 --job T0.5              (单核约 2-4 h; 超算按 Theta 拆分, 见 hpc/make_jobs.py)
+  python e5e_rotating_frame.py --hq --thetas 0.5 --job T0.5              (单核约 3-4 h; 超算按 Theta 拆分, 见 hpc/make_jobs.py)
   python e5e_rotating_frame.py --hq --table_only --job summary          (汇总, 几秒)
 """
 

@@ -304,14 +304,28 @@ def main():
               ("unstable", False): (style.PALETTE[1], 3, 0.55, None)}
     used = set()
     for T, iv in sorted(EE.items()):
+        br = e5e_branch(a.e5e_tag or a.tag, T)
         for kind in ("unstable", "stable"):
             for lo, hi, sg in iv[kind]:
                 col, lw, al, lab = styles[(kind, sg == 0)]
-                dy = 0.0 if sg == 0 else (0.035 if kind == "stable" else 0.035)
-                ax.plot([lo, hi], [T + dy, T + dy], "-", color=col, lw=lw, alpha=al, solid_capstyle="butt", zorder=1,
-                        label=None if (lab is None or lab in used) else lab)
-                if lab:
-                    used.add(lab)
+                dy = 0.0 if sg == 0 else 0.035
+                # 只画仍是双涡旋的部分 (r < 2 内找到两个 +1 涡旋, r2 有限); 另一支在 Omega≈0 附近会变成没有涡旋对的四极型态
+                pieces = [(lo, hi)]
+                if br is not None:
+                    sel = (br[2] == sg) & (br[0] >= lo - 1e-9) & (br[0] <= hi + 1e-9)
+                    om, ok = br[0][sel], np.isfinite(br[1][sel])
+                    pieces, start = [], None
+                    for k in range(len(om)):
+                        if ok[k] and start is None:
+                            start = om[k]
+                        if start is not None and (not ok[k] or k == len(om) - 1):
+                            pieces.append((start, om[k] if ok[k] else om[k - 1]))
+                            start = None
+                for p0, p1 in pieces:
+                    ax.plot([p0, p1], [T + dy, T + dy], "-", color=col, lw=lw, alpha=al, solid_capstyle="butt",
+                            zorder=1, label=None if (lab is None or lab in used) else lab)
+                    if lab:
+                        used.add(lab)
     if E is not None:
         ok = E["max_growth"] < 1e-5
         ax.plot(E["omega_m2"][ok] / 2, E["Theta"][ok], "-", color=style.INK, lw=1.1,

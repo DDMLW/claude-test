@@ -176,9 +176,13 @@ quick（h=0.4，ξ=40，约 1 min）：`--quick --n 2 --Theta 0.5 --cases switch
   只在折返点附近两支同时稳定 = 双稳）；不重叠 = 间隙。汇总表给出 `resonance_gaps` 与 `branch_overlaps`，稳定 / 失稳区间带段号 `lo..hi[段]`。共振另一侧的稳定段就是 E5b 中“0.03 失锁、0.04–0.06 又锁定”的理论对应；
 * 定态两个 +1 涡旋的半间距直接给出 r_s²(Ω)/r_s²(0)，检验 ω_rot/(ω_rot − 2Ω)；亮环处谐波比 c_{m−n}/c_m、c_{m−2n}/c_m 记录一阶 / 二阶受迫响应；
 * 反向旋转：quick（h=0.4）中 Θ=0.5 在 Ω≈−0.10 到 −0.18 出现 κ=±1（破坏 C_2 的平移模）的实失稳——E5b 中 Θ ≥ 0.75 反向失锁的候选机理（hq 待定）。
+* **云端 hq 点检（2026-10-13，Θ=0.5，Ω=−0.01…0.045）**：同相双涡旋支在 Ω≈0.021 折返；共振另一侧的一支从 0.045 往回延伸到 −0.009，
+  其 b(Ω) 关于 Ω=0 对称（b=2.3485、角动量 0）——在 Ω=0 处是另一个实的驻波型（四极）定态，转动时获得角动量，Ω≳0.03 时成为双涡旋型。
+  这一支上找不到两个 +1 涡旋的点 r_s 记为 nan，`a7` 只把有涡旋对的稳定段画成可锁定。耗时：牛顿每次迭代约 15 s，延拓 60 min，
+  每个谱点实测 3–6 min（旧的 11 个 shift；现用 3 个 shift，按 h=0.2 实测的 3 倍加速推算约 1.5–2 min），内存 2.2 GB。
 ```bash
 python e5e_rotating_frame.py --quick                                  # 约 2 min (h=0.4, 只检查流程)
-python e5e_rotating_frame.py --hq --thetas 0.5 --job T0.5              # 单核约 2-4 h (超算按 Θ 拆分, 9 个 Θ)
+python e5e_rotating_frame.py --hq --thetas 0.5 --job T0.5              # 单核约 3-4 h (超算按 Θ 拆分, 9 个 Θ)
 python e5e_rotating_frame.py --hq --table_only --job summary          # 汇总 e5e_n2_m2_U15_summary.csv
 ```
 输出：`e5e_n2_m2_U15_T<Θ>_branch.csv`（每个 Ω：分段、b、r_s、r2_ratio、谐波比、增长率与最不稳定模）、`_modes.csv`（全部低频本征值）、
