@@ -1,7 +1,7 @@
 {
-  "time": "2026-10-13T04:26:05",
-  "command": "E5_thermal_reconfiguration/e5d_twin_modes.py --hq --tag hq --table_only --job e5d_table",
-  "git_commit": "079c3d6",
+  "time": "2026-10-13T11:33:48",
+  "command": "E5_thermal_reconfiguration/e5d_twin_modes.py --hq --table_only --job e5d_table",
+  "git_commit": "7897ebb",
   "python": "3.13.16",
   "numpy": "2.5.3",
   "scipy": "1.18.1",
@@ -21,6 +21,7 @@
     "thetas": null,
     "wmax": 0.62,
     "table_only": true,
+    "fields_only": false,
     "profile": "hq",
     "h_large": 0.15,
     "tol": 1e-12,

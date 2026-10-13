@@ -19,6 +19,7 @@
 #     bash hpc/submit_slurm.sh p3          p3_main ──> p3_final
 #     bash hpc/submit_slurm.sh p4          p4_main ──> p4_final      (第四轮, make_jobs.py --phase 4)
 #     bash hpc/submit_slurm.sh p5          p5_main ──> p5_final      (第五轮, make_jobs.py --phase 5)
+#     bash hpc/submit_slurm.sh p6          p6_main ──> p6_final      (第六轮, make_jobs.py --phase 6)
 # ============================================================================
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -39,7 +40,7 @@ submit () {   # submit <list-file> [dependency-spec, 例如 afterany:123:456]
     echo "${jid%%;*}"
 }
 
-if [ "${1:-}" = "p2" ] || [ "${1:-}" = "p3" ] || [ "${1:-}" = "p4" ] || [ "${1:-}" = "p5" ]; then
+if [ "${1:-}" = "p2" ] || [ "${1:-}" = "p3" ] || [ "${1:-}" = "p4" ] || [ "${1:-}" = "p5" ] || [ "${1:-}" = "p6" ]; then
     P=$1; N=${P#p}
     for k in ${P}_main ${P}_final; do
         [ -f "hpc/jobs/$k.txt" ] || { echo "hpc/jobs/$k.txt missing: run python hpc/make_jobs.py --phase $N first"; exit 1; }

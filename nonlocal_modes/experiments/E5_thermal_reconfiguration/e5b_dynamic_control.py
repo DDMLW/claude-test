@@ -35,6 +35,14 @@ rho ≈ 1 且核心区 (r < 1.5) 奇点集合不变、无相位滑移 (展开的
   python e5b_dynamic_control.py --hq --n 2 --Theta 1 --cases none --omegas 0.03 --ramp 100 --zmax 600 \
          --tag hq_omega --job n2_T1_Om+0.03                                    (Omega 扫描的一个任务)
   python e5b_dynamic_control.py --hq --tag hq_omega --table_only               (汇总 control_runs.csv)
+  python e5b_dynamic_control.py --hq --n 2 --Theta 0.75 --cases none --omegas -0.1 --ramp 100 --zmax 600 \
+         --seed_shift 1e-3 --tag hq_seed --job n2_T0.75_Om-0.1                 (C_2 破缺种子, 第六轮)
+
+2026-10-13 C_2 破缺种子 (第五轮分析): E5e 预言反向旋转在 |Omega| ≈ omega_odd 处由破坏 C_2 的平移模 (L=+1, kappa=1) 失稳,
+但本脚本的初态、加热图样与方形网格都精确保持 C_2, kappa=1 的种子只有舍入误差 (~1e-16 的振幅), 传播 600 也放大不起来
+(第四轮 Theta=0.75、Omega=-0.1 在 E5e 失稳区内 (增长率 0.023) 却 "锁定")。--seed_shift DX 把初态沿 x 平移 DX
+(w -> w - DX dw/dx, 正是平移模的形状; 1e-3 对应入射光束 1e-3 的对准误差), 表中另给 gamma_c2: 斜坡之后 C_2 非 mu 权重
+∝ exp(2 gamma xi) 的拟合增长率 (线性段 1e-12 < 权重 < 1e-2), 直接与 E5e 的 max_growth 比较。
 """
 
 import glob
@@ -87,7 +95,9 @@ def following_metrics(tr, n, angle_fn=None, z_from=None, z_avg=0.0, nonmu=None, 
       locked          rho 与 1 相差 < 2%, 且无核心改变、无相位滑移;
       lag_mean/lag_max 展开的滞后 (到核心改变为止);  r2_ratio  斜坡之后到核心改变为止 r_sat^2 的平均 / 起点的值;
       corotation_rate z_from 之后 (关断情形) 取向的平均角速度 = 自由共转角速度;
-      xi_c2           nonmu (C_n 非 mu 权重序列 (z, w)) 第一次超过 1e-3 的 xi (对称性破缺)。
+      xi_c2           nonmu (C_n 非 mu 权重序列 (z, w)) 第一次超过 1e-3 的 xi (对称性破缺);
+      gamma_c2        斜坡之后 (xi >= z_avg + 10) 非 mu 权重在线性段 (1e-12 < w < 1e-2) 内 ∝ exp(2 gamma xi) 的拟合增长率
+                      (少于 5 个点时为空; 与 E5e 同一 (Theta, Omega) 的 max_growth 比较, 需要 --seed_shift 种子)。
     受迫振子图像 (theory.md §5.1): 双涡旋 = 被加热静态驱动的 L=-2 分裂模; 图样以 Omega 旋转时 r2_ratio = omega_rot/(omega_rot - 2 Omega)。
     """
     by_z = {}
@@ -119,10 +129,11 @@ def following_metrics(tr, n, angle_fn=None, z_from=None, z_avg=0.0, nonmu=None, 
     out = dict(n_plus0=c0[0], n_minus0=c0[1], xi_any_change=any_change, xi_core_change=core_change, xi_slip="",
                rho="", locked="", lag_mean="", lag_max="", corotation_rate="", r2_ratio="",
                r_sat_min=min(r for _, r in rsat) if rsat else "", r_sat_max=max(r for _, r in rsat) if rsat else "",
-               xi_c2="")
+               xi_c2="", gamma_c2="")
     if nonmu is not None:
         zc = [z for z, w in nonmu if w > 1e-3]
         out["xi_c2"] = zc[0] if zc else ""
+        out["gamma_c2"] = c2_growth(nonmu, z_avg + 10.0)
     if rsat:
         zr = np.array([z for z, _ in rsat])
         r2 = np.array([r for _, r in rsat]) ** 2
@@ -147,6 +158,22 @@ def following_metrics(tr, n, angle_fn=None, z_from=None, z_avg=0.0, nonmu=None, 
         if sel.sum() > 2:
             out["corotation_rate"] = float(np.polyfit(z_ok[sel], Phi[sel], 1)[0])
     return out
+
+
+def c2_growth(nonmu, z0, lo=1e-12, hi=1e-2):
+    """非 mu 权重 w(xi) ∝ exp(2 gamma xi) 的增长率: 只用 xi >= z0、且第一次超过 hi 之前、w > lo 的点 (线性段)。"""
+    pts = []
+    for z, w in nonmu:
+        if z < z0:
+            continue
+        if w > hi:
+            break
+        if w > lo:
+            pts.append((z, w))
+    if len(pts) < 5:
+        return ""
+    z, w = np.array(pts).T
+    return float(0.5 * np.polyfit(z, np.log(w), 1)[0])
 
 
 def assemble(out):
@@ -201,6 +228,8 @@ def main():
                    help="另加以这些角速度旋转的情形 rotate_Om<+-Omega> (负值 = 反向旋转); 用于临界角速度扫描")
     p.add_argument("--ramp", type=float, default=0.0,
                    help="--omegas 情形的角速度在 [0, ramp] 内线性升到 Omega (默认 0: 突然启动, 与 rotate_slow/fast 相同)")
+    p.add_argument("--seed_shift", type=float, default=0.0,
+                   help="初态沿 x 平移这么多 (C_2 破缺种子 = 平移模 kappa=1 的形状; 默认 0 = 精确保持 C_n 对称)")
     p.add_argument("--table_only", action="store_true", help="不计算, 只由 control*_row.json 重建 control_runs.csv")
     args = finalize_args(p, "E5_thermal_reconfiguration")
     out = args.res_dir
@@ -274,10 +303,16 @@ def main():
         ang = pattern_angle(Om, args.ramp)
         cases[f"rotate_Om{Om:+g}"] = (rotating(ang), ang, Om, args.ramp)
     full_set = args.cases is None and not args.omegas
+    w_start = st3["w"]
+    if args.seed_shift:
+        # 平移 DX: w(x - DX, y) ≈ w - DX dw/dx (一阶; 误差 DX^2 且保持 C_n 对称, 可忽略)
+        dwdx = np.gradient(M0.to_grid(np.asarray(w_start, complex)), h, axis=1)[M0.opt_mask]
+        w_start = w_start - args.seed_shift * dwdx
+        print(f"C_{n}-breaking seed: start state shifted by dx = {args.seed_shift:g}", flush=True)
     summary = []
     snap = list(np.linspace(0, zmax, 6))
     for name, (f, ang, Om, ramp) in cases.items():
-        res = propagate.propagate(M0, st3["w"], zmax, dz=args.dz, diag_every=25, snapshot_zs=snap, nbc_func=f,
+        res = propagate.propagate(M0, w_start, zmax, dz=args.dz, diag_every=25, snapshot_zs=snap, nbc_func=f,
                                   w_ref=st3["w"], nsym=n, track_singularities=True, verbose=False)
         plotting.plot_snapshots(M0, res["snapshots"], os.path.join(out, f"{pre}{name}_snapshots.png"),
                                 zoom=2 * ring + 1, title=name, show_phase=True)
@@ -311,14 +346,15 @@ def main():
                             xi_nonmu_1e3=float(res["z"][np.argmax(nm > 1e-3)]) if (nm > 1e-3).any() else ""))
         fm = following_metrics(tr, n, angle_fn=ang, z_from=(zs + 50.0) if name == "switch_off" else None, z_avg=ramp,
                                nonmu=list(zip(res["z"], nonmu)))
-        row = dict(summary[-1], omega=Om, ramp=ramp, h=h, R=R, b_start=st3["b"],
+        row = dict(summary[-1], omega=Om, ramp=ramp, h=h, R=R, b_start=st3["b"], seed_shift=args.seed_shift,
                    satellite_r_start=row_start["satellite_r_mean"], **fm)
         with open(os.path.join(out, f"{pre}{name}_row.json"), "w", encoding="utf-8") as fh:
             json.dump(row, fh, indent=1, default=io_utils.json_default)
         print(f"  {name}: final central charge {summary[-1]['central_final']:+.2f}, non-mu weight "
               f"{nm[0]:.1e} -> {nm.max():.1e}; locked={fm['locked']}, rho={fm['rho'] if fm['rho'] == '' else round(fm['rho'], 4)}, "
               f"core change at xi={fm['xi_core_change'] or 'never'}, slip at xi={fm['xi_slip'] or 'never'}, "
-              f"co-rotation {fm['corotation_rate'] if fm['corotation_rate'] == '' else round(fm['corotation_rate'], 4)}"
+              f"co-rotation {fm['corotation_rate'] if fm['corotation_rate'] == '' else round(fm['corotation_rate'], 4)}, "
+              f"C_n-breaking growth {fm['gamma_c2'] if fm['gamma_c2'] == '' else '%.3e' % fm['gamma_c2']}"
               f"  [{res['time']:.0f}s]", flush=True)
     if full_set:              # 完整运行时保持原来的汇总文件; 拆分运行用 --table_only 汇总 control_runs.csv
         io_utils.write_csv(os.path.join(out, f"{pre}summary.csv"), summary)

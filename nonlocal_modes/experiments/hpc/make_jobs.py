@@ -32,12 +32,18 @@ make_jobs.py —— 生成超算批量任务清单 (每行一条独立命令, �
   Omega 扫描跟随边界的加密 (h=0.1) 与网格对照 (h=0.075);
   论文场图的导出 (E2c: 由 E2a 的 data/ 裁剪, 秒级; E5d --fields_only: 双涡旋定态场)。
 
+第六轮 (--phase 6, 第五轮分析后, 见 Progress.md §8) 写 p6_main.txt / p6_final.txt:
+  E5e 预言反向旋转在 |Omega| ≈ omega_odd 处由破坏 C_2 的平移模 (kappa=1) 失稳, 而第四/五轮的 E5b 精确保持 C_2、看不到它;
+  这里用 --seed_shift 1e-3 (初态沿 x 平移 1e-3 = 平移模的种子) 在 E5e 稳定 / 失稳区两侧重跑, 比较锁定与 C_2 破缺增长率 gamma_c2
+  (对 E5e 的 max_growth); 另有静态 (Omega=0) 的 Theta=1.1 / 1.2 检验叉式分岔 Theta_c = 1.176 (E5c: 1.2 处 0.02165)。
+
 用法 (在 nonlocal_modes/experiments 目录下):
   python hpc/make_jobs.py                       # 默认 --profile hq (论文数据)
   python hpc/make_jobs.py --phase 2             # 第二轮: 生成 p2_main.txt / p2_final.txt
   python hpc/make_jobs.py --phase 3             # 第三轮: 生成 p3_main.txt / p3_final.txt
   python hpc/make_jobs.py --phase 4             # 第四轮: 生成 p4_main.txt / p4_final.txt
   python hpc/make_jobs.py --phase 5             # 第五轮: 生成 p5_main.txt / p5_final.txt
+  python hpc/make_jobs.py --phase 6             # 第六轮: 生成 p6_main.txt / p6_final.txt
   python hpc/make_jobs.py --profile main        # 普通精度
   python hpc/make_jobs.py --python /path/to/envs/nl/bin/python   # 指定 Python 解释器
   python hpc/make_jobs.py --no_convergence      # 不做粗网格对照
@@ -86,6 +92,14 @@ P5_REFINE = [(0.25, 0.11), (0.5, 0.025), (0.5, 0.035), (0.5, 0.07), (0.75, 0.015
 P5_GRID = [(0.25, 0.10), (0.25, 0.12), (0.5, 0.03), (0.5, 0.06), (0.5, 0.08), (0.75, 0.01), (0.75, 0.02),
            (1.0, -0.05), (1.0, -0.10)]
 P5_E5E_THETAS = [0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1.0, 1.1]
+# ---- 第六轮 (--phase 6): 带 C_2 破缺种子的 E5b (Theta, Omega). 反向旋转: E5e 失稳区 (kappa=1) 内外各取点
+# (Theta=0.25: -0.15 失稳 0.016 / -0.1、-0.2 稳定; 0.5: -0.15 失稳 0.032 / -0.1、-0.05 稳定、-0.2 另一支稳定;
+#  0.75: -0.15、-0.1 失稳 0.046、0.023 / -0.05 稳定; 1.0: -0.075 失稳 0.03 / -0.05 稳定); 同向对照 (0.5, +0.01);
+# 静态 (Omega=0): Theta=1.1 稳定、1.2 失稳 (叉式分岔)
+P6_SEED = [(0.25, -0.2), (0.25, -0.15), (0.25, -0.1), (0.5, -0.2), (0.5, -0.15), (0.5, -0.1), (0.5, -0.05),
+           (0.75, -0.15), (0.75, -0.1), (0.75, -0.05), (1.0, -0.075), (1.0, -0.05), (0.5, 0.01), (1.1, 0.0),
+           (1.2, 0.0)]
+P6_SHIFT = 1e-3
 
 
 def main():
@@ -95,8 +109,8 @@ def main():
     p.add_argument("--python", default="python", help="Python 解释器 (默认 python)")
     p.add_argument("--no_convergence", action="store_true", help="不生成粗网格对照任务")
     p.add_argument("--coarse_factor", type=float, default=1.5, help="对照网格 = 本档网格 x 此因子 (默认 1.5)")
-    p.add_argument("--phase", type=int, choices=[1, 2, 3, 4, 5], default=1,
-                   help="1: 第一轮全部实验 (stage1/stage2/indep/final); 2-5: 第二到第五轮 (p<N>_main/p<N>_final)")
+    p.add_argument("--phase", type=int, choices=[1, 2, 3, 4, 5, 6], default=1,
+                   help="1: 第一轮全部实验 (stage1/stage2/indep/final); 2-6: 第二到第六轮 (p<N>_main/p<N>_final)")
     a = p.parse_args()
     tag = a.tag or a.profile
     coarse = f"{tag}_coarse"
@@ -107,9 +121,10 @@ def main():
         parts = [py, script] + ([flag] if flag else []) + ["--tag", t] + [str(x) for x in extra]
         return " ".join(parts)
 
-    if a.phase in (2, 3, 4, 5):
+    if a.phase in (2, 3, 4, 5, 6):
         lists = {2: lambda: phase2_lists(cmd, tag, py), 3: lambda: phase3_lists(cmd, tag),
-                 4: lambda: phase4_lists(cmd, tag), 5: lambda: phase5_lists(cmd, tag)}[a.phase]()
+                 4: lambda: phase4_lists(cmd, tag), 5: lambda: phase5_lists(cmd, tag),
+                 6: lambda: phase6_lists(cmd, tag)}[a.phase]()
         write_lists(lists, tuple(lists))
         print(f"\nphase {a.phase}, profile={a.profile}, tag={tag}")
         print(f"next: bash hpc/submit_slurm.sh p{a.phase}   (SLURM)   or   "
@@ -320,6 +335,17 @@ def phase5_lists(cmd, tag):
         fin.append(cmd(e5b, "--table_only", "--job", "assemble", t=t))
     fin.append(cmd(e5e, "--table_only", "--job", "e5e_summary"))
     return {"p5_main": main, "p5_final": fin}
+
+
+def phase6_lists(cmd, tag):
+    """第六轮: p6_main (带 C_2 破缺种子的 E5b, 全部独立; 静态的两个最快放最后) 与 p6_final (汇总)。"""
+    e5b = "E5_thermal_reconfiguration/e5b_dynamic_control.py"
+    seed = f"{tag}_seed"
+    # 静态 (Omega=0) 不需要斜坡: --ramp 0 让 gamma_c2 从 xi=10 起拟合 (Theta=1.2 的种子约在 xi≈160 饱和)
+    main = [cmd(e5b, "--n", 2, "--Theta", T, "--cases", "none", "--omegas", Om, "--ramp", 100 if Om else 0, "--zmax", 600,
+                "--seed_shift", P6_SHIFT, "--job", f"n2_T{T:g}_Om{Om:+g}", t=seed) for T, Om in P6_SEED]
+    fin = [cmd(e5b, "--table_only", "--job", "assemble", t=seed)]
+    return {"p6_main": main, "p6_final": fin}
 
 
 if __name__ == "__main__":

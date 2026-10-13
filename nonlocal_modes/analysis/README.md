@@ -16,8 +16,8 @@
 | `a5_grid_convergence.py`（SI） | E3b 四档网格 `e3b_summary.csv` + a4 的 `hh_edge_check.csv` | `triangle_convergence.png/csv` | 三角形 m=2 窗口上端 b_c 与固定 b 处增长率随 h² 的外推；Hamilton-Hopf 端点 Δω_圆盘 = 2g(h) 与实测端点的对照；推出的耦合 g vs h² |
 | `a6_dynamic_window.py`（Fig.5） | E4b 时间序列与汇总表（`hq`、`hq_h005`） | `dynamic_window.png`、`observable_window.csv` | (a) LG 发射后嬗变核 r_s(ξ)；(b) 非 μ 权重：稳定区代数增长（网格强迫）、定态发射与 1% 噪声不增长、失稳区 exp(2γξ)；(c) 可观测窗口 ξ_t50 → ξ_b |
 | `a8_heated_window.py`（SI） | E5c `hq_hib`/`hq` 的 (3:2) 谱、半径 10 圆盘通道谱（`E3_stability/hq_disk10`）、`hq_hib_h0075/e5c_upper_edges.csv` | `heated_window.png/csv`、`heated_window_grid.csv` | C_3 加热 m=2 高 b 窗口 = 圆盘 κ=0 对 L=−3（K+）/L=0（K−）的 Hamilton-Hopf 碰撞：(a) 失稳模频率落在两支之间（≈ 平均 + O(Θ²)）；(b) c = sqrt(γ² + δ²/4)/Θ 对各 Θ 塌缩；(c) 预言的上端 δ(b_up) = 2cΘ（连续曲线）对 E5c 实测，加 h=0.075 的上端与 h² 外推 |
-| `a7_twin_vortex.py`（Fig.6） | E5a `heating_n2_m2.csv`、E5c (2:2)、E5d `e5d_n2_m2_U15_summary.csv` 与 `fields/`、E5b `hq_omega/control_runs.csv` 与 `control_n2_*_tracks.csv`、E4b heat2 | `twin_vortex.png`、`twin_vortex_SI.png`、`twin_vortex_fields.png`、`twin_vortex_summary.csv` | 四极加热双涡旋：(a) r_s ∝ Θ^{1/2}；(b) (Θ, b) 稳定性 + U=15 工作点 + E5d 的 Θ_c；(c) 破坏 C_2 的平移模 ω_odd² 对 Θ 线性 → 叉式分岔 Θ_c=1.176；(d) 跟随相图（Ω, Θ）与一阶 / 二阶共振线，有 E5e 结果时叠加旋转坐标系同步定态的稳定段（同相支蓝、共振另一侧的反相支青）与失稳段；(e) r2_ratio 对零参数理论 ω_rot/(ω_rot − 2Ω)，叠加稳定同步定态的 r2（点线）；(f) 关断后自由共转 = ω_{−2}/2。`--e5e_tag` 可指向其他 tag 的 E5e 结果。SI：LG 发射中的形成、突然启动的滞后、间距；场图：各 Θ 的相位/振幅（`--fields_only` 只画场图） |
-| `a9_atlas_fields.py`（Fig.2） | E2c 导出的 `E2_transmutation_atlas/<tag>/fields/*.npz`、E2a `atlas_table.csv` | `atlas_fields.png` | 嬗变图谱的场图：样品 × 拓扑荷，色相 = 相位、亮度 = sqrt 振幅，±1 奇点、中心荷、未分辨标记 |
+| `a7_twin_vortex.py`（Fig.6） | E5a `heating_n2_m2.csv`、E5c (2:2)、E5d `e5d_n2_m2_U15_summary.csv` 与 `fields/`、E5b `hq_omega/control_runs.csv` 与 `control_n2_*_tracks.csv`、E4b heat2 | `twin_vortex.png`、`twin_vortex_SI.png`、`twin_vortex_fields.png`、`twin_vortex_summary.csv` | 四极加热双涡旋：(a) r_s ∝ Θ^{1/2}；(b) (Θ, b) 稳定性 + U=15 工作点 + E5d 的 Θ_c；(c) 破坏 C_2 的平移模 ω_odd² 对 Θ 线性 → 叉式分岔 Θ_c=1.176；(d) 跟随相图（Ω, Θ）：E5b 传播的锁定 / 失锁点 + 一阶 / 二阶共振线 + Ω = −ω_odd(Θ)（破坏 C_2 的平移模在旋转系中零频），有 E5e 结果时叠加旋转坐标系同步定态的稳定段（同相支蓝、折返另一侧的支绿，上移 0.035）与失稳段（细线）——区间由 `_branch.csv` 按增长率阈值 `G_TH` = 2e-3（e 折长度 500）重建（`e5e_runs`），比汇总表的严格 1e-5 少算 6 个孤立的弱振荡泡；(e) r2_ratio 对零参数理论 ω_rot/(ω_rot − 2Ω)，叠加稳定同步定态的 r2（点线）；(f) 关断后自由共转 = ω_{−2}/2。`--e5e_tag` 可指向其他 tag 的 E5e 结果。SI：LG 发射中的形成、突然启动的滞后、间距；场图：各 Θ 的相位/振幅（`--fields_only` 只画场图） |
+| `a9_atlas_fields.py`（Fig.2） | E2c 导出的 `E2_transmutation_atlas/<tag>/fields/*.npz`、E2a `atlas_table.csv` | `atlas_fields.png` | 嬗变图谱的场图：样品 × 拓扑荷，色相 = 相位、亮度 = sqrt 振幅，±1 奇点、中心荷、未分辨标记；圆盘对照 m ≥ 4 的中心分裂是方形网格自身的 C_4（标 “square-grid C_4”，Progress.md C3） |
 | `fieldplot.py`（公用） | — | — | 场图的读取、HSV 相位-振幅着色（不用本身明暗变化的循环色图）、奇点标记、相位色条 |
 
 运行（在 `nonlocal_modes/analysis/` 下）：
@@ -65,3 +65,8 @@ python a9_atlas_fields.py --b 1.0 # 需要第五轮 E2c 导出的场 (results/E2
   锁定时 r2_ratio 与 ω_rot/(ω_rot − 2Ω) 偏差 ≤ 4%（Θ ≤ 0.5、|Ω| ≤ 0.1、离开二阶共振）；h=0.075 关断共转 0.21904 对 h=0.1 的 0.2191。
 * a8：正式 `hq_disk10` 通道谱与云端版本差 ≤ 4e-12；网格对照 Θ=1/2 的上端 3.359 → 3.431 → 外推 3.524、4.922 → 5.056 → 5.229（+5%/+6%）。
 * a9 / a7 场图：读取第五轮导出的场（E2c、E5d `--fields_only`），quick 数据检查通过（选择定则的中心荷与卫星数逐格正确）。
+
+**第五轮（2026-10-13）的分析结论**（详见 Progress.md C10 与 §6.1“Claude 分析（第五轮）”）：
+* a7 (d)：E5e 9 个 Θ 的同步定态稳定区间（同相支含 Ω=0：Θ=0.125 −0.148…+0.029 → Θ=1.1 −0.043…+0.007）；反向边界与 −ω_odd 线在谱点间隔内重合
+  （κ=1 平移模在旋转系中零频）；E5b 60 个点中 52 个与 E5e 一致，其余 8 个是 C_2 对称传播看不到的 κ=1、弱失稳或斜坡到不了的稳定态（第六轮加种子检验）。
+* a9：Fig.2 用 108 个 hq 场重画（b≈1 的 36 格）；a7 场图用 6 个 hq 场重画。

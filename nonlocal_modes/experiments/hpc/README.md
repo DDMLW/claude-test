@@ -239,3 +239,27 @@ python hpc/status.py
   （Θ=0.25：−0.2…0.10；0.5：−0.2…0.06 但 0.03 失锁；0.75：−0.1…0.01；1：−0.05…0.01）比较；`r2_theory_maxdev_lock`；
 * `hq_omega_h0075/control_runs.csv` 的 `locked` 与 `hq_omega` 同一 (Θ, Ω) 是否一致；`hq_omega` 加密点的 `locked`；
 * `hq/fields/` 与 `E2_transmutation_atlas/hq/fields/index.csv` 的文件数（E5d 6 个；E2c 应为 36 × 3 = 108 行，缺的 (样品, m) 记下来）。
+
+## 11. 第六轮（phase 6，2026-10-13）：带 C_2 破缺种子的跟随检验（+ 师弟的文献调研）
+第五轮的分析与第六轮的理由见 `Progress.md` §3 C10、§5-21/22、§6.1“Claude 分析（第五轮）”与 §8、`docs/theory.md` §5.1 第 7 条：
+E5e 预言反向旋转在 |Ω| ≈ ω_odd 处由破坏 C_2 的平移模（κ=1）失稳，但前几轮的 E5b 精确保持 C_2，看不到它。本轮给初态一个 1e-3 的平移
+（`--seed_shift 1e-3`，正是平移模的形状），在 κ=1 失稳带内外重跑，并用 `gamma_c2`（C_2 非 μ 权重的指数增长率）与 E5e 的增长率逐点比较。
+**本轮没有改核心包**（单元测试仍为 32 passed）。共 **15 个计算任务 + 1 个汇总任务**，全部互相独立；**文献调研是本轮的主要任务**（`docs/literature_task.md`）。
+```bash
+cd nonlocal_modes/experiments
+git pull && python -m pytest -q ../tests        # 应为 32 passed
+python hpc/make_jobs.py --phase 6                # 生成 hpc/jobs/p6_main.txt (15) 与 p6_final.txt (1)
+bash hpc/submit_slurm.sh p6                      # PBS: qsub -J 1-15 -v LIST=hpc/jobs/p6_main.txt hpc/pbs_array.sh, 结束后 p6_final
+python hpc/status.py
+```
+| 任务 | 数量 | 内容 | 单核耗时（估） |
+|---|---|---|---|
+| E5b 反向旋转 + 种子（`hq_seed`） | 12 | (Θ, Ω) = (0.25, −0.2/−0.15/−0.1)、(0.5, −0.2/−0.15/−0.1/−0.05)、(0.75, −0.15/−0.1/−0.05)、(1, −0.075/−0.05)，斜坡 100、传播到 600 | 与第四轮 Ω 扫描相同，约 1–5 h；内存 ≤ 2 GB |
+| E5b 同向对照 + 种子 | 1 | (0.5, +0.01)：种子在同向锁定区内不应引起失锁 | 同上 |
+| E5b 静态 + 种子 | 2 | Θ=1.1 / 1.2、Ω=0（`--ramp 0`）：叉式分岔两侧，Θ=1.2 的 `gamma_c2` 应 ≈ E5c 的 0.02165 | 同上 |
+
+汇总（p6_final）：`hq_seed/control_runs.csv`（`--table_only`，含 `seed_shift`、`gamma_c2`）。
+**上传**：只 `git add nonlocal_modes/results/E5_thermal_reconfiguration/hq_seed Progress.md`——**不要整目录同步，不要覆盖其他 tag 的表**
+（第五轮的上传把云端重建过的两个汇总表换回了旧版本，`Progress.md` §5-21）。自查（写进 §6.1，不要求下结论）：
+* 每个 (Θ, Ω) 的 `locked`、`gamma_c2`、`xi_c2`、`xi_slip`；
+* `gamma_c2` 与 `hq/e5e_n2_m2_U15_T<Θ>_branch.csv` 中同一 Ω 的 `max_growth`（段 0；Θ=0.5、Ω=−0.2 用段 −1）列成一张表；Θ=1.2 对 E5c 的 0.02165。

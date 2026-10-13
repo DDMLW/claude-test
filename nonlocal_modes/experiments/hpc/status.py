@@ -13,7 +13,7 @@ import os
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 LISTS = ("stage1", "indep", "stage2", "final", "p2_main", "p2_final", "p3_main", "p3_final",
-         "p4_main", "p4_final", "p5_main", "p5_final")  # 不存在的自动跳过
+         "p4_main", "p4_final", "p5_main", "p5_final", "p6_main", "p6_final")  # 不存在的自动跳过
 
 
 def main():

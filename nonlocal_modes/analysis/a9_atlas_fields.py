@@ -5,7 +5,8 @@ a9_atlas_fields.py —— 拓扑荷嬗变图谱的场图 (论文 Fig.2)
 与 E2a 的 atlas_table.csv (卫星环是否可分辨), 画 样品 x 拓扑荷 的图谱:
   每格: 色相 = 相位 (HSV), 亮度 = sqrt(|psi| / max|psi|) (暗区也能看到相位结构);
         白圈 = +1、黑圈 = -1 单位奇点 (方格法, 中心 1.25h 以外); 左上角 = 中心荷 (0.5h 圆周绕数);
-        卫星环 < 2h (未分辨, atlas_table 的 resolved=False) 的格子右下角标 "unresolved"。
+        卫星环 < 2h (未分辨, atlas_table 的 resolved=False) 的格子右下角标 "unresolved";
+        圆盘对照 m>=4 的分裂来自方形网格自身的 C_4 (中心荷 m-4, Progress.md C3), 右下角标 "square-grid C_4"。
 输出: results/analysis/<tag>/atlas_fields.png
 运行:  python a9_atlas_fields.py [--tag hq] [--b 1.0]      (先在超算上运行 E2c 导出场)
 """
@@ -77,6 +78,10 @@ def main():
                     fontsize=8, color="white")
             if resolved.get((kind, m)) is False:
                 ax.text(0.96, 0.04, "unresolved", transform=ax.transAxes, ha="right", va="bottom", fontsize=6,
+                        color="white")
+            elif kind == "disk" and central != m:
+                # 圆盘对照 m>=4: 方形网格自身的 C_4 诱导的分裂 (中心荷 m-4, r~0.3; Progress.md C3、§5-1)
+                ax.text(0.96, 0.04, "square-grid C_4", transform=ax.transAxes, ha="right", va="bottom", fontsize=6,
                         color="white")
     fieldplot.phase_bar(fig.add_subplot(gs[nr, (nc - 1) // 2]))
     fig.suptitle(f"hue = phase, brightness = sqrt(amplitude) at b ~ {a.b:g}\nwhite/black circles: +1/-1 "

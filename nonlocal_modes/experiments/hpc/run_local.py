@@ -11,7 +11,7 @@ run_local.py —— 没有作业调度系统 (SLURM/PBS) 时, 在一台多核服
   nohup python hpc/run_local.py -n 32 > hpc/logs/run_local.out 2>&1 &     # 后台运行, 断开 ssh 也不停
   python hpc/run_local.py -n 8 --list stage2 --only 3 7     # 只重跑某个清单的第 3、7 行 (status.py 会给出命令)
   第二轮 (make_jobs.py --phase 2 之后):  nohup python hpc/run_local.py -n 32 --phase 2 > hpc/logs/run_local_p2.out 2>&1 &
-  (先运行 p2_main 的全部任务, 结束后运行 p2_final); 第三轮、第四轮同理用 --phase 3 / --phase 4
+  (先运行 p2_main 的全部任务, 结束后运行 p2_final); 第三到第六轮同理用 --phase 3 … --phase 6
 注意: -n 不要超过物理核数; 每个任务最多约 6 GB 内存 (多数 1-2 GB), n x 内存不能超过机器内存。
 """
 
@@ -25,7 +25,7 @@ from concurrent.futures import ThreadPoolExecutor, wait
 HERE = os.path.dirname(os.path.abspath(__file__))
 EXP = os.path.dirname(HERE)
 LISTS = ("stage1", "indep", "stage2", "final", "p2_main", "p2_final", "p3_main", "p3_final", "p4_main", "p4_final",
-         "p5_main", "p5_final")
+         "p5_main", "p5_final", "p6_main", "p6_final")
 
 
 def run_one(name, idx, cmd):
@@ -73,8 +73,8 @@ def main():
     p.add_argument("-n", type=int, default=max(1, (os.cpu_count() or 2) - 1), help="同时运行的任务数")
     p.add_argument("--list", choices=LISTS, default=None, help="只运行这一个清单 (配合 --only 重跑失败的行)")
     p.add_argument("--only", nargs="+", type=int, default=None, help="只运行这些行号 (从 1 开始)")
-    p.add_argument("--phase", type=int, choices=[1, 2, 3, 4, 5], default=1,
-                   help="2 / 3 / 4: 第二轮 (p2_main -> p2_final) / 第三轮 (p3_main -> p3_final) / 第四轮 (p4_main -> p4_final)")
+    p.add_argument("--phase", type=int, choices=[1, 2, 3, 4, 5, 6], default=1,
+                   help="2-6: 第二到第六轮 (先 p<N>_main 的全部任务, 结束后 p<N>_final)")
     a = p.parse_args()
     os.makedirs(os.path.join(HERE, "logs"), exist_ok=True)
     with ThreadPoolExecutor(max_workers=a.n) as ex:
@@ -82,7 +82,7 @@ def main():
             futs = submit(ex, a.list, a.only)
             wait([f for _, _, f in futs])
             report(futs)
-        elif a.phase in (2, 3, 4, 5):
+        elif a.phase in (2, 3, 4, 5, 6):
             fm = submit(ex, f"p{a.phase}_main")
             wait([f for _, _, f in fm])
             report(fm)

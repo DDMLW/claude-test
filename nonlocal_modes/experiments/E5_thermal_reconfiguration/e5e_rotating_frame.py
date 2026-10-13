@@ -217,6 +217,20 @@ def theory_r2(Om, w_rot):
     return w_rot / (w_rot - 2 * Om) if w_rot and np.isfinite(w_rot) else float("nan")
 
 
+def e5d_omega_rot(out, name, T):
+    """同一 tag 下 E5d 汇总表中按频率连续追踪的转动/分裂模 omega_rot(Theta) (线性插值); 没有时返回 nan。
+    强加热 (Theta >= 0.875) 时这支模的主谐波改变、L 标签变成 -4, 按 L=-2 标签挑会取到另一支 (0.82, E5d 第四轮同一问题),
+    所以优先用 E5d 的追踪结果。"""
+    f = os.path.join(out, name.replace("e5e_", "e5d_") + "_summary.csv")
+    if not os.path.exists(f):
+        return float("nan")
+    rows = sorted(((float(r["Theta"]), float(r["omega_m2"])) for r in io_utils.read_csv(f)
+                   if r.get("omega_m2") not in ("", None)), key=lambda t: t[0])
+    if not rows or not rows[0][0] - 1e-9 <= T <= rows[-1][0] + 1e-9:
+        return float("nan")
+    return float(np.interp(T, [t for t, _ in rows], [w for _, w in rows]))
+
+
 def split_mode_frequency(modes0):
     """Omega=0 处转动/分裂模 omega_rot: L=-2、Krein + 的最低稳定支 (与 E5d 的连续追踪起点相同; 强加热时标签可能变成 -4,
     此时退回 kappa=0、Krein + 的最低支)。"""
@@ -294,7 +308,9 @@ def run_theta(args, T, Mt, st, name, out):
                 for i in grid:
                     if a < i < b:
                         spectrum_at(i)
-    w_rot = split_mode_frequency([r for r in modes if r["Omega"] == 0.0 and r["segment"] == 0])
+    w_rot = e5d_omega_rot(out, name, T)
+    if not np.isfinite(w_rot):
+        w_rot = split_mode_frequency([r for r in modes if r["Omega"] == 0.0 and r["segment"] == 0])
     for row in rows:
         row["r2_theory"] = theory_r2(row["Omega"], w_rot)
         row["omega_rot0"] = w_rot
@@ -366,7 +382,8 @@ def plot_theta(rows, modes, T, w_rot, fn, tol):
 
 
 def replot(out, name, tol):
-    """由已有的 _branch.csv / _modes.csv 重算 omega_rot 与 r2_theory、重写 _branch.csv 并重画各 Theta 的诊断图 (不重算)。
+    """由已有的 _branch.csv / _modes.csv 重算 omega_rot (优先取同一 tag 下 E5d 的连续追踪值) 与 r2_theory、重写 _branch.csv
+    并重画各 Theta 的诊断图 (不重算)。
     2026-10-13 之前写的 _modes.csv 没有 segment 列, 此时把 Omega=0 的模全部当作第 0 段 (可能混入另一支的模)。"""
     for f in sorted(glob.glob(os.path.join(out, f"{name}_T*_branch.csv"))):
         stem = f[:-len("_branch.csv")]
@@ -386,12 +403,14 @@ def replot(out, name, tol):
                 d["segment"] = int(float(r.get("segment", 0) or 0))
                 if d["lam_re"] >= -1e-7:
                     modes.append(d)
-        w_rot = split_mode_frequency([r for r in modes if r["Omega"] == 0.0 and r["segment"] == 0])
+        T = rows[0]["Theta"]
+        w_rot = e5d_omega_rot(out, name, T)
+        if not np.isfinite(w_rot):
+            w_rot = split_mode_frequency([r for r in modes if r["Omega"] == 0.0 and r["segment"] == 0])
         for r in rows:
             r["r2_theory"] = theory_r2(r["Omega"], w_rot)
             r["omega_rot0"] = w_rot
         io_utils.write_csv(f, rows)
-        T = rows[0]["Theta"]
         plot_theta(rows, modes, T, w_rot, stem + ".png", tol)
         print(f"Theta={T:g}: replotted ({len(rows)} points, {len(modes)} modes, omega_rot={w_rot:.4f})")
 

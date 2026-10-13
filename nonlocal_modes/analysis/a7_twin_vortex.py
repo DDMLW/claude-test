@@ -15,8 +15,9 @@ Fig.6 (twin_vortex.png):
   (a) r_s vs Theta: 渐近 r_s ∝ Theta^(1/2) (牛顿多边形: n=2, m=2)
   (b) (Theta, b) 稳定性: 失稳窗口 + U=15 工作点 (稳定 / 失稳) + E5d 的 Theta_c
   (c) U=15 处破坏 C_2 的平移模: omega_odd^2 (失稳后为 -gamma^2) 对 Theta 线性 -> 叉式分岔 Theta_c
-  (d) 跟随相图 (Omega, Theta): 锁定 / 失锁, 与受迫分裂模的一阶共振 omega_rot/2、二阶共振 omega_4/4 对照;
-      有 E5e 结果时加上旋转坐标系同步定态的稳定段 / 失稳段 (理论边界, 半透明横条)
+  (d) 跟随相图 (Omega, Theta): E5b 传播的锁定 / 失锁, 与受迫分裂模的一阶共振 omega_rot/2、二阶共振 omega_4/4、
+      破坏 C_2 的平移模在旋转系中零频的 Omega = -omega_odd 对照; 有 E5e 结果时加上旋转坐标系同步定态的稳定段 (宽带) / 失稳段 (细线),
+      区间由 E5e 分支表按增长率阈值 G_TH 重建 (e5e_runs)
   (e) 锁定时卫星半径平方的放大 r2_ratio 对零参数理论 omega_rot / (omega_rot - 2 Omega); 有 E5e 时加同步定态的 r2 (点线)
   (f) 关断后的自由共转: 角速度 = 圆盘 L=-2 分裂模频率的一半
 SI (twin_vortex_SI.png): LG 发射中的形成、第三轮突然启动的取向滞后、关断前后的间距
@@ -45,6 +46,9 @@ R_SAMPLE = 10.0          # E5 圆盘半径
 RHO_CHANNELS = 8.0       # E3b 通道谱所用圆盘半径 (标度律 b -> b R^2, lambda -> lambda R^2 换算到 R=10)
 H_GRID = 0.1
 OMEGA = {"rotate_slow": 0.005, "rotate_fast": 0.05}   # e5b_dynamic_control.py 中的图样角速度 (hq)
+# Fig.6(d)(e) 中 E5e 同步定态算作 "稳定" 的增长率上限: e 折长度 1/G_TH = 500, 与 E5b 斜坡后的保持段 (600 - 100) 相当;
+# 更弱的孤立振荡失稳 (<= 1.8e-3) 在任何实际样品长度上都看不到
+G_TH = 2e-3
 
 
 def fnum(v):
@@ -102,19 +106,44 @@ def free_rotation_rate(b_disk):
     return w, 0.5 * w
 
 
-def e5e_intervals(tag):
-    """E5e 汇总表: {Theta: dict(stable=[(lo, hi, 段)], unstable=[(lo, hi, 段)])}; 段 0 = 从静态双涡旋连续延拓的同相支,
-    其余 = 共振另一侧的反相支。没有时返回 {}。"""
-    import re
-    f = e5_file(tag, "e5e_n2_m2_U15_summary.csv")
+def e5e_thetas(tag):
+    """有 E5e 分支表的 Theta (升序)。"""
+    fs = glob.glob(e5_file(tag, "e5e_n2_m2_U15_T*_branch.csv"))
+    return sorted(float(os.path.basename(f)[len("e5e_n2_m2_U15_T"):-len("_branch.csv")]) for f in fs)
+
+
+def e5e_runs(tag, T, g_th=G_TH):
+    """由 E5e 分支表中算过谱的点重建每段的稳定 / 失稳区间 [(lo, hi, 段, 稳定?)]: 稳定 = 最大增长率 < g_th。
+    相邻两点类别不同时以中点为界; 只保留仍是双涡旋 (r < 2 内找到两个 +1 涡旋, r2 有限) 的点 —— 另一支在 Omega≈0
+    附近会变成没有涡旋对的四极型态。段 0 = 从静态双涡旋连续延拓的同相支, +-1 = 越过共振 / 折叠后的另一支。
+    E5e 汇总表的区间用严格的 1e-5 判据, 与本函数的差别只在几处孤立的弱振荡失稳点 (Progress.md §6.1 第五轮)。"""
+    f = e5_file(tag, f"e5e_n2_m2_U15_T{T:g}_branch.csv")
     if not os.path.exists(f):
-        return {}
-    pat = r"([+-]?\d*\.?\d+)\.\.([+-]?\d*\.?\d+)(?:\[([+-]?\d+)\])?"
-    out = {}
-    for r in io_utils.read_csv(f):
-        iv = {k: [(float(a), float(b), int(c or 0)) for a, b, c in re.findall(pat, r.get(f"{k}_intervals", "") or "")]
-              for k in ("stable", "unstable")}
-        out[fnum(r["Theta"])] = iv
+        return []
+    rows = [r for r in io_utils.read_csv(f) if r.get("spectrum") == "True"]
+    out = []
+    for sg in sorted({int(fnum(r["segment"])) for r in rows}):
+        pts = sorted((fnum(r["Omega"]), fnum(r["max_growth"]) < g_th, np.isfinite(fnum(r["r2_ratio"])))
+                     for r in rows if int(fnum(r["segment"])) == sg)
+        cur = None
+        for om, st, ok in pts:
+            if not ok:
+                if cur is not None:
+                    out.append(tuple(cur))
+                    cur = None
+                continue
+            if cur is not None and cur[3] == st:
+                cur[1] = om
+                continue
+            if cur is not None:
+                mid = 0.5 * (cur[1] + om)
+                cur[1] = mid
+                out.append(tuple(cur))
+                cur = [mid, om, sg, st]
+            else:
+                cur = [om, om, sg, st]
+        if cur is not None:
+            out.append(tuple(cur))
     return out
 
 
@@ -290,56 +319,51 @@ def main():
     ax = axs[1, 0]
     scan = e5_file(f"{a.tag}_omega", "control_runs.csv")
     runs = [r for r in io_utils.read_csv(scan) if r["case"].startswith("rotate_Om")] if os.path.exists(scan) else []
-    for lab, sel, mk, col in (("locked (rho = 1, core intact)", True, "o", style.PALETTE[0]),
-                              ("lock lost (phase slip or core change)", False, "X", style.PALETTE[1])):
+    # E5e: 旋转坐标系中同步定态的稳定段 / 失稳段 (第五轮); 段 0 画在 Theta 处, 越过共振 / 折叠的另一支上移 0.035
+    tag_e = a.e5e_tag or a.tag
+    EE = {T: e5e_runs(tag_e, T) for T in e5e_thetas(tag_e)}
+    labs = {(True, True): "E5e: stable, in-phase branch",
+            (True, False): "E5e: stable, branch beyond a fold",
+            (False, True): "E5e: unstable (growth > %g)" % G_TH}
+    used = set()
+    for T, rr in sorted(EE.items()):
+        for lo, hi, sg, st in sorted(rr, key=lambda t: t[3]):        # 先画失稳 (细线), 再画稳定 (宽带)
+            col = style.PALETTE[0] if (st and sg == 0) else (style.PALETTE[2] if st else style.PALETTE[1])
+            lab = labs.get((st, sg == 0) if st else (False, True))
+            dy = 0.0 if sg == 0 else 0.035
+            ax.plot([lo, hi], [T + dy, T + dy], "-", color=col, lw=6.5 if st else 1.6, alpha=0.38 if st else 0.9,
+                    solid_capstyle="butt", zorder=1, label=None if lab in used else lab)
+            used.add(lab)
+        st0 = [(lo, hi) for lo, hi, sg, st in rr if st and sg == 0 and lo <= 0.0 <= hi]
+        if st0:
+            summary[f"e5e_inphase_stable_T{T:g}"] = "%.4f..%.4f" % st0[0]
+    for lab, sel, mk, col in (("E5b: locked", True, "o", style.PALETTE[0]),
+                              ("E5b: lock lost", False, "X", style.PALETTE[1])):
         pts = [(fnum(r["omega"]), fnum(r["Theta"])) for r in runs if (r["locked"] == "True") == sel]
         if pts:
-            ax.plot([q[0] for q in pts], [q[1] for q in pts], mk, ms=7 if mk == "o" else 8, color=col, mec=col,
-                    ls="none", label=lab)
-    # E5e: 旋转坐标系中同步定态的稳定段 / 失稳段 (理论边界; 第五轮)
-    EE = e5e_intervals(a.e5e_tag or a.tag)
-    styles = {("stable", True): (style.PALETTE[0], 7, 0.30, "co-rotating state stable (in-phase branch, E5e)"),
-              ("stable", False): (style.PALETTE[2], 7, 0.30, "stable beyond a resonance (anti-phase branch, E5e)"),
-              ("unstable", True): (style.PALETTE[1], 3, 0.55, "co-rotating state unstable (E5e)"),
-              ("unstable", False): (style.PALETTE[1], 3, 0.55, None)}
-    used = set()
-    for T, iv in sorted(EE.items()):
-        br = e5e_branch(a.e5e_tag or a.tag, T)
-        for kind in ("unstable", "stable"):
-            for lo, hi, sg in iv[kind]:
-                col, lw, al, lab = styles[(kind, sg == 0)]
-                dy = 0.0 if sg == 0 else 0.035
-                # 只画仍是双涡旋的部分 (r < 2 内找到两个 +1 涡旋, r2 有限); 另一支在 Omega≈0 附近会变成没有涡旋对的四极型态
-                pieces = [(lo, hi)]
-                if br is not None:
-                    sel = (br[2] == sg) & (br[0] >= lo - 1e-9) & (br[0] <= hi + 1e-9)
-                    om, ok = br[0][sel], np.isfinite(br[1][sel])
-                    pieces, start = [], None
-                    for k in range(len(om)):
-                        if ok[k] and start is None:
-                            start = om[k]
-                        if start is not None and (not ok[k] or k == len(om) - 1):
-                            pieces.append((start, om[k] if ok[k] else om[k - 1]))
-                            start = None
-                for p0, p1 in pieces:
-                    ax.plot([p0, p1], [T + dy, T + dy], "-", color=col, lw=lw, alpha=al, solid_capstyle="butt",
-                            zorder=1, label=None if (lab is None or lab in used) else lab)
-                    if lab:
-                        used.add(lab)
+            ax.plot([q[0] for q in pts], [q[1] for q in pts], mk, ms=6 if mk == "o" else 7, color=col, mec="white",
+                    mew=0.6, ls="none", label=lab, zorder=3)
     if E is not None:
         ok = E["max_growth"] < 1e-5
         ax.plot(E["omega_m2"][ok] / 2, E["Theta"][ok], "-", color=style.INK, lw=1.1,
-                label="1st-order resonance omega_rot/2")
+                label="omega_rot / 2  (1st-order resonance)")
         ax.plot(E["omega_m4"][ok] / 4, E["Theta"][ok], "--", color=style.INK, lw=1.1,
-                label="2nd-order resonance omega_4/4 (coupling ~ Theta^2)")
-        # 反向旋转的失锁 (Theta >= 0.75) 与 C_2 破缺的软模 (omega_odd <= 0.09) 同量级, 但 Theta <= 0.5 时 |Omega| > omega_odd
-        # 仍锁定 -> 没有简单的 |Omega| = omega_odd 判据, 不画线 (Progress.md C10)
-    ax.set_xlim(-0.22, 0.17)
-    ax.set_ylim(0, 1.62)
+                label="omega_4 / 4  (2nd-order resonance)")
+        # 反向旋转: 破坏 C_2 的平移模 (L=+1, kappa=1) 在旋转坐标系中的频率 omega_odd + Omega 在 Omega = -omega_odd 处
+        # 过零 -> 实特征值失稳 (E5e 第五轮); omega_odd^2 对 Theta 线性 (面板 c), 用同一拟合画平滑曲线
+        cf = np.polyfit(E["Theta"][ok], E["omega_odd"][ok] ** 2, 1)
+        tt = np.linspace(0.0, -cf[1] / cf[0], 200)
+        ax.plot(-np.sqrt(np.clip(np.polyval(cf, tt), 0, None)), tt, "-.", color=style.INK, lw=1.1,
+                label="-omega_odd  (C_2-odd mode at zero freq.)")
+    ax.set_xlim(-0.255, 0.168)
+    ax.set_ylim(0.03, 1.72)
+    if EE:
+        ax.set_yticks(sorted(EE))
+        ax.set_yticklabels([f"{T:g}" for T in sorted(EE)], fontsize=7)
     ax.set_xlabel("pattern angular velocity  Omega   (>0: co-rotating with the free pair)")
     ax.set_ylabel("quadrupole heating amplitude  Theta")
-    ax.set_title("(d) following map of the rotating pattern (ramped)", loc="left")
-    ax.legend(loc="upper left", fontsize=6.8, ncol=1)
+    ax.set_title("(d) locking map: propagation vs. rotating-frame states", loc="left")
+    ax.legend(loc="upper center", fontsize=6.4, ncol=2, columnspacing=1.2, handlelength=2.4, borderaxespad=0.4)
     if runs:
         for T in sorted({fnum(r["Theta"]) for r in runs}):
             lk = [fnum(r["omega"]) for r in runs if fnum(r["Theta"]) == T and r["locked"] == "True"]
@@ -359,12 +383,11 @@ def main():
                     color=st["color"], mfc="none", mec=st["color"], ls="none")
         br = e5e_branch(a.e5e_tag or a.tag, T)
         if br is not None:
-            # 只画稳定的同步定态 (E5e 汇总表中该段的稳定区间内)
-            stab = EE.get(T, {}).get("stable", [])
+            # 只画稳定的同步定态 (与面板 d 相同的阈值 G_TH)
             for sg in np.unique(br[2]):
                 ok = np.zeros(len(br[0]), bool)
-                for lo, hi, s2 in stab:
-                    if s2 == sg:
+                for lo, hi, s2, st2 in EE.get(T, []):
+                    if st2 and s2 == sg:
                         ok |= (br[0] >= lo - 1e-9) & (br[0] <= hi + 1e-9)
                 sel = (br[2] == sg) & np.isfinite(br[1]) & ok
                 ax.plot(br[0][sel], br[1][sel], ":", color=st["color"], lw=1.4)

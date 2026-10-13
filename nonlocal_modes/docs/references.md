@@ -4,6 +4,7 @@
 > 标注“待核对”的卷/页码/作者请在写论文前用 Google Scholar / Web of Science 逐条核对。
 > 投稿前必须再做一次系统检索（尤其是 2024–2026 年“热介质 + 多边形/离散对称 + 涡旋”的新工作），
 > 可用本仓库的 paper-search-pro skill（需在云环境设置里开放学术网站的网络权限，见仓库根目录 README）。
+> **2026-10-13 起投稿前文献调研由师弟负责**，任务书见 [`literature_task.md`](literature_task.md)（核对本文件全部条目、新增 G 节、写 `literature_review.md` 与 `../paper/refs.bib`）。
 
 ## A. 导师的直接相关工作（本课题的出发点）
 1. F. Ye, Y. V. Kartashov, L. Torner, "Nonlocal surface dipoles and vortices," Phys. Rev. A 77, 033829 (2008)（卷页待核对）. arXiv:0802.2521 — E0c 复现对象
